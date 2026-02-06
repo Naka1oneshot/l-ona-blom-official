@@ -20,12 +20,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(prev => {
       const existing = prev.find(i => i.product.id === product.id && i.size === options?.size && i.color === options?.color);
       if (existing) {
+        const newQty = existing.quantity + 1;
+        if (product.stock_qty != null && newQty > product.stock_qty) return prev;
         return prev.map(i =>
           i.product.id === product.id && i.size === options?.size && i.color === options?.color
-            ? { ...i, quantity: i.quantity + 1 }
+            ? { ...i, quantity: newQty }
             : i
         );
       }
+      if (product.stock_qty != null && product.stock_qty <= 0) return prev;
       return [...prev, { product, quantity: 1, ...options }];
     });
   }, []);
@@ -39,7 +42,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem(productId);
       return;
     }
-    setItems(prev => prev.map(i => i.product.id === productId ? { ...i, quantity: qty } : i));
+    setItems(prev => prev.map(i => {
+      if (i.product.id !== productId) return i;
+      if (i.product.stock_qty != null && qty > i.product.stock_qty) return i;
+      return { ...i, quantity: qty };
+    }));
   }, [removeItem]);
 
   const clearCart = useCallback(() => setItems([]), []);
