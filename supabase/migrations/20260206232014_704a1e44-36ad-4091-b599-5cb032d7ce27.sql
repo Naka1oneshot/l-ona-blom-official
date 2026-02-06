@@ -1,0 +1,1 @@
+ALTER TABLE public.collections ADD COLUMN cover_video text NULL DEFAULT '';

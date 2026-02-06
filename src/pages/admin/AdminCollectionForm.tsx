@@ -21,6 +21,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
     narrative_fr: collection?.narrative_fr || '',
     narrative_en: collection?.narrative_en || '',
     cover_image: collection?.cover_image || '',
+    cover_video: collection?.cover_video || '',
     gallery_images: collection?.gallery_images || [],
     tags: (collection?.tags || []).join(', '),
     published_at: collection?.published_at ? new Date(collection.published_at).toISOString().slice(0, 10) : '',
@@ -39,6 +40,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
       narrative_fr: form.narrative_fr,
       narrative_en: form.narrative_en,
       cover_image: form.cover_image,
+      cover_video: form.cover_video,
       gallery_images: form.gallery_images,
       tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
       published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
@@ -73,6 +75,19 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
           label="Image de couverture"
           folder="collections"
         />
+
+        <div>
+          <label className={labelClass}>Vidéo de couverture (URL)</label>
+          <input
+            value={form.cover_video}
+            onChange={e => set('cover_video', e.target.value)}
+            className={inputClass}
+            placeholder="https://… .mp4"
+          />
+          {form.cover_video && (
+            <video src={form.cover_video} className="mt-2 w-48 h-auto border border-border" muted autoPlay loop playsInline />
+          )}
+        </div>
 
         <MultiImageUpload
           value={form.gallery_images}

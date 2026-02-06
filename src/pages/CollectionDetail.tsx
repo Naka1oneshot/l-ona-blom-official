@@ -17,6 +17,7 @@ interface CollectionRow {
   narrative_fr: string | null;
   narrative_en: string | null;
   cover_image: string | null;
+  cover_video: string | null;
   gallery_images: string[] | null;
 }
 
@@ -65,57 +66,66 @@ const CollectionDetail = () => {
 
   return (
     <div className="pt-20 md:pt-24">
-      {/* Cover */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          <EditableDBImage
+      {/* Video Hero */}
+      <section className="relative w-full overflow-hidden">
+        <AdminEditButton
+          to={`/admin/collections?edit=${collection.id}`}
+          className="absolute top-6 right-6 z-20"
+        />
+        {collection.cover_video ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 1.03 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }}
+            className="w-full"
+          >
+            <video
+              src={collection.cover_video}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-auto max-h-[85vh] object-cover"
+            />
+          </motion.div>
+        ) : collection.cover_image ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 1.08 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }}
+            className="w-full h-[60vh]"
+          >
+            <img src={collection.cover_image} alt={title} className="w-full h-full object-cover" />
+          </motion.div>
+        ) : null}
+      </section>
+
+      {/* Title */}
+      <section className="luxury-container py-12 md:py-20 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+        >
+          <EditableDBField
             table="collections"
             id={collection.id}
-            field="cover_image"
-            value={collection.cover_image}
-            onSaved={(url) => setCollection(c => c ? { ...c, cover_image: url } : c)}
-            alt={title}
-            className="w-full h-full object-cover"
-            folder="collections"
+            field={titleField}
+            value={title}
+            onSaved={(v) => setCollection(c => c ? { ...c, [titleField]: v } : c)}
+            as="h1"
+            className="text-display text-4xl md:text-6xl tracking-[0.15em] mb-4"
           />
-          <div className="absolute inset-0 bg-foreground/40" />
-        </div>
-        <div className="relative z-10 text-center text-background px-6">
-          <AdminEditButton
-            to={`/admin/collections?edit=${collection.id}`}
-            className="absolute top-4 right-4"
+          <EditableDBField
+            table="collections"
+            id={collection.id}
+            field={subtitleField}
+            value={subtitle}
+            onSaved={(v) => setCollection(c => c ? { ...c, [subtitleField]: v } : c)}
+            as="p"
+            className="text-sm font-body tracking-[0.1em] text-muted-foreground"
           />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <EditableDBField
-              table="collections"
-              id={collection.id}
-              field={titleField}
-              value={title}
-              onSaved={(v) => setCollection(c => c ? { ...c, [titleField]: v } : c)}
-              as="h1"
-              className="text-display text-4xl md:text-6xl tracking-[0.15em] mb-4"
-            />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
-            <EditableDBField
-              table="collections"
-              id={collection.id}
-              field={subtitleField}
-              value={subtitle}
-              onSaved={(v) => setCollection(c => c ? { ...c, [subtitleField]: v } : c)}
-              as="p"
-              className="text-sm font-body tracking-[0.1em] opacity-70"
-            />
-          </motion.div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Narrative */}
