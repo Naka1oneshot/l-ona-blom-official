@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Camera, Loader2 } from 'lucide-react';
@@ -74,12 +75,26 @@ const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 
   };
 
   if (!src) {
-    return <div className="absolute inset-0 bg-foreground/60" />;
+    return (
+      <div className="absolute inset-0 bg-foreground/60">
+        <div className="absolute inset-0 bg-gradient-to-b from-foreground/20 via-transparent to-foreground/40" />
+      </div>
+    );
   }
 
   return (
-    <div className="absolute inset-0">
-      <img src={src} alt={alt} className={className} />
+    <div className="absolute inset-0 overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={src}
+          src={src}
+          alt={alt}
+          className={className}
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.8, ease: [0.25, 0.1, 0.25, 1] }}
+        />
+      </AnimatePresence>
       {isAdmin && (
         <>
           <button
