@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
+import Header from '@/components/layout/Header';
 import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard } from 'lucide-react';
 
 const navItems = [
@@ -17,6 +18,8 @@ const AdminLayout = () => {
   const location = useLocation();
 
   return (
+    <>
+    <Header />
     <div className="pt-16 md:pt-20 min-h-screen flex">
       {/* Sidebar */}
       <aside className="w-56 border-r border-border bg-sidebar-background hidden md:block fixed top-16 md:top-20 bottom-0 overflow-y-auto">
@@ -71,6 +74,7 @@ const AdminLayout = () => {
         <Outlet />
       </main>
     </div>
+    </>
   );
 };
 
