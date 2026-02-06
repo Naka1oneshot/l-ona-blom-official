@@ -83,6 +83,50 @@ export const ImageUpload = ({ value, onChange, label = 'Image', folder = 'upload
   );
 };
 
+export const VideoUpload = ({ value, onChange, label = 'Vidéo', folder = 'uploads' }: ImageUploadProps) => {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadFile(file, folder);
+    if (url) onChange(url);
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
+      {value ? (
+        <div className="relative inline-block">
+          <video src={value} className="w-48 h-auto border border-border" muted autoPlay loop playsInline />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-2 border border-dashed border-border px-4 py-3 text-sm font-body text-muted-foreground hover:border-primary hover:text-foreground transition-colors"
+        >
+          {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+          {uploading ? 'Envoi en cours…' : 'Importer une vidéo'}
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept="video/*" className="hidden" onChange={handleFile} />
+    </div>
+  );
+};
+
 export const MultiImageUpload = ({ value, onChange, label = 'Images', folder = 'uploads' }: MultiImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
