@@ -33,6 +33,8 @@ serve(async (req) => {
       .map(([key, value]) => `[${key}]: ${value}`)
       .join("\n\n");
 
+    const fieldNames = entries.map(([k]) => k.replace('_fr', '_en'));
+    
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -44,41 +46,12 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a professional translator for a luxury fashion brand called LÉONA BLOM. Translate the following French texts to English. Maintain the elegant, refined tone appropriate for high-end fashion. Preserve line breaks and formatting.
+            content: `You are a professional translator for a luxury fashion brand called LÉONA BLOM. Translate French texts to English. Maintain an elegant, refined tone. Preserve line breaks.
 
-Return ONLY a valid JSON object where each key is the original field name with "_fr" replaced by "_en", and the value is the English translation. No markdown, no code blocks, just the JSON object.
-
-Example input:
-[title_fr]: Robe Longue en Soie
-[description_fr]: Une pièce exceptionnelle
-
-Example output:
-{"title_en":"Long Silk Dress","description_en":"An exceptional piece"}`,
+You MUST respond with ONLY a raw JSON object (no markdown, no code blocks). The JSON keys must be exactly: ${JSON.stringify(fieldNames)}`,
           },
           { role: "user", content: prompt },
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "return_translations",
-              description: "Return the translated texts",
-              parameters: {
-                type: "object",
-                properties: {
-                  translations: {
-                    type: "object",
-                    description: "Object mapping EN field names to their translated values",
-                    additionalProperties: { type: "string" },
-                  },
-                },
-                required: ["translations"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "return_translations" } },
       }),
     });
 
@@ -101,12 +74,15 @@ Example output:
     }
 
     const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    const content = data.choices?.[0]?.message?.content || "";
+    console.log("AI content:", content.slice(0, 300));
+    
     let translations: Record<string, string> = {};
-
-    if (toolCall?.function?.arguments) {
-      const parsed = JSON.parse(toolCall.function.arguments);
-      translations = parsed.translations || parsed;
+    try {
+      const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      translations = JSON.parse(cleaned);
+    } catch {
+      console.error("Could not parse:", content.slice(0, 200));
     }
 
     return new Response(JSON.stringify({ translations }), {
