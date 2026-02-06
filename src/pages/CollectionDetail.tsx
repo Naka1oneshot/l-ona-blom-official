@@ -130,7 +130,7 @@ const CollectionDetail = () => {
 
       {/* Narrative */}
       {narrative && (
-        <section className="luxury-container luxury-section max-w-3xl mx-auto">
+        <section className="luxury-container pt-0 pb-12 md:pb-16 max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
