@@ -99,6 +99,30 @@ const translations: Record<Language, TranslationKeys> = {
     // FAQ
     'faq.title': 'Questions Fréquentes',
 
+    // Auth
+    'auth.login': 'Connexion',
+    'auth.signup': 'Inscription',
+    'auth.logout': 'Déconnexion',
+    'auth.email': 'Email',
+    'auth.password': 'Mot de passe',
+    'auth.first_name': 'Prénom',
+    'auth.last_name': 'Nom',
+    'auth.error': 'Erreur. Vérifiez vos identifiants.',
+    'auth.welcome': 'Bienvenue !',
+    'auth.check_email': 'Vérifiez votre email pour confirmer votre inscription.',
+    'auth.no_account': 'Pas encore de compte ?',
+    'auth.has_account': 'Déjà un compte ?',
+
+    // Account
+    'account.profile': 'Profil',
+    'account.orders': 'Mes Commandes',
+    'account.no_orders': 'Aucune commande pour le moment.',
+    'account.edit': 'Modifier',
+    'account.save': 'Enregistrer',
+    'account.cancel': 'Annuler',
+    'account.saved': 'Profil mis à jour.',
+    'account.phone': 'Téléphone',
+
     // Footer
     'footer.rights': 'Tous droits réservés.',
     'footer.legal': 'Mentions légales',
@@ -204,6 +228,30 @@ const translations: Record<Language, TranslationKeys> = {
 
     // FAQ
     'faq.title': 'Frequently Asked Questions',
+
+    // Auth
+    'auth.login': 'Log In',
+    'auth.signup': 'Sign Up',
+    'auth.logout': 'Log Out',
+    'auth.email': 'Email',
+    'auth.password': 'Password',
+    'auth.first_name': 'First Name',
+    'auth.last_name': 'Last Name',
+    'auth.error': 'Error. Please check your credentials.',
+    'auth.welcome': 'Welcome!',
+    'auth.check_email': 'Check your email to confirm your registration.',
+    'auth.no_account': "Don't have an account?",
+    'auth.has_account': 'Already have an account?',
+
+    // Account
+    'account.profile': 'Profile',
+    'account.orders': 'My Orders',
+    'account.no_orders': 'No orders yet.',
+    'account.edit': 'Edit',
+    'account.save': 'Save',
+    'account.cancel': 'Cancel',
+    'account.saved': 'Profile updated.',
+    'account.phone': 'Phone',
 
     // Footer
     'footer.rights': 'All rights reserved.',

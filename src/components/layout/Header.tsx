@@ -3,13 +3,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Language, Currency } from '@/types';
-import { ShoppingBag, Menu, X, Globe, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Menu, X, Globe, ChevronDown, User } from 'lucide-react';
 
 const Header = () => {
   const { language, setLanguage, t } = useLanguage();
   const { currency, setCurrency } = useCurrency();
   const { totalItems } = useCart();
+  const { user, isAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const location = useLocation();
@@ -30,11 +32,7 @@ const Header = () => {
       <div className="luxury-container">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Mobile menu */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 -ml-2"
-            aria-label="Menu"
-          >
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 -ml-2" aria-label="Menu">
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
@@ -46,13 +44,7 @@ const Header = () => {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map(link => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="luxury-link text-xs tracking-[0.15em] uppercase font-body"
-              >
-                {link.label}
-              </Link>
+              <Link key={link.to} to={link.to} className="luxury-link text-xs tracking-[0.15em] uppercase font-body">{link.label}</Link>
             ))}
           </nav>
 
@@ -60,10 +52,7 @@ const Header = () => {
           <div className="flex items-center gap-4">
             {/* Language/Currency selector */}
             <div className="relative">
-              <button
-                onClick={() => setSettingsOpen(!settingsOpen)}
-                className="flex items-center gap-1 text-xs tracking-wider uppercase font-body"
-              >
+              <button onClick={() => setSettingsOpen(!settingsOpen)} className="flex items-center gap-1 text-xs tracking-wider uppercase font-body">
                 <Globe size={14} />
                 <span className="hidden sm:inline">{language.toUpperCase()} / {currency}</span>
                 <ChevronDown size={12} />
@@ -74,13 +63,7 @@ const Header = () => {
                     <p className="text-[10px] tracking-[0.2em] uppercase mb-2 opacity-50">{t('general.language')}</p>
                     <div className="flex gap-2">
                       {(['fr', 'en'] as Language[]).map(l => (
-                        <button
-                          key={l}
-                          onClick={() => { setLanguage(l); setSettingsOpen(false); }}
-                          className={`text-xs tracking-wider uppercase px-2 py-1 border ${language === l ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                        >
-                          {l.toUpperCase()}
-                        </button>
+                        <button key={l} onClick={() => { setLanguage(l); setSettingsOpen(false); }} className={`text-xs tracking-wider uppercase px-2 py-1 border ${language === l ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}`}>{l.toUpperCase()}</button>
                       ))}
                     </div>
                   </div>
@@ -88,19 +71,18 @@ const Header = () => {
                     <p className="text-[10px] tracking-[0.2em] uppercase mb-2 opacity-50">{t('general.currency')}</p>
                     <div className="flex flex-wrap gap-2">
                       {(['EUR', 'USD', 'GBP', 'CAD'] as Currency[]).map(c => (
-                        <button
-                          key={c}
-                          onClick={() => { setCurrency(c); setSettingsOpen(false); }}
-                          className={`text-xs tracking-wider px-2 py-1 border ${currency === c ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                        >
-                          {c}
-                        </button>
+                        <button key={c} onClick={() => { setCurrency(c); setSettingsOpen(false); }} className={`text-xs tracking-wider px-2 py-1 border ${currency === c ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}`}>{c}</button>
                       ))}
                     </div>
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Account */}
+            <Link to={user ? '/compte' : '/connexion'} className="p-2">
+              <User size={18} />
+            </Link>
 
             {/* Cart */}
             <Link to="/panier" className="relative p-2 -mr-2">
@@ -120,15 +102,11 @@ const Header = () => {
         <nav className={`md:hidden border-t ${isDark ? 'border-background/10 bg-foreground' : 'border-foreground/10 bg-background'}`}>
           <div className="luxury-container py-6 flex flex-col gap-4">
             {navLinks.map(link => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setMobileOpen(false)}
-                className="text-sm tracking-[0.15em] uppercase font-body"
-              >
-                {link.label}
-              </Link>
+              <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className="text-sm tracking-[0.15em] uppercase font-body">{link.label}</Link>
             ))}
+            <Link to={user ? '/compte' : '/connexion'} onClick={() => setMobileOpen(false)} className="text-sm tracking-[0.15em] uppercase font-body">
+              {user ? t('nav.account') : t('auth.login')}
+            </Link>
           </div>
         </nav>
       )}

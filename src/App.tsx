@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/layout/Layout";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
@@ -16,38 +18,66 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import Cart from "./pages/Cart";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Account from "./pages/Account";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminCollections from "./pages/admin/AdminCollections";
+import AdminOrders from "./pages/admin/AdminOrders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <CurrencyProvider>
-        <CartProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Layout>
+    <AuthProvider>
+      <LanguageProvider>
+        <CurrencyProvider>
+          <CartProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
                 <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/boutique" element={<Shop />} />
-                  <Route path="/boutique/:slug" element={<ProductDetail />} />
-                  <Route path="/collections" element={<Collections />} />
-                  <Route path="/collections/:slug" element={<CollectionDetail />} />
-                  <Route path="/a-propos" element={<About />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/panier" element={<Cart />} />
-                  <Route path="*" element={<NotFound />} />
+                  {/* Admin routes */}
+                  <Route path="/admin" element={
+                    <ProtectedRoute requireAdmin>
+                      <Layout><AdminLayout /></Layout>
+                    </ProtectedRoute>
+                  }>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="produits" element={<AdminProducts />} />
+                    <Route path="collections" element={<AdminCollections />} />
+                    <Route path="commandes" element={<AdminOrders />} />
+                  </Route>
+
+                  {/* Public & customer routes */}
+                  <Route path="/" element={<Layout><Index /></Layout>} />
+                  <Route path="/boutique" element={<Layout><Shop /></Layout>} />
+                  <Route path="/boutique/:slug" element={<Layout><ProductDetail /></Layout>} />
+                  <Route path="/collections" element={<Layout><Collections /></Layout>} />
+                  <Route path="/collections/:slug" element={<Layout><CollectionDetail /></Layout>} />
+                  <Route path="/a-propos" element={<Layout><About /></Layout>} />
+                  <Route path="/contact" element={<Layout><Contact /></Layout>} />
+                  <Route path="/faq" element={<Layout><FAQ /></Layout>} />
+                  <Route path="/panier" element={<Layout><Cart /></Layout>} />
+                  <Route path="/connexion" element={<Layout><Login /></Layout>} />
+                  <Route path="/inscription" element={<Layout><Signup /></Layout>} />
+                  <Route path="/compte" element={
+                    <Layout>
+                      <ProtectedRoute><Account /></ProtectedRoute>
+                    </Layout>
+                  } />
+                  <Route path="*" element={<Layout><NotFound /></Layout>} />
                 </Routes>
-              </Layout>
-            </BrowserRouter>
-          </TooltipProvider>
-        </CartProvider>
-      </CurrencyProvider>
-    </LanguageProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </CartProvider>
+        </CurrencyProvider>
+      </LanguageProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
