@@ -67,23 +67,18 @@ const CollectionsDropdown = ({ className, onNavigate }: CollectionsDropdownProps
 
       {open && (
         <div className="fixed left-0 right-0 top-16 md:top-20 z-50 bg-background border-b border-foreground/10 shadow-lg">
-          <div className="luxury-container py-8">
-            <div
-              className="grid gap-6"
-              style={{
-                gridTemplateColumns: `repeat(${Math.min(collections.length, 4)}, 1fr)`,
-              }}
-            >
+          <div className="luxury-container py-6">
+            <div className="flex gap-8 overflow-x-auto">
               {collections.map((col) => {
                 const title = language === 'fr' ? col.title_fr : col.title_en;
                 return (
                   <Link
                     key={col.id}
                     to={`/collections/${col.slug}`}
-                    className="group block"
+                    className="group flex-shrink-0 w-44"
                     onClick={handleClick}
                   >
-                    <div className="aspect-[3/4] overflow-hidden bg-secondary mb-3">
+                    <div className="aspect-[4/5] overflow-hidden bg-secondary mb-2">
                       {col.cover_image ? (
                         <img
                           src={col.cover_image}
@@ -95,7 +90,7 @@ const CollectionsDropdown = ({ className, onNavigate }: CollectionsDropdownProps
                         <div className="w-full h-full bg-muted" />
                       )}
                     </div>
-                    <p className="text-xs tracking-[0.15em] uppercase font-body text-foreground group-hover:text-primary transition-colors">
+                    <p className="text-[11px] tracking-[0.12em] uppercase font-body text-foreground group-hover:text-primary transition-colors">
                       {title}
                     </p>
                   </Link>
