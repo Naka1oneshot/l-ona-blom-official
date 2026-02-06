@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { mockProducts, mockCollections } from '@/lib/mockData';
+import { fetchFeaturedProducts } from '@/lib/products';
+import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import SEOHead from '@/components/SEOHead';
 import EditableText from '@/components/EditableText';
@@ -11,7 +12,11 @@ import heroImage from '@/assets/hero-home.jpg';
 
 const Index = () => {
   const { language, t } = useLanguage();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
 
+  useEffect(() => {
+    fetchFeaturedProducts(3).then(setFeaturedProducts);
+  }, []);
   return (
     <div>
       <SEOHead />
@@ -142,7 +147,7 @@ const Index = () => {
         >
           <h2 className="text-display text-3xl md:text-4xl text-center mb-16">{t('home.featured')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {mockProducts.map((product, i) => (
+            {featuredProducts.map((product, i) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 30 }}

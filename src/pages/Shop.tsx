@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { mockProducts } from '@/lib/mockData';
+import { fetchProducts } from '@/lib/products';
+import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 
 const categories = ['all', 'dresses', 'sets', 'tops', 'skirts', 'pants', 'accessories'] as const;
@@ -18,10 +19,16 @@ const categoryKeys: Record<string, string> = {
 const Shop = () => {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('all');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProducts().then(p => { setProducts(p); setLoading(false); });
+  }, []);
 
   const filtered = activeCategory === 'all'
-    ? mockProducts
-    : mockProducts.filter(p => p.category === activeCategory);
+    ? products
+    : products.filter(p => p.category === activeCategory);
 
   return (
     <div className="pt-20 md:pt-24">
@@ -50,24 +57,32 @@ const Shop = () => {
             ))}
           </div>
 
-          {/* Product Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-            {filtered.map((product, i) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
-              >
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+            </div>
+          ) : (
+            <>
+              {/* Product Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+                {filtered.map((product, i) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                  >
+                    <ProductCard product={product} />
+                  </motion.div>
+                ))}
+              </div>
 
-          {filtered.length === 0 && (
-            <p className="text-center text-muted-foreground font-body py-20">
-              {activeCategory !== 'all' ? 'Aucun produit dans cette catégorie.' : ''}
-            </p>
+              {filtered.length === 0 && (
+                <p className="text-center text-muted-foreground font-body py-20">
+                  {activeCategory !== 'all' ? 'Aucun produit dans cette catégorie.' : 'Aucun produit pour le moment.'}
+                </p>
+              )}
+            </>
           )}
         </motion.div>
       </section>

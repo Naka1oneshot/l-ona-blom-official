@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
-import { mockProducts } from '@/lib/mockData';
+import { fetchProductBySlug } from '@/lib/products';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
 import MeasurementForm from '@/components/MeasurementForm';
 import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBImage from '@/components/EditableDBImage';
-import { MeasurementData } from '@/types';
+import EditableDBField from '@/components/EditableDBField';
+import { Product, MeasurementData } from '@/types';
 
 const emptyMeasurements: MeasurementData = {
   bust: '', waist: '', hips: '', shoulder_width: '', arm_length: '', total_length: '', notes: '',
@@ -22,13 +23,27 @@ const ProductDetail = () => {
   const { formatPrice } = useCurrency();
   const { addItem } = useCart();
 
-  const product = mockProducts.find(p => p.slug === slug);
-
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedBraiding, setSelectedBraiding] = useState('');
   const [activeImage, setActiveImage] = useState(0);
   const [measurements, setMeasurements] = useState<MeasurementData>(emptyMeasurements);
+
+  useEffect(() => {
+    if (slug) {
+      fetchProductBySlug(slug).then(p => { setProduct(p); setLoading(false); });
+    }
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="pt-20 min-h-screen flex items-center justify-center">
+        <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -39,6 +54,9 @@ const ProductDetail = () => {
     );
   }
 
+  const nameField = language === 'fr' ? 'name_fr' : 'name_en';
+  const descField = language === 'fr' ? 'description_fr' : 'description_en';
+  const storyField = language === 'fr' ? 'story_fr' : 'story_en';
   const name = language === 'fr' ? product.name_fr : product.name_en;
   const description = language === 'fr' ? product.description_fr : product.description_en;
   const story = language === 'fr' ? product.story_fr : product.story_en;
@@ -96,7 +114,7 @@ const ProductDetail = () => {
                 onSaved={(url) => {
                   const newImages = [...product.images];
                   newImages[activeImage] = url;
-                  product.images = newImages;
+                  setProduct(p => p ? { ...p, images: newImages } : p);
                 }}
                 alt={name}
                 className="w-full h-full object-cover"
@@ -126,7 +144,15 @@ const ProductDetail = () => {
             className="flex flex-col"
           >
             <div className="flex items-start justify-between gap-4">
-              <h1 className="text-display text-3xl md:text-4xl mb-4">{name}</h1>
+              <EditableDBField
+                table="products"
+                id={product.id}
+                field={nameField}
+                value={name}
+                onSaved={(v) => setProduct(p => p ? { ...p, [nameField]: v } : p)}
+                as="h1"
+                className="text-display text-3xl md:text-4xl mb-4"
+              />
               <AdminEditButton to={`/admin/produits?edit=${product.id}`} />
             </div>
             <p className="text-xl font-body mb-6">
@@ -150,7 +176,16 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">{description}</p>
+            <EditableDBField
+              table="products"
+              id={product.id}
+              field={descField}
+              value={description}
+              onSaved={(v) => setProduct(p => p ? { ...p, [descField]: v } : p)}
+              as="p"
+              className="text-sm font-body text-muted-foreground leading-relaxed mb-8"
+              multiline
+            />
 
             {/* Size */}
             {product.sizes.length > 0 && (
@@ -234,7 +269,16 @@ const ProductDetail = () => {
             {/* Story */}
             <div className="mt-12 pt-8 border-t border-foreground/10">
               <h3 className="text-display text-xl mb-4">{t('product.story')}</h3>
-              <p className="text-sm font-body text-muted-foreground leading-relaxed">{story}</p>
+              <EditableDBField
+                table="products"
+                id={product.id}
+                field={storyField}
+                value={story}
+                onSaved={(v) => setProduct(p => p ? { ...p, [storyField]: v } : p)}
+                as="p"
+                className="text-sm font-body text-muted-foreground leading-relaxed"
+                multiline
+              />
             </div>
 
             {/* Materials */}
