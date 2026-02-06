@@ -6,7 +6,6 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Language, Currency } from '@/types';
 import { ShoppingBag, Menu, X, Globe, ChevronDown, User } from 'lucide-react';
-import CollectionsDropdown from './CollectionsDropdown';
 
 const Header = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -44,17 +43,9 @@ const Header = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map(link =>
-              link.to === '/collections' ? (
-                <CollectionsDropdown
-                  key={link.to}
-                  label={link.label}
-                  className="luxury-link text-xs tracking-[0.15em] uppercase font-body cursor-pointer"
-                />
-              ) : (
-                <Link key={link.to} to={link.to} className="luxury-link text-xs tracking-[0.15em] uppercase font-body">{link.label}</Link>
-              )
-            )}
+            {navLinks.map(link => (
+              <Link key={link.to} to={link.to} className="luxury-link text-xs tracking-[0.15em] uppercase font-body">{link.label}</Link>
+            ))}
           </nav>
 
           {/* Right actions */}
