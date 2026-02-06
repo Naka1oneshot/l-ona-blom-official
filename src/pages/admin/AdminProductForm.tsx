@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import { MultiImageUpload } from '@/components/admin/ImageUpload';
+import TranslateButton from '@/components/admin/TranslateButton';
 
 interface Props {
   product?: any;
@@ -125,6 +126,17 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
             </select>
           </div>
         </div>
+
+        <TranslateButton
+          frFields={{
+            name_fr: form.name_fr,
+            description_fr: form.description_fr,
+            story_fr: form.story_fr,
+            materials_fr: form.materials_fr,
+            care_fr: form.care_fr,
+          }}
+          onTranslated={(t) => setForm(p => ({ ...p, ...t }))}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Nom FR</label><input value={form.name_fr} onChange={e => set('name_fr', e.target.value)} className={inputClass} required /></div>
