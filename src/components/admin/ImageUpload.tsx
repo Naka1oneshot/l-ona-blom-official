@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Upload, X, Loader2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ImageUploadProps {
@@ -149,12 +149,34 @@ export const MultiImageUpload = ({ value, onChange, label = 'Images', folder = '
     onChange(value.filter((_, i) => i !== index));
   };
 
-  const move = (from: number, to: number) => {
-    if (to < 0 || to >= value.length) return;
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDragIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setOverIndex(index);
+  };
+
+  const handleDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === toIndex) return;
     const arr = [...value];
-    const [item] = arr.splice(from, 1);
-    arr.splice(to, 0, item);
+    const [item] = arr.splice(dragIndex, 1);
+    arr.splice(toIndex, 0, item);
     onChange(arr);
+    setDragIndex(null);
+    setOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setOverIndex(null);
   };
 
   return (
@@ -162,28 +184,25 @@ export const MultiImageUpload = ({ value, onChange, label = 'Images', folder = '
       <label className={labelClass}>{label}</label>
       <div className="flex flex-wrap gap-3 mb-2">
         {value.map((url, i) => (
-          <div key={i} className="relative group">
+          <div
+            key={url + i}
+            draggable
+            onDragStart={(e) => handleDragStart(e, i)}
+            onDragOver={(e) => handleDragOver(e, i)}
+            onDrop={(e) => handleDrop(e, i)}
+            onDragEnd={handleDragEnd}
+            className={`relative group cursor-grab active:cursor-grabbing transition-all ${
+              dragIndex === i ? 'opacity-40 scale-95' : ''
+            } ${overIndex === i && dragIndex !== i ? 'ring-2 ring-primary' : ''}`}
+          >
             <div className="relative">
               <img src={url} alt="" className="w-24 h-24 object-cover border border-border" />
-              <div className="absolute bottom-0 inset-x-0 flex justify-center gap-0.5 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  type="button"
-                  onClick={() => move(i, i - 1)}
-                  disabled={i === 0}
-                  className="p-0.5 text-foreground disabled:text-muted-foreground/30"
-                >
-                  <ChevronLeft size={14} />
-                </button>
-                <span className="text-[9px] font-body self-center text-muted-foreground">{i + 1}</span>
-                <button
-                  type="button"
-                  onClick={() => move(i, i + 1)}
-                  disabled={i === value.length - 1}
-                  className="p-0.5 text-foreground disabled:text-muted-foreground/30"
-                >
-                  <ChevronRight size={14} />
-                </button>
+              <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <GripVertical size={14} className="text-white drop-shadow-md" />
               </div>
+              <span className="absolute bottom-1 left-1 text-[9px] font-body text-white bg-black/50 px-1 rounded">
+                {i + 1}
+              </span>
             </div>
             <button
               type="button"
