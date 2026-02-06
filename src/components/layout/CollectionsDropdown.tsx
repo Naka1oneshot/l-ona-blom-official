@@ -65,7 +65,9 @@ const CollectionsDropdown = ({ className, onNavigate }: CollectionsDropdownProps
       </Link>
 
       {open && (
-        <div className="fixed left-0 right-0 top-16 md:top-20 z-50 bg-background border-b border-foreground/10 shadow-lg">
+        <div className="fixed left-0 right-0 top-16 md:top-20 z-50 border-b border-white/10 shadow-2xl"
+          style={{ background: 'linear-gradient(135deg, #981D70 0%, #6e1550 50%, #981D70 100%)' }}
+        >
           <div className="luxury-container py-6">
             <div className="flex gap-8 overflow-x-auto">
               {collections.map((col) => {
@@ -89,7 +91,7 @@ const CollectionsDropdown = ({ className, onNavigate }: CollectionsDropdownProps
                         <div className="w-full h-full bg-muted" />
                       )}
                     </div>
-                    <p className="text-[11px] tracking-[0.12em] uppercase font-body text-foreground group-hover:text-primary transition-colors">
+                    <p className="text-[11px] tracking-[0.12em] uppercase font-body text-white/90 group-hover:text-white transition-colors">
                       {title}
                     </p>
                   </Link>
