@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
-import { ImageUpload, MultiImageUpload } from '@/components/admin/ImageUpload';
+import { ImageUpload, VideoUpload, MultiImageUpload } from '@/components/admin/ImageUpload';
 
 interface Props {
   collection?: any;
@@ -76,18 +76,12 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
           folder="collections"
         />
 
-        <div>
-          <label className={labelClass}>Vidéo de couverture (URL)</label>
-          <input
-            value={form.cover_video}
-            onChange={e => set('cover_video', e.target.value)}
-            className={inputClass}
-            placeholder="https://… .mp4"
-          />
-          {form.cover_video && (
-            <video src={form.cover_video} className="mt-2 w-48 h-auto border border-border" muted autoPlay loop playsInline />
-          )}
-        </div>
+        <VideoUpload
+          value={form.cover_video}
+          onChange={(url) => set('cover_video', url)}
+          label="Vidéo de couverture"
+          folder="collections"
+        />
 
         <MultiImageUpload
           value={form.gallery_images}
