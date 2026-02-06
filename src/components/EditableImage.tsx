@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Camera, Loader2 } from 'lucide-react';
@@ -14,18 +14,14 @@ interface EditableImageProps {
 
 const BUCKET = 'images';
 
-/**
- * An image that admins can replace by clicking a camera button overlay.
- * The new URL is persisted in site_settings under the given key.
- */
 const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 'hero' }: EditableImageProps) => {
   const { isAdmin } = useAuth();
-  const [src, setSrc] = useState(currentSrc);
+  const [src, setSrc] = useState<string | null>(null); // null = loading
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load saved URL from site_settings on mount
-  useState(() => {
+  // Load saved URL from site_settings on mount — don't show anything until resolved
+  useEffect(() => {
     supabase
       .from('site_settings')
       .select('value')
@@ -34,10 +30,11 @@ const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 
       .then(({ data }) => {
         if (data?.value && typeof data.value === 'string' && data.value.startsWith('http')) {
           setSrc(data.value as string);
+        } else {
+          setSrc(currentSrc); // fallback to default
         }
       });
-  });
-
+  }, [settingsKey, currentSrc]);
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -75,6 +72,10 @@ const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 
     setUploading(false);
     if (inputRef.current) inputRef.current.value = '';
   };
+
+  if (!src) {
+    return <div className="absolute inset-0 bg-foreground/60" />;
+  }
 
   return (
     <div className="absolute inset-0">
