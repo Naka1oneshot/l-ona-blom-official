@@ -26,8 +26,7 @@ const CollectionsDropdown = ({ className, onNavigate }: CollectionsDropdownProps
   useEffect(() => {
     supabase
       .from('collections')
-      .select('id, slug, title_fr, title_en, cover_image, published_at')
-      .not('published_at', 'is', null)
+      .select('id, slug, title_fr, title_en, cover_image')
       .order('created_at', { ascending: false })
       .then(({ data }) => setCollections(data || []));
   }, []);
