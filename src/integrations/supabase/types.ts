@@ -98,6 +98,7 @@ export type Database = {
       collections: {
         Row: {
           cover_image: string | null
+          cover_video: string | null
           created_at: string
           gallery_images: string[] | null
           id: string
@@ -114,6 +115,7 @@ export type Database = {
         }
         Insert: {
           cover_image?: string | null
+          cover_video?: string | null
           created_at?: string
           gallery_images?: string[] | null
           id?: string
@@ -130,6 +132,7 @@ export type Database = {
         }
         Update: {
           cover_image?: string | null
+          cover_video?: string | null
           created_at?: string
           gallery_images?: string[] | null
           id?: string
