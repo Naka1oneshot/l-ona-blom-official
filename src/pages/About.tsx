@@ -8,7 +8,7 @@ const About = () => {
   return (
     <div className="pt-20 md:pt-24">
       {/* Hero */}
-      <section className="section-dark luxury-section">
+      <section className="section-dark luxury-section" style={{ background: 'hsl(320, 68%, 35%)' }}>
         <div className="luxury-container text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}

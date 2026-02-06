@@ -6,6 +6,13 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
 import { mockProducts } from '@/lib/mockData';
 import { toast } from 'sonner';
+import SEOHead from '@/components/SEOHead';
+import MeasurementForm from '@/components/MeasurementForm';
+import { MeasurementData } from '@/types';
+
+const emptyMeasurements: MeasurementData = {
+  bust: '', waist: '', hips: '', shoulder_width: '', arm_length: '', total_length: '', notes: '',
+};
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -19,6 +26,7 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedBraiding, setSelectedBraiding] = useState('');
   const [activeImage, setActiveImage] = useState(0);
+  const [measurements, setMeasurements] = useState<MeasurementData>(emptyMeasurements);
 
   if (!product) {
     return (
@@ -32,16 +40,36 @@ const ProductDetail = () => {
   const name = language === 'fr' ? product.name_fr : product.name_en;
   const description = language === 'fr' ? product.description_fr : product.description_en;
   const story = language === 'fr' ? product.story_fr : product.story_en;
-  const materials = language === 'fr' ? product.materials_fr : product.materials_en;
+  const materialsText = language === 'fr' ? product.materials_fr : product.materials_en;
   const care = language === 'fr' ? product.care_fr : product.care_en;
 
   const handleAddToCart = () => {
-    addItem(product, { size: selectedSize, color: selectedColor, braiding: selectedBraiding });
+    if (product.made_to_measure) {
+      const required = ['bust', 'waist', 'hips'] as const;
+      const missing = required.some(k => !measurements[k]);
+      if (missing) {
+        toast.error(language === 'fr' ? 'Veuillez renseigner vos mesures.' : 'Please provide your measurements.');
+        return;
+      }
+    }
+    addItem(product, {
+      size: selectedSize,
+      color: selectedColor,
+      braiding: selectedBraiding,
+      measurements: product.made_to_measure ? measurements : undefined,
+    });
     toast.success(language === 'fr' ? 'Ajouté au panier' : 'Added to cart');
   };
 
   return (
     <div className="pt-20 md:pt-24">
+      <SEOHead
+        title={name}
+        description={description}
+        path={`/boutique/${product.slug}`}
+        image={product.images[0]}
+        type="product"
+      />
       <div className="luxury-container py-12 md:py-20">
         {/* Breadcrumb */}
         <div className="mb-8 flex items-center gap-2 text-xs font-body text-muted-foreground tracking-wider">
@@ -58,11 +86,7 @@ const ProductDetail = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="aspect-[3/4] bg-secondary overflow-hidden mb-4">
-              <img
-                src={product.images[activeImage]}
-                alt={name}
-                className="w-full h-full object-cover"
-              />
+              <img src={product.images[activeImage]} alt={name} className="w-full h-full object-cover" />
             </div>
             {product.images.length > 1 && (
               <div className="flex gap-2">
@@ -156,7 +180,7 @@ const ProductDetail = () => {
 
             {/* Braiding */}
             {product.braiding_options.length > 0 && (
-              <div className="mb-8">
+              <div className="mb-6">
                 <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-3">{t('product.braiding')}</label>
                 <div className="flex flex-wrap gap-2">
                   {product.braiding_options.map(b => (
@@ -176,10 +200,15 @@ const ProductDetail = () => {
               </div>
             )}
 
+            {/* Made-to-Measure Form */}
+            {product.made_to_measure && (
+              <MeasurementForm measurements={measurements} onChange={setMeasurements} />
+            )}
+
             {/* CTA */}
             <button
               onClick={handleAddToCart}
-              className="w-full bg-foreground text-background py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors duration-300"
+              className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-colors duration-300"
             >
               {product.preorder ? t('shop.preorder_cta') : t('shop.add_to_cart')}
             </button>
@@ -193,7 +222,7 @@ const ProductDetail = () => {
             {/* Materials */}
             <div className="mt-8 pt-6 border-t border-foreground/10">
               <h3 className="text-display text-lg mb-3">{t('product.materials')}</h3>
-              <p className="text-sm font-body text-muted-foreground">{materials}</p>
+              <p className="text-sm font-body text-muted-foreground">{materialsText}</p>
             </div>
 
             {/* Care */}

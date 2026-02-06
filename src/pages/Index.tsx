@@ -6,6 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { mockProducts, mockCollections } from '@/lib/mockData';
 import ProductCard from '@/components/ProductCard';
+import SEOHead from '@/components/SEOHead';
 import heroImage from '@/assets/hero-home.jpg';
 
 const Index = () => {
@@ -13,6 +14,7 @@ const Index = () => {
 
   return (
     <div>
+      <SEOHead />
       {/* Hero */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
@@ -21,7 +23,7 @@ const Index = () => {
             alt="LÉONA BLOM"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-foreground/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
         </div>
         <div className="relative z-10 text-center text-background px-6">
           <motion.h1

@@ -18,6 +18,9 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import Cart from "./pages/Cart";
+import News from "./pages/News";
+import NewsArticle from "./pages/NewsArticle";
+import LegalPage from "./pages/LegalPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Account from "./pages/Account";
@@ -68,9 +71,14 @@ const App = () => (
                   <Route path="/collections" element={<Layout><Collections /></Layout>} />
                   <Route path="/collections/:slug" element={<Layout><CollectionDetail /></Layout>} />
                   <Route path="/a-propos" element={<Layout><About /></Layout>} />
+                  <Route path="/actualites" element={<Layout><News /></Layout>} />
+                  <Route path="/actualites/:slug" element={<Layout><NewsArticle /></Layout>} />
                   <Route path="/contact" element={<Layout><Contact /></Layout>} />
                   <Route path="/faq" element={<Layout><FAQ /></Layout>} />
                   <Route path="/panier" element={<Layout><Cart /></Layout>} />
+                  <Route path="/cgv" element={<Layout><LegalPage settingsKey="legal_cgv" titleKey="footer.cgv" path="/cgv" /></Layout>} />
+                  <Route path="/confidentialite" element={<Layout><LegalPage settingsKey="legal_privacy" titleKey="footer.privacy" path="/confidentialite" /></Layout>} />
+                  <Route path="/cookies" element={<Layout><LegalPage settingsKey="legal_cookies" titleKey="footer.cookies" path="/cookies" /></Layout>} />
                   <Route path="/connexion" element={<Layout><Login /></Layout>} />
                   <Route path="/inscription" element={<Layout><Signup /></Layout>} />
                   <Route path="/compte" element={

@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { siteConfig } from '@/lib/siteConfig';
 import { toast } from 'sonner';
+import SEOHead from '@/components/SEOHead';
 
 const Contact = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [honeypot, setHoneypot] = useState('');
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (honeypot) return; // Anti-spam
+    if (honeypot) return;
+    setSending(true);
+    // For now, toast-only. Edge function for real sending to be added with Resend integration.
+    await new Promise(r => setTimeout(r, 600));
     toast.success(t('contact.success'));
     setForm({ name: '', email: '', subject: '', message: '' });
+    setSending(false);
   };
 
   return (
     <div className="pt-20 md:pt-24">
+      <SEOHead
+        title={t('contact.title')}
+        description={language === 'fr' ? 'Contactez la maison LÉONA BLOM.' : 'Contact LÉONA BLOM.'}
+        path="/contact"
+      />
       <section className="luxury-container luxury-section max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -24,7 +36,7 @@ const Contact = () => {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-display text-4xl md:text-5xl text-center mb-4">{t('contact.title')}</h1>
-          <p className="text-center text-sm font-body text-muted-foreground mb-12">contact@leonablom.com</p>
+          <p className="text-center text-sm font-body text-muted-foreground mb-12">{siteConfig.contactEmail}</p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Honeypot */}
@@ -88,9 +100,10 @@ const Contact = () => {
 
             <button
               type="submit"
-              className="w-full bg-foreground text-background py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors duration-300"
+              disabled={sending}
+              className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-colors duration-300 disabled:opacity-50"
             >
-              {t('contact.send')}
+              {sending ? '...' : t('contact.send')}
             </button>
           </form>
         </motion.div>

@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
 
-    --primary: 340 82% 42%;
+    --primary: 320 68% 35%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96%;
@@ -22,7 +22,7 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 340 82% 42%;
+    --accent: 320 68% 35%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -30,24 +30,24 @@
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 340 82% 42%;
+    --ring: 320 68% 35%;
 
     --radius: 0px;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 340 82% 42%;
+    --sidebar-primary: 320 68% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 95%;
     --sidebar-accent-foreground: 0 0% 15%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 340 82% 42%;
+    --sidebar-ring: 320 68% 35%;
 
     /* Custom tokens */
     --luxury-black: 0 0% 0%;
     --luxury-white: 0 0% 100%;
-    --luxury-magenta: 340 82% 42%;
-    --luxury-magenta-light: 340 82% 55%;
+    --luxury-magenta: 320 68% 35%;
+    --luxury-magenta-light: 320 68% 45%;
     --luxury-gray: 0 0% 45%;
     --luxury-gray-light: 0 0% 92%;
     --luxury-cream: 40 20% 96%;
@@ -66,7 +66,7 @@
     --popover: 0 0% 6%;
     --popover-foreground: 0 0% 96%;
 
-    --primary: 340 82% 52%;
+    --primary: 320 68% 45%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 12%;
@@ -75,7 +75,7 @@
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 55%;
 
-    --accent: 340 82% 52%;
+    --accent: 320 68% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 30%;
@@ -83,7 +83,7 @@
 
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 340 82% 52%;
+    --ring: 320 68% 45%;
   }
 }
 
@@ -155,7 +155,8 @@
   }
 
   .section-dark {
-    @apply bg-foreground text-background;
+    background: hsl(var(--luxury-magenta));
+    @apply text-background;
   }
 
   .section-light {
