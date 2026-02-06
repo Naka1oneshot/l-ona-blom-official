@@ -26,6 +26,10 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCollections from "./pages/admin/AdminCollections";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminPosts from "./pages/admin/AdminPosts";
+import AdminClients from "./pages/admin/AdminClients";
+import AdminPromos from "./pages/admin/AdminPromos";
+import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +55,10 @@ const App = () => (
                     <Route path="produits" element={<AdminProducts />} />
                     <Route path="collections" element={<AdminCollections />} />
                     <Route path="commandes" element={<AdminOrders />} />
+                    <Route path="articles" element={<AdminPosts />} />
+                    <Route path="clients" element={<AdminClients />} />
+                    <Route path="promos" element={<AdminPromos />} />
+                    <Route path="reglages" element={<AdminSettings />} />
                   </Route>
 
                   {/* Public & customer routes */}
