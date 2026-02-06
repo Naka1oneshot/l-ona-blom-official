@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import { ImageUpload } from '@/components/admin/ImageUpload';
+import TranslateButton from '@/components/admin/TranslateButton';
 
 interface Props {
   post?: any;
@@ -69,6 +70,14 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
           <div><label className={labelClass}>Slug</label><input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required /></div>
           <div><label className={labelClass}>Date de publication</label><input type="date" value={form.published_at} onChange={e => set('published_at', e.target.value)} className={inputClass} /></div>
         </div>
+        <TranslateButton
+          frFields={{
+            title_fr: form.title_fr,
+            content_fr: form.content_fr,
+          }}
+          onTranslated={(t) => setForm(p => ({ ...p, ...t }))}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Titre FR</label><input value={form.title_fr} onChange={e => set('title_fr', e.target.value)} className={inputClass} required /></div>
           <div><label className={labelClass}>Titre EN</label><input value={form.title_en} onChange={e => set('title_en', e.target.value)} className={inputClass} required /></div>
