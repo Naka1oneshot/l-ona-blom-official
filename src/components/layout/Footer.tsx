@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { siteConfig } from '@/lib/siteConfig';
 
 const Footer = () => {
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-foreground text-background">
+    <footer style={{ background: 'hsl(320, 68%, 28%)' }} className="text-background">
       <div className="luxury-container py-16 md:py-24">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
           {/* Brand */}
@@ -24,6 +25,7 @@ const Footer = () => {
               <Link to="/boutique" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('nav.shop')}</Link>
               <Link to="/collections" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('nav.collections')}</Link>
               <Link to="/a-propos" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('nav.about')}</Link>
+              <Link to="/actualites" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('nav.news')}</Link>
               <Link to="/contact" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('nav.contact')}</Link>
               <Link to="/faq" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('nav.faq')}</Link>
             </div>
@@ -33,12 +35,11 @@ const Footer = () => {
           <div>
             <h4 className="text-[10px] tracking-[0.3em] uppercase mb-6 opacity-40 font-body">Informations</h4>
             <div className="flex flex-col gap-3">
-              <span className="text-sm opacity-70 font-body">{t('footer.legal')}</span>
-              <span className="text-sm opacity-70 font-body">{t('footer.cgv')}</span>
-              <span className="text-sm opacity-70 font-body">{t('footer.privacy')}</span>
-              <span className="text-sm opacity-70 font-body">{t('footer.cookies')}</span>
-              <a href="mailto:contact@leonablom.com" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">
-                contact@leonablom.com
+              <Link to="/cgv" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('footer.cgv')}</Link>
+              <Link to="/confidentialite" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('footer.privacy')}</Link>
+              <Link to="/cookies" className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">{t('footer.cookies')}</Link>
+              <a href={`mailto:${siteConfig.contactEmail}`} className="luxury-link text-sm opacity-70 hover:opacity-100 font-body">
+                {siteConfig.contactEmail}
               </a>
             </div>
           </div>
@@ -49,8 +50,8 @@ const Footer = () => {
             © {new Date().getFullYear()} LÉONA BLOM. {t('footer.rights')}
           </p>
           <div className="flex gap-6">
-            <span className="text-xs opacity-40 font-body">Instagram</span>
-            <span className="text-xs opacity-40 font-body">Pinterest</span>
+            <a href={siteConfig.instagram} target="_blank" rel="noopener noreferrer" className="text-xs opacity-40 hover:opacity-70 font-body transition-opacity">Instagram</a>
+            <a href={siteConfig.pinterest} target="_blank" rel="noopener noreferrer" className="text-xs opacity-40 hover:opacity-70 font-body transition-opacity">Pinterest</a>
           </div>
         </div>
       </div>

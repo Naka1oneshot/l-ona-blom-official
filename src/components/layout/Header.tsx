@@ -17,18 +17,18 @@ const Header = () => {
   const location = useLocation();
 
   const isHome = location.pathname === '/';
-  const isDark = isHome;
 
   const navLinks = [
     { to: '/boutique', label: t('nav.shop') },
     { to: '/collections', label: t('nav.collections') },
     { to: '/a-propos', label: t('nav.about') },
+    { to: '/actualites', label: t('nav.news') },
     { to: '/contact', label: t('nav.contact') },
     { to: '/faq', label: t('nav.faq') },
   ];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-500 ${isDark ? 'bg-foreground/90 text-background backdrop-blur-md' : 'bg-background/90 text-foreground backdrop-blur-md'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-500 ${isHome ? 'bg-foreground/90 text-background backdrop-blur-md' : 'bg-primary/95 text-primary-foreground backdrop-blur-md'}`}>
       <div className="luxury-container">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Mobile menu */}
@@ -58,7 +58,7 @@ const Header = () => {
                 <ChevronDown size={12} />
               </button>
               {settingsOpen && (
-                <div className={`absolute right-0 top-full mt-2 p-4 min-w-[160px] border ${isDark ? 'bg-foreground border-background/20 text-background' : 'bg-background border-foreground/10 text-foreground'}`}>
+                <div className="absolute right-0 top-full mt-2 p-4 min-w-[160px] border bg-background border-foreground/10 text-foreground">
                   <div className="mb-3">
                     <p className="text-[10px] tracking-[0.2em] uppercase mb-2 opacity-50">{t('general.language')}</p>
                     <div className="flex gap-2">
@@ -88,7 +88,7 @@ const Header = () => {
             <Link to="/panier" className="relative p-2 -mr-2">
               <ShoppingBag size={18} />
               {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[9px] flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-background text-foreground text-[9px] flex items-center justify-center">
                   {totalItems}
                 </span>
               )}
@@ -99,7 +99,7 @@ const Header = () => {
 
       {/* Mobile Nav */}
       {mobileOpen && (
-        <nav className={`md:hidden border-t ${isDark ? 'border-background/10 bg-foreground' : 'border-foreground/10 bg-background'}`}>
+        <nav className={`md:hidden border-t ${isHome ? 'border-background/10 bg-foreground' : 'border-primary-foreground/20 bg-primary'}`}>
           <div className="luxury-container py-6 flex flex-col gap-4">
             {navLinks.map(link => (
               <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className="text-sm tracking-[0.15em] uppercase font-body">{link.label}</Link>

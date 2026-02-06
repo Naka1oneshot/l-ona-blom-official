@@ -67,10 +67,21 @@ export interface BlogPost {
   tags: string[];
 }
 
+export interface MeasurementData {
+  bust: string;
+  waist: string;
+  hips: string;
+  shoulder_width: string;
+  arm_length: string;
+  total_length: string;
+  notes: string;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
   size?: string;
   color?: string;
   braiding?: string;
+  measurements?: MeasurementData;
 }

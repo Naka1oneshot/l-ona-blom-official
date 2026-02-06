@@ -91,7 +91,7 @@ const Cart = () => {
                   <span className="text-sm font-body tracking-wider uppercase">{t('cart.subtotal')}</span>
                   <span className="text-xl font-body">{formatPrice(totalCentsEur)}</span>
                 </div>
-                <button className="w-full bg-foreground text-background py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors duration-300">
+                <button className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-colors duration-300">
                   {t('cart.checkout')}
                 </button>
                 <Link
