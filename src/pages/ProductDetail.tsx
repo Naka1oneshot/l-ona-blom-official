@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
 import MeasurementForm from '@/components/MeasurementForm';
 import AdminEditButton from '@/components/AdminEditButton';
+import EditableDBImage from '@/components/EditableDBImage';
 import { MeasurementData } from '@/types';
 
 const emptyMeasurements: MeasurementData = {
@@ -86,8 +87,21 @@ const ProductDetail = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="aspect-[3/4] bg-secondary overflow-hidden mb-4">
-              <img src={product.images[activeImage]} alt={name} className="w-full h-full object-cover" />
+            <div className="relative aspect-[3/4] bg-secondary overflow-hidden mb-4">
+              <EditableDBImage
+                table="products"
+                id={product.id}
+                field="images"
+                value={product.images[activeImage]}
+                onSaved={(url) => {
+                  const newImages = [...product.images];
+                  newImages[activeImage] = url;
+                  product.images = newImages;
+                }}
+                alt={name}
+                className="w-full h-full object-cover"
+                folder="products"
+              />
             </div>
             {product.images.length > 1 && (
               <div className="flex gap-2">
