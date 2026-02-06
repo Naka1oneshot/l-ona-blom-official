@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import EditableText from '@/components/EditableText';
 
 const About = () => {
   const { language, t } = useLanguage();
@@ -10,22 +11,25 @@ const About = () => {
       {/* Hero */}
       <section className="section-dark luxury-section" style={{ background: 'hsl(320, 68%, 35%)' }}>
         <div className="luxury-container text-center">
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-display text-4xl md:text-6xl tracking-[0.15em] mb-6"
           >
-            LÉONA BLOM
-          </motion.h1>
-          <motion.p
+            <h1 className="text-display text-4xl md:text-6xl tracking-[0.15em] mb-6">LÉONA BLOM</h1>
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-display text-lg md:text-xl italic opacity-70 max-w-xl mx-auto"
           >
-            {t('hero.tagline')}
-          </motion.p>
+            <EditableText
+              settingsKey="page_about_tagline"
+              defaultText={t('hero.tagline')}
+              as="p"
+              className="text-display text-lg md:text-xl italic opacity-70 max-w-xl mx-auto"
+            />
+          </motion.div>
         </div>
       </section>
 
@@ -37,9 +41,13 @@ const About = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <p className="text-base md:text-lg font-body text-muted-foreground leading-relaxed">
-            {t('about.name_meaning')}
-          </p>
+          <EditableText
+            settingsKey="page_about_name_meaning"
+            defaultText={t('about.name_meaning')}
+            as="p"
+            className="text-base md:text-lg font-body text-muted-foreground leading-relaxed"
+            multiline
+          />
         </motion.div>
       </section>
 
@@ -52,17 +60,30 @@ const About = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-display text-3xl md:text-4xl mb-8">{t('about.vision')}</h2>
-            <p className="text-base font-body text-muted-foreground leading-relaxed mb-6">
-              {language === 'fr'
+            <EditableText
+              settingsKey="page_about_vision_title"
+              defaultText={t('about.vision')}
+              as="h2"
+              className="text-display text-3xl md:text-4xl mb-8"
+            />
+            <EditableText
+              settingsKey="page_about_vision_p1"
+              defaultText={language === 'fr'
                 ? 'LÉONA BLOM est née de la conviction que chaque femme porte en elle une histoire qui mérite d\'être racontée. Notre maison ne crée pas simplement des vêtements — elle tisse des récits, des héritages, des transformations.'
                 : 'LÉONA BLOM was born from the belief that every woman carries within her a story that deserves to be told. Our house doesn\'t simply create garments — it weaves narratives, legacies, transformations.'}
-            </p>
-            <p className="text-base font-body text-muted-foreground leading-relaxed">
-              {language === 'fr'
+              as="p"
+              className="text-base font-body text-muted-foreground leading-relaxed mb-6"
+              multiline
+            />
+            <EditableText
+              settingsKey="page_about_vision_p2"
+              defaultText={language === 'fr'
                 ? 'De Douala à Paris, chaque création voyage entre deux mondes, puisant dans la richesse des traditions camerounaises et la sophistication de la haute couture française.'
                 : 'From Douala to Paris, each creation travels between two worlds, drawing from the richness of Cameroonian traditions and the sophistication of French haute couture.'}
-            </p>
+              as="p"
+              className="text-base font-body text-muted-foreground leading-relaxed"
+              multiline
+            />
           </motion.div>
         </div>
       </section>
@@ -77,18 +98,21 @@ const About = () => {
             {[
               {
                 title: 'Selflove',
-                fr: "S'aimer entièrement, sans condition. C'est le premier acte de courage. Chaque pièce LÉONA BLOM est conçue pour vous rappeler que vous méritez le beau, le noble, le précieux.",
-                en: "Loving yourself entirely, unconditionally. It's the first act of courage. Every LÉONA BLOM piece is designed to remind you that you deserve the beautiful, the noble, the precious.",
+                key: 'page_about_selflove',
+                defaultFr: "S'aimer entièrement, sans condition. C'est le premier acte de courage. Chaque pièce LÉONA BLOM est conçue pour vous rappeler que vous méritez le beau, le noble, le précieux.",
+                defaultEn: "Loving yourself entirely, unconditionally. It's the first act of courage. Every LÉONA BLOM piece is designed to remind you that you deserve the beautiful, the noble, the precious.",
               },
               {
                 title: 'Selfcare',
-                fr: "Se chérir profondément, c'est prendre soin de son corps et de son âme. Nos matières nobles caressent la peau comme un rituel quotidien de tendresse envers soi-même.",
-                en: "Cherishing yourself deeply means caring for your body and soul. Our noble materials caress the skin like a daily ritual of tenderness toward yourself.",
+                key: 'page_about_selfcare',
+                defaultFr: "Se chérir profondément, c'est prendre soin de son corps et de son âme. Nos matières nobles caressent la peau comme un rituel quotidien de tendresse envers soi-même.",
+                defaultEn: "Cherishing yourself deeply means caring for your body and soul. Our noble materials caress the skin like a daily ritual of tenderness toward yourself.",
               },
               {
                 title: 'Selfplace',
-                fr: "Trouver sa place dans le monde, affirmer sa présence. Porter LÉONA BLOM, c'est occuper l'espace qui vous revient — avec grâce, avec force, avec sérénité.",
-                en: "Finding your place in the world, affirming your presence. Wearing LÉONA BLOM means occupying the space that belongs to you — with grace, with strength, with serenity.",
+                key: 'page_about_selfplace',
+                defaultFr: "Trouver sa place dans le monde, affirmer sa présence. Porter LÉONA BLOM, c'est occuper l'espace qui vous revient — avec grâce, avec force, avec sérénité.",
+                defaultEn: "Finding your place in the world, affirming your presence. Wearing LÉONA BLOM means occupying the space that belongs to you — with grace, with strength, with serenity.",
               },
             ].map((item, i) => (
               <motion.div
@@ -101,9 +125,13 @@ const About = () => {
               >
                 <h3 className="text-display text-2xl tracking-[0.1em] mb-4">{item.title}</h3>
                 <div className="w-12 h-px bg-primary mx-auto mb-6" />
-                <p className="text-sm font-body opacity-60 leading-relaxed">
-                  {language === 'fr' ? item.fr : item.en}
-                </p>
+                <EditableText
+                  settingsKey={item.key}
+                  defaultText={language === 'fr' ? item.defaultFr : item.defaultEn}
+                  as="p"
+                  className="text-sm font-body opacity-60 leading-relaxed"
+                  multiline
+                />
               </motion.div>
             ))}
           </div>
@@ -112,17 +140,21 @@ const About = () => {
 
       {/* Quote */}
       <section className="luxury-section luxury-container text-center">
-        <motion.blockquote
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1 }}
-          className="text-display text-2xl md:text-3xl italic max-w-2xl mx-auto"
         >
-          {language === 'fr'
-            ? '« Parce que la beauté rayonne de l\'intérieur, vers l\'extérieur. »'
-            : '"Because beauty radiates from within, outward."'}
-        </motion.blockquote>
+          <EditableText
+            settingsKey="page_about_quote"
+            defaultText={language === 'fr'
+              ? '« Parce que la beauté rayonne de l\'intérieur, vers l\'extérieur. »'
+              : '"Because beauty radiates from within, outward."'}
+            as="blockquote"
+            className="text-display text-2xl md:text-3xl italic max-w-2xl mx-auto"
+          />
+        </motion.div>
       </section>
     </div>
   );
