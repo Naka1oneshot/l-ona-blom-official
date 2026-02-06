@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminPostForm from './AdminPostForm';
 
 const AdminPosts = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && posts.length > 0) {
+      const p = posts.find(x => x.id === editId);
+      if (p) { setEditing(p); setSearchParams({}, { replace: true }); }
+    }
+  }, [posts, searchParams]);
 
   async function load() {
     const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false });

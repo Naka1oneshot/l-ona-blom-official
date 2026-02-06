@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import SEOHead from '@/components/SEOHead';
+import AdminEditButton from '@/components/AdminEditButton';
 import { ArrowLeft } from 'lucide-react';
 
 interface Post {
@@ -84,7 +85,10 @@ const NewsArticle = () => {
             {post.published_at ? new Date(post.published_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
           </time>
 
-          <h1 className="text-display text-3xl md:text-5xl mt-4 mb-8">{title}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-display text-3xl md:text-5xl mt-4 mb-8">{title}</h1>
+            {post && <AdminEditButton to={`/admin/articles?edit=${post.id}`} className="mt-4" />}
+          </div>
 
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-8">

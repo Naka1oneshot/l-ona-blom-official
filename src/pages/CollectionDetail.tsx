@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { mockCollections, mockProducts } from '@/lib/mockData';
 import ProductCard from '@/components/ProductCard';
+import AdminEditButton from '@/components/AdminEditButton';
 
 const CollectionDetail = () => {
   const { slug } = useParams();
@@ -33,6 +34,10 @@ const CollectionDetail = () => {
           <div className="absolute inset-0 bg-foreground/40" />
         </div>
         <div className="relative z-10 text-center text-background px-6">
+          <AdminEditButton
+            to={`/admin/collections?edit=${collection.id}`}
+            className="absolute top-4 right-4"
+          />
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

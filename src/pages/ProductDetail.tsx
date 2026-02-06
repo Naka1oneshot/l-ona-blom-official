@@ -8,6 +8,7 @@ import { mockProducts } from '@/lib/mockData';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
 import MeasurementForm from '@/components/MeasurementForm';
+import AdminEditButton from '@/components/AdminEditButton';
 import { MeasurementData } from '@/types';
 
 const emptyMeasurements: MeasurementData = {
@@ -110,7 +111,10 @@ const ProductDetail = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex flex-col"
           >
-            <h1 className="text-display text-3xl md:text-4xl mb-4">{name}</h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-display text-3xl md:text-4xl mb-4">{name}</h1>
+              <AdminEditButton to={`/admin/produits?edit=${product.id}`} />
+            </div>
             <p className="text-xl font-body mb-6">
               {formatPrice(product.base_price_eur, product.price_overrides)}
             </p>

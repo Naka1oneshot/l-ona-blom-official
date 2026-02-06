@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { mockCollections } from '@/lib/mockData';
+import AdminEditButton from '@/components/AdminEditButton';
 
 const Collections = () => {
   const { language, t } = useLanguage();
@@ -32,6 +33,10 @@ const Collections = () => {
                 >
                   <Link to={`/collections/${collection.slug}`} className="group block">
                     <div className="relative aspect-[16/7] overflow-hidden bg-secondary mb-8">
+                      <AdminEditButton
+                        to={`/admin/collections?edit=${collection.id}`}
+                        className="absolute top-4 right-4 z-10"
+                      />
                       <img
                         src={collection.cover_image}
                         alt={title}

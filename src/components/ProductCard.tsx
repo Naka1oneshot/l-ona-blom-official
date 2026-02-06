@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { Product } from '@/types';
+import AdminEditButton from '@/components/AdminEditButton';
 
 interface ProductCardProps {
   product: Product;
@@ -15,30 +16,36 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const name = language === 'fr' ? product.name_fr : product.name_en;
 
   return (
-    <Link to={`/boutique/${product.slug}`} className="group block">
-      <div className="relative aspect-[3/4] overflow-hidden bg-secondary mb-4">
-        <img
-          src={product.images[0]}
-          alt={name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-        />
-        {product.made_to_order && (
-          <span className="absolute top-4 left-4 text-[9px] tracking-[0.2em] uppercase bg-foreground text-background px-3 py-1.5 font-body">
-            {t('shop.made_to_order')}
-          </span>
-        )}
-        {product.preorder && (
-          <span className="absolute top-4 left-4 text-[9px] tracking-[0.2em] uppercase bg-primary text-primary-foreground px-3 py-1.5 font-body">
-            {t('shop.preorder')}
-          </span>
-        )}
-      </div>
-      <h3 className="text-display text-lg mb-1">{name}</h3>
-      <p className="text-sm font-body text-muted-foreground">
-        {formatPrice(product.base_price_eur, product.price_overrides)}
-      </p>
-    </Link>
+    <div className="relative group">
+      <AdminEditButton
+        to={`/admin/produits?edit=${product.id}`}
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      <Link to={`/boutique/${product.slug}`} className="block">
+        <div className="relative aspect-[3/4] overflow-hidden bg-secondary mb-4">
+          <img
+            src={product.images[0]}
+            alt={name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+          {product.made_to_order && (
+            <span className="absolute top-4 left-4 text-[9px] tracking-[0.2em] uppercase bg-foreground text-background px-3 py-1.5 font-body">
+              {t('shop.made_to_order')}
+            </span>
+          )}
+          {product.preorder && (
+            <span className="absolute top-4 left-4 text-[9px] tracking-[0.2em] uppercase bg-primary text-primary-foreground px-3 py-1.5 font-body">
+              {t('shop.preorder')}
+            </span>
+          )}
+        </div>
+        <h3 className="text-display text-lg mb-1">{name}</h3>
+        <p className="text-sm font-body text-muted-foreground">
+          {formatPrice(product.base_price_eur, product.price_overrides)}
+        </p>
+      </Link>
+    </div>
   );
 };
 
