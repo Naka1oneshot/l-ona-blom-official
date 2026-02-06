@@ -6,6 +6,7 @@ import { mockProducts, mockCollections } from '@/lib/mockData';
 import ProductCard from '@/components/ProductCard';
 import SEOHead from '@/components/SEOHead';
 import EditableText from '@/components/EditableText';
+import EditableImage from '@/components/EditableImage';
 import heroImage from '@/assets/hero-home.jpg';
 
 const Index = () => {
@@ -16,10 +17,14 @@ const Index = () => {
       <SEOHead />
       {/* Hero */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={heroImage} alt="LÉONA BLOM" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
-        </div>
+        <EditableImage
+          settingsKey="page_home_hero_image"
+          currentSrc={heroImage}
+          alt="LÉONA BLOM"
+          className="w-full h-full object-cover"
+          folder="hero"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
         <div className="relative z-10 text-center text-background px-6">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
