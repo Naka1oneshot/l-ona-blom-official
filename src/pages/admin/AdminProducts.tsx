@@ -1,15 +1,26 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminProductForm from './AdminProductForm';
 
 const AdminProducts = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => { load(); }, []);
+
+  // Auto-open edit form from URL param
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && products.length > 0) {
+      const p = products.find(x => x.id === editId);
+      if (p) { setEditing(p); setSearchParams({}, { replace: true }); }
+    }
+  }, [products, searchParams]);
 
   async function load() {
     const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });

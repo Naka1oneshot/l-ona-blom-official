@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
+import { ImageUpload, MultiImageUpload } from '@/components/admin/ImageUpload';
 
 interface Props {
   collection?: any;
@@ -20,6 +21,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
     narrative_fr: collection?.narrative_fr || '',
     narrative_en: collection?.narrative_en || '',
     cover_image: collection?.cover_image || '',
+    gallery_images: collection?.gallery_images || [],
     tags: (collection?.tags || []).join(', '),
     published_at: collection?.published_at ? new Date(collection.published_at).toISOString().slice(0, 10) : '',
   });
@@ -37,6 +39,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
       narrative_fr: form.narrative_fr,
       narrative_en: form.narrative_en,
       cover_image: form.cover_image,
+      gallery_images: form.gallery_images,
       tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
       published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
     };
@@ -64,6 +67,20 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
       <h1 className="text-display text-3xl mb-8">{isNew ? 'Nouvelle Collection' : 'Modifier la Collection'}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
+        <ImageUpload
+          value={form.cover_image}
+          onChange={(url) => set('cover_image', url)}
+          label="Image de couverture"
+          folder="collections"
+        />
+
+        <MultiImageUpload
+          value={form.gallery_images}
+          onChange={(urls) => set('gallery_images', urls)}
+          label="Galerie d'images"
+          folder="collections"
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Slug</label><input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required /></div>
           <div><label className={labelClass}>Date de publication</label><input type="date" value={form.published_at} onChange={e => set('published_at', e.target.value)} className={inputClass} /></div>
@@ -84,7 +101,6 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
           <div><label className={labelClass}>Récit EN</label><textarea value={form.narrative_en} onChange={e => set('narrative_en', e.target.value)} className={`${inputClass} min-h-[120px] resize-none`} /></div>
         </div>
 
-        <div><label className={labelClass}>Image de couverture (URL)</label><input value={form.cover_image} onChange={e => set('cover_image', e.target.value)} className={inputClass} /></div>
         <div><label className={labelClass}>Tags (séparés par virgule)</label><input value={form.tags} onChange={e => set('tags', e.target.value)} className={inputClass} /></div>
 
         <div className="flex gap-3 pt-4">

@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminCollectionForm from './AdminCollectionForm';
 
 const AdminCollections = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [collections, setCollections] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && collections.length > 0) {
+      const c = collections.find(x => x.id === editId);
+      if (c) { setEditing(c); setSearchParams({}, { replace: true }); }
+    }
+  }, [collections, searchParams]);
 
   async function load() {
     const { data } = await supabase.from('collections').select('*').order('created_at', { ascending: false });

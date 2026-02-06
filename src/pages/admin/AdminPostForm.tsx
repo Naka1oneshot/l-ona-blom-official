@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
+import { ImageUpload } from '@/components/admin/ImageUpload';
 
 interface Props {
   post?: any;
@@ -58,6 +59,12 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
       </button>
       <h1 className="text-display text-3xl mb-8">{isNew ? 'Nouvel Article' : "Modifier l'Article"}</h1>
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
+        <ImageUpload
+          value={form.cover_image}
+          onChange={(url) => set('cover_image', url)}
+          label="Image de couverture"
+          folder="posts"
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Slug</label><input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required /></div>
           <div><label className={labelClass}>Date de publication</label><input type="date" value={form.published_at} onChange={e => set('published_at', e.target.value)} className={inputClass} /></div>
@@ -70,7 +77,6 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
           <div><label className={labelClass}>Contenu FR</label><textarea value={form.content_fr} onChange={e => set('content_fr', e.target.value)} className={`${inputClass} min-h-[200px] resize-none`} /></div>
           <div><label className={labelClass}>Contenu EN</label><textarea value={form.content_en} onChange={e => set('content_en', e.target.value)} className={`${inputClass} min-h-[200px] resize-none`} /></div>
         </div>
-        <div><label className={labelClass}>Image de couverture (URL)</label><input value={form.cover_image} onChange={e => set('cover_image', e.target.value)} className={inputClass} /></div>
         <div><label className={labelClass}>Tags (séparés par virgule)</label><input value={form.tags} onChange={e => set('tags', e.target.value)} className={inputClass} /></div>
         <div className="flex gap-3 pt-4">
           <button type="submit" disabled={submitting} className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors disabled:opacity-50">

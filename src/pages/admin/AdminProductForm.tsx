@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
+import { MultiImageUpload } from '@/components/admin/ImageUpload';
 
 interface Props {
   product?: any;
@@ -39,6 +40,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     materials: (product?.materials || []).join(', '),
     braiding_options: (product?.braiding_options || []).join(', '),
     stock_qty: product?.stock_qty ?? '',
+    images: product?.images || [],
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -72,6 +74,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       materials: form.materials.split(',').map(s => s.trim()).filter(Boolean),
       braiding_options: form.braiding_options.split(',').map(s => s.trim()).filter(Boolean),
       stock_qty: form.stock_qty === '' ? null : Number(form.stock_qty),
+      images: form.images,
     };
 
     let error;
@@ -82,17 +85,12 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     }
 
     setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success(isNew ? 'Produit créé' : 'Produit mis à jour');
-      onSave();
-    }
+    if (error) toast.error(error.message);
+    else { toast.success(isNew ? 'Produit créé' : 'Produit mis à jour'); onSave(); }
   };
 
   const inputClass = "w-full border border-border bg-transparent px-3 py-2 text-sm font-body focus:outline-none focus:border-primary transition-colors";
   const labelClass = "text-[10px] tracking-[0.2em] uppercase font-body block mb-1.5 text-muted-foreground";
-
   const set = (key: string, value: any) => setForm(p => ({ ...p, [key]: value }));
 
   return (
@@ -103,11 +101,16 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       <h1 className="text-display text-3xl mb-8">{isNew ? 'Nouveau Produit' : 'Modifier le Produit'}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
+        {/* Images upload */}
+        <MultiImageUpload
+          value={form.images}
+          onChange={(urls) => set('images', urls)}
+          label="Photos du produit"
+          folder="products"
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className={labelClass}>Slug</label>
-            <input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required />
-          </div>
+          <div><label className={labelClass}>Slug</label><input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required /></div>
           <div>
             <label className={labelClass}>Statut</label>
             <select value={form.status} onChange={e => set('status', e.target.value)} className={inputClass}>
@@ -134,7 +137,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label className={labelClass}>Histoire FR (Trésor à porter)</label><textarea value={form.story_fr} onChange={e => set('story_fr', e.target.value)} className={`${inputClass} min-h-[80px] resize-none`} /></div>
+          <div><label className={labelClass}>Histoire FR</label><textarea value={form.story_fr} onChange={e => set('story_fr', e.target.value)} className={`${inputClass} min-h-[80px] resize-none`} /></div>
           <div><label className={labelClass}>Histoire EN</label><textarea value={form.story_en} onChange={e => set('story_en', e.target.value)} className={`${inputClass} min-h-[80px] resize-none`} /></div>
         </div>
 
@@ -149,14 +152,8 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className={labelClass}>Prix EUR (centimes)</label>
-            <input type="number" value={form.base_price_eur} onChange={e => set('base_price_eur', e.target.value)} className={inputClass} required />
-          </div>
-          <div>
-            <label className={labelClass}>Stock (vide = illimité)</label>
-            <input type="number" value={form.stock_qty} onChange={e => set('stock_qty', e.target.value)} className={inputClass} />
-          </div>
+          <div><label className={labelClass}>Prix EUR (centimes)</label><input type="number" value={form.base_price_eur} onChange={e => set('base_price_eur', e.target.value)} className={inputClass} required /></div>
+          <div><label className={labelClass}>Stock (vide = illimité)</label><input type="number" value={form.stock_qty} onChange={e => set('stock_qty', e.target.value)} className={inputClass} /></div>
         </div>
 
         <div className="flex flex-wrap gap-6">
@@ -182,10 +179,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
         )}
 
         {form.preorder && (
-          <div>
-            <label className={labelClass}>Date estimée d'envoi</label>
-            <input type="date" value={form.preorder_ship_date_estimate} onChange={e => set('preorder_ship_date_estimate', e.target.value)} className={inputClass} />
-          </div>
+          <div><label className={labelClass}>Date estimée d'envoi</label><input type="date" value={form.preorder_ship_date_estimate} onChange={e => set('preorder_ship_date_estimate', e.target.value)} className={inputClass} /></div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

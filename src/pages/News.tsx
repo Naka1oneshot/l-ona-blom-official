@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import SEOHead from '@/components/SEOHead';
+import AdminEditButton from '@/components/AdminEditButton';
 
 interface Post {
   id: string;
@@ -66,7 +67,12 @@ const News = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: i * 0.08 }}
+                    className="relative"
                   >
+                    <AdminEditButton
+                      to={`/admin/articles?edit=${post.id}`}
+                      className="absolute top-2 right-2 z-10"
+                    />
                     <Link to={`/actualites/${post.slug}`} className="group block">
                       {post.cover_image && (
                         <div className="aspect-[16/9] overflow-hidden bg-secondary mb-4">
