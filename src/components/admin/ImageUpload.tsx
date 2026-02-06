@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ImageUploadProps {
@@ -149,13 +149,42 @@ export const MultiImageUpload = ({ value, onChange, label = 'Images', folder = '
     onChange(value.filter((_, i) => i !== index));
   };
 
+  const move = (from: number, to: number) => {
+    if (to < 0 || to >= value.length) return;
+    const arr = [...value];
+    const [item] = arr.splice(from, 1);
+    arr.splice(to, 0, item);
+    onChange(arr);
+  };
+
   return (
     <div>
       <label className={labelClass}>{label}</label>
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="flex flex-wrap gap-3 mb-2">
         {value.map((url, i) => (
-          <div key={i} className="relative">
-            <img src={url} alt="" className="w-24 h-24 object-cover border border-border" />
+          <div key={i} className="relative group">
+            <div className="relative">
+              <img src={url} alt="" className="w-24 h-24 object-cover border border-border" />
+              <div className="absolute bottom-0 inset-x-0 flex justify-center gap-0.5 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={() => move(i, i - 1)}
+                  disabled={i === 0}
+                  className="p-0.5 text-foreground disabled:text-muted-foreground/30"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <span className="text-[9px] font-body self-center text-muted-foreground">{i + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => move(i, i + 1)}
+                  disabled={i === value.length - 1}
+                  className="p-0.5 text-foreground disabled:text-muted-foreground/30"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
             <button
               type="button"
               onClick={() => remove(i)}
