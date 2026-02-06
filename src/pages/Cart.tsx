@@ -69,12 +69,16 @@ const Cart = () => {
                             <span className="px-4 text-sm font-body">{item.quantity}</span>
                             <button
                               onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                              className="p-2 hover:bg-secondary transition-colors"
+                              disabled={item.product.stock_qty != null && item.quantity >= item.product.stock_qty}
+                              className="p-2 hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                               aria-label="Increase"
                             >
                               <Plus size={12} />
                             </button>
                           </div>
+                          {item.product.stock_qty != null && item.quantity >= item.product.stock_qty && (
+                            <span className="text-xs text-muted-foreground font-body">{language === 'fr' ? 'Stock max.' : 'Max stock'}</span>
+                          )}
                           <span className="text-sm font-body">
                             {formatPrice(item.product.base_price_eur * item.quantity, {})}
                           </span>
