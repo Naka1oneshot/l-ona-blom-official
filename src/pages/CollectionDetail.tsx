@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { mockCollections, mockProducts } from '@/lib/mockData';
 import ProductCard from '@/components/ProductCard';
 import AdminEditButton from '@/components/AdminEditButton';
+import EditableDBField from '@/components/EditableDBField';
 
 const CollectionDetail = () => {
   const { slug } = useParams();
@@ -20,6 +21,9 @@ const CollectionDetail = () => {
     );
   }
 
+  const titleField = language === 'fr' ? 'title_fr' : 'title_en';
+  const subtitleField = language === 'fr' ? 'subtitle_fr' : 'subtitle_en';
+  const narrativeField = language === 'fr' ? 'narrative_fr' : 'narrative_en';
   const title = language === 'fr' ? collection.title_fr : collection.title_en;
   const subtitle = language === 'fr' ? collection.subtitle_fr : collection.subtitle_en;
   const narrative = language === 'fr' ? collection.narrative_fr : collection.narrative_en;
@@ -38,22 +42,34 @@ const CollectionDetail = () => {
             to={`/admin/collections?edit=${collection.id}`}
             className="absolute top-4 right-4"
           />
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-display text-4xl md:text-6xl tracking-[0.15em] mb-4"
           >
-            {title}
-          </motion.h1>
-          <motion.p
+            <EditableDBField
+              table="collections"
+              id={collection.id}
+              field={titleField}
+              value={title}
+              as="h1"
+              className="text-display text-4xl md:text-6xl tracking-[0.15em] mb-4"
+            />
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-sm font-body tracking-[0.1em] opacity-70"
           >
-            {subtitle}
-          </motion.p>
+            <EditableDBField
+              table="collections"
+              id={collection.id}
+              field={subtitleField}
+              value={subtitle}
+              as="p"
+              className="text-sm font-body tracking-[0.1em] opacity-70"
+            />
+          </motion.div>
         </div>
       </section>
 
@@ -66,11 +82,15 @@ const CollectionDetail = () => {
           transition={{ duration: 0.8 }}
           className="text-center"
         >
-          {narrative.split('\n\n').map((paragraph, i) => (
-            <p key={i} className="text-base md:text-lg font-body text-muted-foreground leading-relaxed mb-6">
-              {paragraph}
-            </p>
-          ))}
+          <EditableDBField
+            table="collections"
+            id={collection.id}
+            field={narrativeField}
+            value={narrative}
+            as="div"
+            className="text-base md:text-lg font-body text-muted-foreground leading-relaxed whitespace-pre-line"
+            multiline
+          />
         </motion.div>
       </section>
 

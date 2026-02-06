@@ -2,11 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useCart } from '@/contexts/CartContext';
-import { useCurrency } from '@/contexts/CurrencyContext';
 import { mockProducts, mockCollections } from '@/lib/mockData';
 import ProductCard from '@/components/ProductCard';
 import SEOHead from '@/components/SEOHead';
+import EditableText from '@/components/EditableText';
 import heroImage from '@/assets/hero-home.jpg';
 
 const Index = () => {
@@ -18,11 +17,7 @@ const Index = () => {
       {/* Hero */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={heroImage}
-            alt="LÉONA BLOM"
-            className="w-full h-full object-cover"
-          />
+          <img src={heroImage} alt="LÉONA BLOM" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
         </div>
         <div className="relative z-10 text-center text-background px-6">
@@ -34,22 +29,30 @@ const Index = () => {
           >
             LÉONA BLOM
           </motion.h1>
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.6 }}
-            className="text-display text-lg md:text-xl tracking-[0.08em] mb-2 italic"
           >
-            {t('hero.tagline')}
-          </motion.p>
-          <motion.p
+            <EditableText
+              settingsKey="page_home_tagline"
+              defaultText={t('hero.tagline')}
+              as="p"
+              className="text-display text-lg md:text-xl tracking-[0.08em] mb-2 italic"
+            />
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.9 }}
-            className="text-sm md:text-base font-body tracking-wider opacity-70 mb-10"
           >
-            {t('hero.subtitle')}
-          </motion.p>
+            <EditableText
+              settingsKey="page_home_subtitle"
+              defaultText={t('hero.subtitle')}
+              as="p"
+              className="text-sm md:text-base font-body tracking-wider opacity-70 mb-10"
+            />
+          </motion.div>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -80,10 +83,19 @@ const Index = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-display text-3xl md:text-5xl mb-8">{t('home.philosophy.title')}</h2>
-          <p className="text-base md:text-lg font-body text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {t('home.philosophy.text')}
-          </p>
+          <EditableText
+            settingsKey="page_home_philosophy_title"
+            defaultText={t('home.philosophy.title')}
+            as="h2"
+            className="text-display text-3xl md:text-5xl mb-8"
+          />
+          <EditableText
+            settingsKey="page_home_philosophy_text"
+            defaultText={t('home.philosophy.text')}
+            as="p"
+            className="text-base md:text-lg font-body text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+            multiline
+          />
         </motion.div>
       </section>
 
@@ -103,9 +115,12 @@ const Index = () => {
                   {t(`home.values.${value}`)}
                 </h3>
                 <div className="w-12 h-px bg-primary mx-auto mb-4" />
-                <p className="text-sm font-body opacity-60">
-                  {t(`home.values.${value}.desc`)}
-                </p>
+                <EditableText
+                  settingsKey={`page_home_value_${value}`}
+                  defaultText={t(`home.values.${value}.desc`)}
+                  as="p"
+                  className="text-sm font-body opacity-60"
+                />
               </motion.div>
             ))}
           </div>
@@ -146,10 +161,19 @@ const Index = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-display text-3xl md:text-4xl mb-8">{t('home.materials.title')}</h2>
-            <p className="text-base font-body text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              {t('home.materials.text')}
-            </p>
+            <EditableText
+              settingsKey="page_home_materials_title"
+              defaultText={t('home.materials.title')}
+              as="h2"
+              className="text-display text-3xl md:text-4xl mb-8"
+            />
+            <EditableText
+              settingsKey="page_home_materials_text"
+              defaultText={t('home.materials.text')}
+              as="p"
+              className="text-base font-body text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+              multiline
+            />
             <div className="flex flex-wrap justify-center gap-8 mt-12">
               {['Lin', 'Coton', 'Soie', 'Pierres précieuses'].map(mat => (
                 <span key={mat} className="text-display text-xl md:text-2xl tracking-[0.1em] opacity-40">
@@ -169,7 +193,12 @@ const Index = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-display text-2xl md:text-3xl mb-8">{t('home.newsletter.title')}</h2>
+          <EditableText
+            settingsKey="page_home_newsletter_title"
+            defaultText={t('home.newsletter.title')}
+            as="h2"
+            className="text-display text-2xl md:text-3xl mb-8"
+          />
           <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto" onSubmit={e => e.preventDefault()}>
             <input
               type="email"

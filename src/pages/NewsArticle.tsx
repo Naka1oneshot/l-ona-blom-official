@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import SEOHead from '@/components/SEOHead';
 import AdminEditButton from '@/components/AdminEditButton';
+import EditableDBField from '@/components/EditableDBField';
 import { ArrowLeft } from 'lucide-react';
 
 interface Post {
@@ -56,6 +57,8 @@ const NewsArticle = () => {
     );
   }
 
+  const titleField = language === 'fr' ? 'title_fr' : 'title_en';
+  const contentField = language === 'fr' ? 'content_fr' : 'content_en';
   const title = language === 'fr' ? post.title_fr : post.title_en;
   const content = language === 'fr' ? post.content_fr : post.content_en;
 
@@ -85,9 +88,16 @@ const NewsArticle = () => {
             {post.published_at ? new Date(post.published_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
           </time>
 
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-display text-3xl md:text-5xl mt-4 mb-8">{title}</h1>
-            {post && <AdminEditButton to={`/admin/articles?edit=${post.id}`} className="mt-4" />}
+          <div className="mt-4 mb-8">
+            <EditableDBField
+              table="posts"
+              id={post.id}
+              field={titleField}
+              value={title}
+              onSaved={(v) => setPost(p => p ? { ...p, [titleField]: v } : p)}
+              as="h1"
+              className="text-display text-3xl md:text-5xl"
+            />
           </div>
 
           {post.tags && post.tags.length > 0 && (
@@ -101,12 +111,16 @@ const NewsArticle = () => {
           )}
 
           <div className="prose-luxury">
-            {content?.split('\n').map((line, i) => {
-              if (!line.trim()) return <br key={i} />;
-              if (line.startsWith('## ')) return <h2 key={i} className="text-display text-2xl mt-8 mb-4">{line.replace('## ', '')}</h2>;
-              if (line.startsWith('### ')) return <h3 key={i} className="text-display text-xl mt-6 mb-3">{line.replace('### ', '')}</h3>;
-              return <p key={i} className="text-base font-body text-muted-foreground leading-relaxed mb-4">{line}</p>;
-            })}
+            <EditableDBField
+              table="posts"
+              id={post.id}
+              field={contentField}
+              value={content || ''}
+              onSaved={(v) => setPost(p => p ? { ...p, [contentField]: v } : p)}
+              as="div"
+              className="text-base font-body text-muted-foreground leading-relaxed whitespace-pre-line"
+              multiline
+            />
           </div>
         </motion.div>
       </article>
