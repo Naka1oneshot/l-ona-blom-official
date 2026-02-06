@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBField from '@/components/EditableDBField';
+import EditableDBImage from '@/components/EditableDBImage';
 
 interface CollectionRow {
   id: string;
@@ -67,11 +68,16 @@ const CollectionDetail = () => {
       {/* Cover */}
       <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          {collection.cover_image ? (
-            <img src={collection.cover_image} alt={title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-muted" />
-          )}
+          <EditableDBImage
+            table="collections"
+            id={collection.id}
+            field="cover_image"
+            value={collection.cover_image}
+            onSaved={(url) => setCollection(c => c ? { ...c, cover_image: url } : c)}
+            alt={title}
+            className="w-full h-full object-cover"
+            folder="collections"
+          />
           <div className="absolute inset-0 bg-foreground/40" />
         </div>
         <div className="relative z-10 text-center text-background px-6">

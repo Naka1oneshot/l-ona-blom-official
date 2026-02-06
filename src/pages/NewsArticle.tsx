@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import SEOHead from '@/components/SEOHead';
 import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBField from '@/components/EditableDBField';
+import EditableDBImage from '@/components/EditableDBImage';
 import { ArrowLeft } from 'lucide-react';
 
 interface Post {
@@ -78,11 +79,18 @@ const NewsArticle = () => {
             {t('nav.news')}
           </Link>
 
-          {post.cover_image && (
-            <div className="aspect-[16/9] overflow-hidden bg-secondary mb-8">
-              <img src={post.cover_image} alt={title} className="w-full h-full object-cover" />
-            </div>
-          )}
+          <div className="relative aspect-[16/9] overflow-hidden bg-secondary mb-8">
+            <EditableDBImage
+              table="posts"
+              id={post.id}
+              field="cover_image"
+              value={post.cover_image}
+              onSaved={(url) => setPost(p => p ? { ...p, cover_image: url } : p)}
+              alt={title}
+              className="w-full h-full object-cover"
+              folder="posts"
+            />
+          </div>
 
           <time className="text-[10px] tracking-[0.2em] uppercase font-body text-muted-foreground">
             {post.published_at ? new Date(post.published_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
