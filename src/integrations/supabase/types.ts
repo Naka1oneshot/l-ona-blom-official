@@ -176,6 +176,7 @@ export type Database = {
           narrative_en: string | null
           narrative_fr: string | null
           published_at: string | null
+          reference_code: string | null
           slug: string
           subtitle_en: string | null
           subtitle_fr: string | null
@@ -193,6 +194,7 @@ export type Database = {
           narrative_en?: string | null
           narrative_fr?: string | null
           published_at?: string | null
+          reference_code?: string | null
           slug: string
           subtitle_en?: string | null
           subtitle_fr?: string | null
@@ -210,6 +212,7 @@ export type Database = {
           narrative_en?: string | null
           narrative_fr?: string | null
           published_at?: string | null
+          reference_code?: string | null
           slug?: string
           subtitle_en?: string | null
           subtitle_fr?: string | null
@@ -217,6 +220,36 @@ export type Database = {
           title_en?: string
           title_fr?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      import_runs: {
+        Row: {
+          created_at: string
+          filename: string
+          id: string
+          report_json: Json
+          stats_json: Json
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          id?: string
+          report_json?: Json
+          stats_json?: Json
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          id?: string
+          report_json?: Json
+          stats_json?: Json
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -390,6 +423,7 @@ export type Database = {
           preorder: boolean | null
           preorder_ship_date_estimate: string | null
           price_overrides: Json | null
+          reference_code: string | null
           sizes: string[] | null
           slug: string
           status: string
@@ -423,6 +457,7 @@ export type Database = {
           preorder?: boolean | null
           preorder_ship_date_estimate?: string | null
           price_overrides?: Json | null
+          reference_code?: string | null
           sizes?: string[] | null
           slug: string
           status?: string
@@ -456,6 +491,7 @@ export type Database = {
           preorder?: boolean | null
           preorder_ship_date_estimate?: string | null
           price_overrides?: Json | null
+          reference_code?: string | null
           sizes?: string[] | null
           slug?: string
           status?: string
