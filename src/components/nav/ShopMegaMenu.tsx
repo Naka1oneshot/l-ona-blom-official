@@ -65,7 +65,7 @@ const ShopMegaMenu = ({ className, onNavigate }: Props) => {
                   </div>
                 ))}
               </div>
-              <div className="hidden lg:flex items-center">
+              <div className="hidden lg:flex items-center self-center">
                 <img src={logoIcon} alt="" className="h-24 w-auto opacity-30" />
               </div>
             </div>
