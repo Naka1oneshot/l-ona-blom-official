@@ -100,15 +100,6 @@ const NewsArticle = () => {
             {post.published_at ? new Date(post.published_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
           </time>
 
-          <h1 className="text-display text-[32px] md:text-[44px] font-semibold tracking-tight leading-[1.1] mt-4 mb-4">
-            {title}
-          </h1>
-
-          {lead && (
-            <p className="text-[16px] md:text-[18px] font-body text-muted-foreground/90 max-w-prose mb-8 leading-relaxed">
-              {lead}
-            </p>
-          )}
 
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-8">
