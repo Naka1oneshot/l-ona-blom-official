@@ -157,6 +157,21 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
 
         <div><label className={labelClass}>Tags (séparés par virgule)</label><input value={form.tags} onChange={e => set('tags', e.target.value)} className={inputClass} /></div>
 
+        <TranslateButton
+          frFields={{
+            title_fr: form.title_fr,
+            lead_fr: form.lead_fr,
+            content_fr: extractPlainText(form.content_fr_json),
+          }}
+          onTranslated={(translations) => {
+            setForm(prev => ({
+              ...prev,
+              ...(translations.title_en && { title_en: translations.title_en }),
+              ...(translations.lead_en && { lead_en: translations.lead_en }),
+            }));
+          }}
+        />
+
         <div className="flex gap-3 pt-4">
           <button type="submit" disabled={submitting} className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors disabled:opacity-50">
             {submitting ? '...' : isNew ? 'Créer' : 'Enregistrer'}

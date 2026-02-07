@@ -12,7 +12,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import {
   Bold, Italic, Underline as UnderlineIcon, List, ListOrdered,
   Quote, Link as LinkIcon, Image as ImageIcon, Heading1, Heading2,
-  Heading3, Pilcrow, Eye, Type, Highlighter, X
+  Heading3, Pilcrow, Eye, Type, Highlighter, X, Undo2, Redo2
 } from 'lucide-react';
 import {
   Select,
@@ -266,6 +266,15 @@ const EditorToolbar = ({ editor }: { editor: Editor }) => {
       </ToolbarButton>
       <ToolbarButton onClick={addImage} title="Image">
         <ImageIcon size={15} />
+      </ToolbarButton>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+      <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="Annuler (Ctrl+Z)">
+        <Undo2 size={15} />
+      </ToolbarButton>
+      <ToolbarButton onClick={() => editor.chain().focus().redo().run()} title="Rétablir (Ctrl+Y)">
+        <Redo2 size={15} />
       </ToolbarButton>
 
       <Separator orientation="vertical" className="h-6 mx-1" />
