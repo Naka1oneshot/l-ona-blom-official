@@ -73,23 +73,46 @@ const CollectionDetail = () => {
           to={`/admin/collections?edit=${collection.id}`}
           className="absolute top-6 right-6 z-20"
         />
-        {collection.cover_video ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 1.03 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }}
-            className="w-full"
-          >
-            <video
-              src={collection.cover_video}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-auto max-h-[85vh] object-cover"
-            />
-          </motion.div>
-        ) : collection.cover_image ? (
+      {collection.cover_video ? (() => {
+          const ytMatch = collection.cover_video!.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+          if (ytMatch) {
+            const videoId = ytMatch[1];
+            return (
+              <motion.div
+                initial={{ opacity: 0, scale: 1.03 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }}
+                className="w-full relative overflow-hidden"
+                style={{ paddingBottom: '56.25%' }}
+              >
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3`}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full border-0"
+                  style={{ pointerEvents: 'none' }}
+                />
+              </motion.div>
+            );
+          }
+          return (
+            <motion.div
+              initial={{ opacity: 0, scale: 1.03 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }}
+              className="w-full"
+            >
+              <video
+                src={collection.cover_video}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-auto max-h-[85vh] object-cover"
+              />
+            </motion.div>
+          );
+        })() : collection.cover_image ? (
           <motion.div
             initial={{ opacity: 0, scale: 1.08 }}
             animate={{ opacity: 1, scale: 1 }}
