@@ -24,6 +24,8 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
     published_at: post?.published_at ? new Date(post.published_at).toISOString().slice(0, 10) : '',
     category: post?.category || 'article',
     event_date: post?.event_date ? new Date(post.event_date).toISOString().slice(0, 16) : '',
+    event_link: post?.event_link || '',
+    event_location: post?.event_location || '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,6 +43,8 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
       published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
       category: form.category,
       event_date: form.event_date ? new Date(form.event_date).toISOString() : null,
+      event_link: form.event_link || '',
+      event_location: form.event_location || '',
     };
     let error;
     if (isNew) {
@@ -83,9 +87,19 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
           </div>
         </div>
         {form.category === 'event' && (
-          <div>
-            <label className={labelClass}>Date de l'événement</label>
-            <input type="datetime-local" value={form.event_date} onChange={e => set('event_date', e.target.value)} className={inputClass} />
+          <div className="space-y-4">
+            <div>
+              <label className={labelClass}>Date de l'événement</label>
+              <input type="datetime-local" value={form.event_date} onChange={e => set('event_date', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Lieu / Adresse</label>
+              <input value={form.event_location} onChange={e => set('event_location', e.target.value)} className={inputClass} placeholder="Ex: 12 Rue de la Paix, 75002 Paris" />
+            </div>
+            <div>
+              <label className={labelClass}>Lien billetterie (URL)</label>
+              <input type="url" value={form.event_link} onChange={e => set('event_link', e.target.value)} className={inputClass} placeholder="https://..." />
+            </div>
           </div>
         )}
         <TranslateButton

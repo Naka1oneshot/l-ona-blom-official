@@ -235,6 +235,8 @@ export type Database = {
           cover_image: string | null
           created_at: string
           event_date: string | null
+          event_link: string | null
+          event_location: string | null
           id: string
           published_at: string | null
           slug: string
@@ -250,6 +252,8 @@ export type Database = {
           cover_image?: string | null
           created_at?: string
           event_date?: string | null
+          event_link?: string | null
+          event_location?: string | null
           id?: string
           published_at?: string | null
           slug: string
@@ -265,6 +269,8 @@ export type Database = {
           cover_image?: string | null
           created_at?: string
           event_date?: string | null
+          event_link?: string | null
+          event_location?: string | null
           id?: string
           published_at?: string | null
           slug?: string
