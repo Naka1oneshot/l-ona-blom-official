@@ -112,12 +112,12 @@ const News = () => {
             </div>
           ) : (
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="w-full justify-center bg-transparent gap-1 mb-12">
+              <TabsList className="w-full justify-center bg-transparent gap-1 mb-8 md:mb-12 flex-wrap">
                 {CATEGORIES.map(cat => (
                   <TabsTrigger
                     key={cat}
                     value={cat}
-                    className="text-xs tracking-[0.15em] uppercase font-body px-5 py-2 data-[state=active]:bg-foreground data-[state=active]:text-background rounded-none border border-foreground/20 data-[state=active]:border-foreground transition-all"
+                    className="text-[10px] sm:text-xs tracking-[0.1em] sm:tracking-[0.15em] uppercase font-body px-3 sm:px-5 py-1.5 sm:py-2 data-[state=active]:bg-foreground data-[state=active]:text-background rounded-none border border-foreground/20 data-[state=active]:border-foreground transition-all"
                   >
                     {t(`news.tab.${cat}`)}
                   </TabsTrigger>

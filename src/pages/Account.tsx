@@ -71,13 +71,13 @@ const Account = () => {
     <div className="pt-20 md:pt-24">
       <section className="luxury-container luxury-section max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <div className="flex items-center justify-between mb-12">
-            <h1 className="text-display text-4xl md:text-5xl">{t('nav.account')}</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-12">
+            <h1 className="text-display text-3xl md:text-5xl">{t('nav.account')}</h1>
             <div className="flex items-center gap-3">
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className="flex items-center gap-2 px-4 py-2 text-xs tracking-[0.15em] uppercase font-body border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 text-[10px] sm:text-xs tracking-[0.15em] uppercase font-body border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
                 >
                   <Shield size={14} />
                   Admin
@@ -85,7 +85,7 @@ const Account = () => {
               )}
               <button
                 onClick={signOut}
-                className="flex items-center gap-2 px-4 py-2 text-xs tracking-[0.15em] uppercase font-body border border-foreground/20 hover:border-destructive hover:text-destructive transition-colors"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 text-[10px] sm:text-xs tracking-[0.15em] uppercase font-body border border-foreground/20 hover:border-destructive hover:text-destructive transition-colors"
               >
                 <LogOut size={14} />
                 {t('auth.logout')}
@@ -101,7 +101,7 @@ const Account = () => {
             </div>
             {editing ? (
               <form onSubmit={handleSaveProfile} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2">{t('auth.first_name')}</label>
                     <input type="text" value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} className={inputClass} />

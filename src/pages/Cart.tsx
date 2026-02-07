@@ -37,14 +37,14 @@ const Cart = () => {
                 {items.map(item => {
                   const name = language === 'fr' ? item.product.name_fr : item.product.name_en;
                   return (
-                    <div key={item.product.id} className="flex gap-6 border-b border-foreground/10 pb-8">
-                      <div className="w-24 h-32 bg-secondary flex-shrink-0 overflow-hidden">
+                    <div key={item.product.id} className="flex gap-4 sm:gap-6 border-b border-foreground/10 pb-6 sm:pb-8">
+                      <div className="w-20 h-28 sm:w-24 sm:h-32 bg-secondary flex-shrink-0 overflow-hidden">
                         <img src={item.product.images[0]} alt={name} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
                           <div className="flex items-start justify-between">
-                            <Link to={`/boutique/${item.product.slug}`} className="text-display text-lg hover:text-primary transition-colors">
+                            <Link to={`/boutique/${item.product.slug}`} className="text-display text-sm sm:text-lg hover:text-primary transition-colors line-clamp-2">
                               {name}
                             </Link>
                             <button onClick={() => removeItem(item.product.id)} className="p-1 text-muted-foreground hover:text-foreground" aria-label={t('cart.remove')}>

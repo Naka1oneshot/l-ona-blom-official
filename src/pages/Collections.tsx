@@ -51,7 +51,7 @@ const Collections = () => {
               {language === 'fr' ? 'Aucune collection pour le moment.' : 'No collections yet.'}
             </p>
           ) : (
-            <div className="grid grid-cols-1 gap-20">
+            <div className="grid grid-cols-1 gap-12 md:gap-20">
               {collections.map((collection, i) => {
                 const title = language === 'fr' ? collection.title_fr : collection.title_en;
                 const subtitle = language === 'fr' ? (collection.subtitle_fr || '') : (collection.subtitle_en || '');
@@ -65,7 +65,7 @@ const Collections = () => {
                     transition={{ duration: 0.8 }}
                   >
                     <Link to={`/collections/${collection.slug}`} className="group block">
-                      <div className="relative aspect-[16/7] overflow-hidden bg-secondary mb-8">
+                      <div className="relative aspect-[4/3] sm:aspect-[16/9] md:aspect-[16/7] overflow-hidden bg-secondary mb-6 md:mb-8">
                         <AdminEditButton
                           to={`/admin/collections?edit=${collection.id}`}
                           className="absolute top-4 right-4 z-10"
@@ -82,8 +82,8 @@ const Collections = () => {
                         )}
                         <div className="absolute inset-0 bg-foreground/30 group-hover:bg-foreground/40 transition-colors duration-500" />
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-background">
-                          <h2 className="text-display text-3xl md:text-5xl tracking-[0.15em] mb-2">{title}</h2>
-                          <p className="text-sm font-body tracking-[0.1em] opacity-70">{subtitle}</p>
+                          <h2 className="text-display text-2xl sm:text-3xl md:text-5xl tracking-[0.15em] mb-1 sm:mb-2">{title}</h2>
+                          <p className="text-xs sm:text-sm font-body tracking-[0.1em] opacity-70">{subtitle}</p>
                         </div>
                       </div>
                     </Link>

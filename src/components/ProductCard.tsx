@@ -40,8 +40,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </span>
           )}
         </div>
-        <h3 className="text-display text-lg mb-1">{name}</h3>
-        <p className="text-sm font-body text-muted-foreground">
+        <h3 className="text-display text-sm sm:text-lg mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
+        <p className="text-xs sm:text-sm font-body text-muted-foreground">
           {formatPrice(product.base_price_eur, product.price_overrides)}
         </p>
       </Link>

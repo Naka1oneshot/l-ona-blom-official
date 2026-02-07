@@ -41,12 +41,12 @@ const Shop = () => {
           <h1 className="text-display text-4xl md:text-5xl text-center mb-12">{t('shop.title')}</h1>
 
           {/* Category Filters */}
-          <div className="flex flex-wrap justify-center gap-4 mb-16">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-10 md:mb-16">
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`text-xs tracking-[0.2em] uppercase font-body px-4 py-2 border transition-all duration-300 ${
+                className={`text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase font-body px-3 sm:px-4 py-1.5 sm:py-2 border transition-all duration-300 ${
                   activeCategory === cat
                     ? 'border-foreground bg-foreground text-background'
                     : 'border-foreground/20 hover:border-foreground/60'
@@ -64,7 +64,7 @@ const Shop = () => {
           ) : (
             <>
               {/* Product Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
                 {filtered.map((product, i) => (
                   <motion.div
                     key={product.id}
