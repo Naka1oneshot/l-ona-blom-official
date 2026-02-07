@@ -409,6 +409,7 @@ export type Database = {
           created_at: string
           description_en: string | null
           description_fr: string | null
+          editorial_blocks_json: Json | null
           id: string
           images: string[] | null
           made_to_measure: boolean | null
@@ -443,6 +444,7 @@ export type Database = {
           created_at?: string
           description_en?: string | null
           description_fr?: string | null
+          editorial_blocks_json?: Json | null
           id?: string
           images?: string[] | null
           made_to_measure?: boolean | null
@@ -477,6 +479,7 @@ export type Database = {
           created_at?: string
           description_en?: string | null
           description_fr?: string | null
+          editorial_blocks_json?: Json | null
           id?: string
           images?: string[] | null
           made_to_measure?: boolean | null

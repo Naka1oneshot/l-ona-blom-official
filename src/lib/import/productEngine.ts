@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { normText, normBool, normPriceToCents, normList, normDate, normInt, arraysEqual } from './normalize';
+import { parseEditorialBlocks, mergeEditorialBlocksI18n, normalizeEditorialBlocksForDiff } from './editorialParser';
 import type { PreviewRow, ImportReport, ImportStats, RowMessage } from './types';
 
 /**
@@ -60,6 +61,10 @@ function parseRow(raw: Record<string, any>) {
     colors: normList(col(raw, 'colors')),
     materials: normList(col(raw, 'materials_list')),
     braiding_options: normList(col(raw, 'braiding_options')),
+    editorial_blocks_json: mergeEditorialBlocksI18n(
+      parseEditorialBlocks(col(raw, 'editorial_blocks_fr')),
+      parseEditorialBlocks(col(raw, 'editorial_blocks_en'))
+    ),
   };
 }
 
@@ -97,6 +102,13 @@ function compareFields(parsed: any, existing: any): string[] {
     const a = [...(parsed[f] || [])].sort();
     const b = [...(existing[f] || [])].sort();
     if (!arraysEqual(a, b)) changes.push(f);
+  }
+
+  // Compare editorial blocks only if import provides them
+  if (parsed.editorial_blocks_json != null) {
+    const parsedNorm = normalizeEditorialBlocksForDiff(parsed.editorial_blocks_json);
+    const existNorm = normalizeEditorialBlocksForDiff(existing.editorial_blocks_json);
+    if (parsedNorm !== existNorm) changes.push('editorial_blocks_json');
   }
 
   return changes;
@@ -229,7 +241,8 @@ export async function executeProductImport(previewRows: PreviewRow[]): Promise<v
   if (toCreate.length > 0) {
     const inserts = toCreate.map(r => {
       const p = parseRow(r.data);
-      return { ...p, images: [] };
+      const { editorial_blocks_json, ...rest } = p;
+      return { ...rest, images: [], ...(editorial_blocks_json ? { editorial_blocks_json: JSON.parse(JSON.stringify(editorial_blocks_json)) } : {}) };
     });
     const { error } = await supabase.from('products').insert(inserts);
     if (error) throw new Error(`Erreur insertion: ${error.message}`);
@@ -241,8 +254,10 @@ export async function executeProductImport(previewRows: PreviewRow[]): Promise<v
       const p = parseRow(r.data);
       const id = r.data._candidateId;
       if (!id) continue;
-      // Include reference_code in update (handles migration of empty reference_code)
-      const { error } = await supabase.from('products').update(p).eq('id', id);
+      const { editorial_blocks_json, ...rest } = p;
+      const payload: any = { ...rest };
+      if (editorial_blocks_json) payload.editorial_blocks_json = JSON.parse(JSON.stringify(editorial_blocks_json));
+      const { error } = await supabase.from('products').update(payload).eq('id', id);
       if (error) throw new Error(`Erreur update ${r.referenceCode}: ${error.message}`);
     }
   }
