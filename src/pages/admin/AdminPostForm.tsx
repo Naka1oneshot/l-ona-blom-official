@@ -7,6 +7,18 @@ import TranslateButton from '@/components/admin/TranslateButton';
 import RichArticleEditor from '@/components/admin/RichArticleEditor';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
+/** Format an ISO date string to datetime-local value (YYYY-MM-DDTHH:mm) without timezone shift */
+function formatDateTimeLocal(iso: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 interface Props {
   post?: any;
   onSave: () => void;
@@ -25,9 +37,9 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
     content_en_json: post?.content_en_json || null,
     cover_image: post?.cover_image || '',
     tags: (post?.tags || []).join(', '),
-    published_at: post?.published_at ? new Date(post.published_at).toISOString().slice(0, 10) : '',
+    published_at: post?.published_at ? post.published_at.slice(0, 10) : '',
     category: post?.category || 'article',
-    event_date: post?.event_date ? new Date(post.event_date).toISOString().slice(0, 16) : '',
+    event_date: post?.event_date ? formatDateTimeLocal(post.event_date) : '',
     event_link: post?.event_link || '',
     event_location: post?.event_location || '',
   });
@@ -49,9 +61,9 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
       content_en: extractPlainText(form.content_en_json),
       cover_image: form.cover_image,
       tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
-      published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
+      published_at: form.published_at ? `${form.published_at}T00:00:00` : null,
       category: form.category,
-      event_date: form.event_date ? new Date(form.event_date).toISOString() : null,
+      event_date: form.event_date ? `${form.event_date}:00` : null,
       event_link: form.event_link || '',
       event_location: form.event_location || '',
     };
