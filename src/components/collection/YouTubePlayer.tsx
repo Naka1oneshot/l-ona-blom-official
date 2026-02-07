@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, Youtube } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Youtube } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 
 // Declare YouTube IFrame API types
@@ -46,7 +46,14 @@ const YouTubePlayer = ({ videoId, className = '' }: YouTubePlayerProps) => {
   const [volume, setVolume] = useState(80);
   const [showControls, setShowControls] = useState(false);
   const [showVolume, setShowVolume] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
 
   useEffect(() => {
     loadYTApi();
@@ -102,10 +109,11 @@ const YouTubePlayer = ({ videoId, className = '' }: YouTubePlayerProps) => {
     else if (muted) { p.unMute(); setMuted(false); }
   }, [muted]);
 
-  const goFullscreen = useCallback(() => {
-    const el = containerRef.current;
-    if (el) {
-      if (el.requestFullscreen) el.requestFullscreen();
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      containerRef.current?.requestFullscreen();
     }
   }, []);
 
@@ -171,8 +179,8 @@ const YouTubePlayer = ({ videoId, className = '' }: YouTubePlayerProps) => {
         </a>
 
         {/* Fullscreen */}
-        <button onClick={goFullscreen} className="text-white/90 hover:text-white transition-colors" aria-label="Plein écran">
-          <Maximize size={18} />
+        <button onClick={toggleFullscreen} className="text-white/90 hover:text-white transition-colors" aria-label={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}>
+          {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
         </button>
       </div>
     </div>
