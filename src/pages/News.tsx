@@ -56,14 +56,15 @@ const PostCard = ({ post, language, i }: { post: Post; language: string; i: numb
           </div>
         )}
         <div className="flex items-center gap-3 mb-1">
-          <time className="text-[10px] tracking-[0.2em] uppercase font-body text-muted-foreground">
-            {post.published_at ? new Date(post.published_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
-          </time>
-          {post.category === 'event' && post.event_date && (
-            <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.15em] uppercase font-body text-primary">
+          {post.category === 'event' && post.event_date ? (
+            <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase font-body text-primary">
               <CalendarDays size={12} />
-              {new Date(post.event_date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+              {new Date(post.event_date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
             </span>
+          ) : (
+            <time className="text-[10px] tracking-[0.2em] uppercase font-body text-muted-foreground">
+              {post.published_at ? new Date(post.published_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
+            </time>
           )}
         </div>
         <h2 className="text-display text-xl md:text-2xl mt-2 mb-2 group-hover:text-primary transition-colors">

@@ -7,16 +7,17 @@ import TranslateButton from '@/components/admin/TranslateButton';
 import RichArticleEditor from '@/components/admin/RichArticleEditor';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
-/** Format an ISO date string to datetime-local value (YYYY-MM-DDTHH:mm) without timezone shift */
+/** Format an ISO date string to datetime-local value (YYYY-MM-DDTHH:mm) without timezone shift.
+ *  We strip any timezone suffix so the value is treated as-is. */
 function formatDateTimeLocal(iso: string): string {
   if (!iso) return '';
-  const d = new Date(iso);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  // Strip timezone info (+00, Z, etc.) to keep the literal time entered
+  const bare = iso.replace(/([+-]\d{2}(:\d{2})?|Z)$/, '');
+  // bare is like "2026-07-04T17:30:00" or "2026-07-04 17:30:00"
+  const [datePart, timePart] = bare.includes('T') ? bare.split('T') : bare.split(' ');
+  if (!timePart) return datePart;
+  const [hh, mm] = timePart.split(':');
+  return `${datePart}T${hh}:${mm}`;
 }
 
 interface Props {
@@ -63,7 +64,7 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
       tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
       published_at: form.published_at ? `${form.published_at}T00:00:00` : null,
       category: form.category,
-      event_date: form.event_date ? `${form.event_date}:00` : null,
+      event_date: form.event_date || null,
       event_link: form.event_link || '',
       event_location: form.event_location || '',
     };
