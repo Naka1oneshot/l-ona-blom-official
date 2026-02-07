@@ -1,8 +1,11 @@
 export const siteConfig = {
   brand: 'LÉONA BLOM',
   contactEmail: 'contact@leonablom.com',
-  instagram: 'https://instagram.com/leonablom',
+  instagram: 'https://www.instagram.com/leona_blom.dsgn/',
   pinterest: 'https://pinterest.com/leonablom',
+  youtube: 'https://www.youtube.com/@L%C3%A9onaBLOM',
+  facebook: 'https://www.facebook.com/profile.php?id=61573449504492',
+  tiktok: 'https://www.tiktok.com/@leona.blom',
   siteUrl: 'https://leonablom.com',
   seo: {
     defaultTitle: 'LÉONA BLOM — Luxe Narratif | Haute Couture Éthique',
