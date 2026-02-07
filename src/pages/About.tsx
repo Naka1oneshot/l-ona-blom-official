@@ -1,161 +1,150 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import EditableText from '@/components/EditableText';
+import { getAboutContent } from '@/content/aboutContent';
+import AboutHero from '@/components/about/AboutHero';
+import AboutSection from '@/components/about/AboutSection';
+import AboutCalloutCard from '@/components/about/AboutCalloutCard';
+import AboutBulletList from '@/components/about/AboutBulletList';
+import AboutTimeline from '@/components/about/AboutTimeline';
+import AboutMaterialsGrid from '@/components/about/AboutMaterialsGrid';
+
+const Paragraphs = ({ paragraphs, className = '' }: { paragraphs: string[]; className?: string }) => (
+  <div className={`space-y-5 ${className}`}>
+    {paragraphs.map((p, i) => (
+      <p key={i} className="text-base sm:text-[17px] font-body leading-7 text-muted-foreground">
+        {p}
+      </p>
+    ))}
+  </div>
+);
 
 const About = () => {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
+  const c = getAboutContent(language);
 
   return (
-    <div className="pt-20 md:pt-24">
-      {/* Hero */}
-      <section className="section-dark luxury-section" style={{ background: 'hsl(320, 68%, 35%)' }}>
-        <div className="luxury-container text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-display text-4xl md:text-6xl tracking-[0.15em] mb-6">LÉONA BLOM</h1>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
-            <EditableText
-              settingsKey="page_about_tagline"
-              defaultText={t('hero.tagline')}
-              as="p"
-              className="text-display text-lg md:text-xl italic opacity-70 max-w-xl mx-auto"
+    <div className="lb-about">
+      {/* 1. HERO */}
+      <AboutHero
+        quote={c.hero.quote}
+        author={c.hero.author}
+        cta_shop={c.hero.cta_shop}
+        cta_collections={c.hero.cta_collections}
+      />
+
+      {/* 2. TRÉSOR À PORTER */}
+      <AboutSection id={c.tresor.id} eyebrow={c.tresor.eyebrow} title={c.tresor.title} variant="light">
+        <Paragraphs paragraphs={c.tresor.bodyParagraphs || []} />
+        {c.tresor.callouts && c.tresor.callouts.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
+            {c.tresor.callouts.map((co, i) => (
+              <AboutCalloutCard key={co.label} label={co.label} text={co.text} index={i} />
+            ))}
+          </div>
+        )}
+      </AboutSection>
+
+      {/* 3. BLOOM — Split layout */}
+      <AboutSection id={c.bloom.id} eyebrow={c.bloom.eyebrow} title={c.bloom.title} variant="dark">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+          <div>
+            <Paragraphs
+              paragraphs={c.bloom.bodyParagraphs}
+              className="[&_p]:text-background/80"
             />
-          </motion.div>
+          </div>
+          <div>
+            <AboutTimeline steps={c.bloom.timeline} variant="dark" />
+          </div>
         </div>
-      </section>
+      </AboutSection>
 
-      {/* Name Meaning */}
-      <section className="luxury-section luxury-container max-w-3xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <EditableText
-            settingsKey="page_about_name_meaning"
-            defaultText={t('about.name_meaning')}
-            as="p"
-            className="text-base md:text-lg font-body text-muted-foreground leading-relaxed"
-            multiline
-          />
-        </motion.div>
-      </section>
-
-      {/* Vision */}
-      <section className="bg-luxury-cream luxury-section">
-        <div className="luxury-container max-w-3xl mx-auto text-center">
+      {/* 4. MARQUE EN MOUVEMENT */}
+      <section
+        className="py-12 sm:py-16 md:py-20"
+        style={{ background: 'hsl(320, 68%, 35%)' }}
+      >
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
+            className="bg-background/95 backdrop-blur-sm p-8 sm:p-12 md:p-14 text-center"
           >
-            <EditableText
-              settingsKey="page_about_vision_title"
-              defaultText={t('about.vision')}
-              as="h2"
-              className="text-display text-3xl md:text-4xl mb-8"
-            />
-            <EditableText
-              settingsKey="page_about_vision_p1"
-              defaultText={language === 'fr'
-                ? 'LÉONA BLOM est née de la conviction que chaque femme porte en elle une histoire qui mérite d\'être racontée. Notre maison ne crée pas simplement des vêtements — elle tisse des récits, des héritages, des transformations.'
-                : 'LÉONA BLOM was born from the belief that every woman carries within her a story that deserves to be told. Our house doesn\'t simply create garments — it weaves narratives, legacies, transformations.'}
-              as="p"
-              className="text-base font-body text-muted-foreground leading-relaxed mb-6"
-              multiline
-            />
-            <EditableText
-              settingsKey="page_about_vision_p2"
-              defaultText={language === 'fr'
-                ? 'De Douala à Paris, chaque création voyage entre deux mondes, puisant dans la richesse des traditions camerounaises et la sophistication de la haute couture française.'
-                : 'From Douala to Paris, each creation travels between two worlds, drawing from the richness of Cameroonian traditions and the sophistication of French haute couture.'}
-              as="p"
-              className="text-base font-body text-muted-foreground leading-relaxed"
-              multiline
-            />
+            <p className="text-[10px] tracking-[0.25em] uppercase font-body text-primary mb-4">
+              {c.mouvement.eyebrow}
+            </p>
+            <blockquote className="text-display text-xl sm:text-2xl md:text-3xl italic tracking-tight text-foreground mb-4">
+              «&nbsp;{c.mouvement.highlightQuote}&nbsp;»
+            </blockquote>
+            <div className="w-12 h-px bg-primary/30 mx-auto mb-4" />
+            <p className="text-xs sm:text-sm tracking-[0.15em] uppercase font-body text-muted-foreground">
+              Oser · Changer · Grandir
+            </p>
           </motion.div>
         </div>
       </section>
 
-      {/* 3S */}
-      <section className="section-dark luxury-section">
-        <div className="luxury-container">
-          <h2 className="text-display text-3xl md:text-4xl text-center mb-16">
-            {language === 'fr' ? 'Les 3S' : 'The 3S'}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 max-w-4xl mx-auto">
-            {[
-              {
-                title: 'Selflove',
-                key: 'page_about_selflove',
-                defaultFr: "S'aimer entièrement, sans condition. C'est le premier acte de courage. Chaque pièce LÉONA BLOM est conçue pour vous rappeler que vous méritez le beau, le noble, le précieux.",
-                defaultEn: "Loving yourself entirely, unconditionally. It's the first act of courage. Every LÉONA BLOM piece is designed to remind you that you deserve the beautiful, the noble, the precious.",
-              },
-              {
-                title: 'Selfcare',
-                key: 'page_about_selfcare',
-                defaultFr: "Se chérir profondément, c'est prendre soin de son corps et de son âme. Nos matières nobles caressent la peau comme un rituel quotidien de tendresse envers soi-même.",
-                defaultEn: "Cherishing yourself deeply means caring for your body and soul. Our noble materials caress the skin like a daily ritual of tenderness toward yourself.",
-              },
-              {
-                title: 'Selfplace',
-                key: 'page_about_selfplace',
-                defaultFr: "Trouver sa place dans le monde, affirmer sa présence. Porter LÉONA BLOM, c'est occuper l'espace qui vous revient — avec grâce, avec force, avec sérénité.",
-                defaultEn: "Finding your place in the world, affirming your presence. Wearing LÉONA BLOM means occupying the space that belongs to you — with grace, with strength, with serenity.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.15 }}
-                className="text-center"
-              >
-                <h3 className="text-display text-2xl tracking-[0.1em] mb-4">{item.title}</h3>
-                <div className="w-12 h-px bg-background mx-auto mb-6" />
-                <EditableText
-                  settingsKey={item.key}
-                  defaultText={language === 'fr' ? item.defaultFr : item.defaultEn}
-                  as="p"
-                  className="text-sm font-body opacity-60 leading-relaxed"
-                  multiline
-                />
-              </motion.div>
-            ))}
-          </div>
+      {/* 5. FUSION */}
+      <AboutSection id={c.fusion.id} eyebrow={c.fusion.eyebrow} title={c.fusion.title} variant="light">
+        <Paragraphs paragraphs={c.fusion.bodyParagraphs} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
+          {c.fusion.callouts.map((co, i) => (
+            <AboutCalloutCard key={co.label} label={co.label} text={co.text} index={i} />
+          ))}
+        </div>
+      </AboutSection>
+
+      {/* 6. MATIÈRES */}
+      <AboutSection id={c.matieres.id} eyebrow={c.matieres.eyebrow} title={c.matieres.title} variant="magenta">
+        <AboutMaterialsGrid materials={c.matieres.materials} />
+      </AboutSection>
+
+      {/* 7. AUDIENCE */}
+      <section style={{ background: 'hsl(320, 68%, 35%)' }} className="py-12 sm:py-16 md:py-20">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="bg-background p-8 sm:p-12 md:p-16 rounded-2xl"
+          >
+            <p className="text-[10px] sm:text-xs tracking-[0.25em] uppercase font-body text-primary mb-3">
+              {c.audience.eyebrow}
+            </p>
+            <h2 className="text-display text-2xl sm:text-3xl md:text-[34px] tracking-tight text-foreground mb-3">
+              {c.audience.title}
+            </h2>
+            <div className="w-14 h-px bg-primary mb-8" />
+            <Paragraphs paragraphs={c.audience.bodyParagraphs || []} />
+          </motion.div>
         </div>
       </section>
 
-      {/* Quote */}
-      <section className="luxury-section luxury-container text-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1 }}
-        >
-          <EditableText
-            settingsKey="page_about_quote"
-            defaultText={language === 'fr'
-              ? '« Parce que la beauté rayonne de l\'intérieur, vers l\'extérieur. »'
-              : '"Because beauty radiates from within, outward."'}
-            as="blockquote"
-            className="text-display text-2xl md:text-3xl italic max-w-2xl mx-auto"
-          />
-        </motion.div>
-      </section>
+      {/* 8. HONNEUR */}
+      <AboutSection id={c.honneur.id} eyebrow={c.honneur.eyebrow} title={c.honneur.title} variant="light">
+        <AboutBulletList items={c.honneur.bullets} badge={c.honneur.badge} />
+      </AboutSection>
+
+      {/* 9. ÉLÉVATION */}
+      <AboutSection id={c.elevation.id} eyebrow={c.elevation.eyebrow} title={c.elevation.title} variant="dark">
+        <Paragraphs
+          paragraphs={c.elevation.bodyParagraphs}
+          className="[&_p]:text-background/80 mb-10"
+        />
+        <div className="flex flex-col sm:flex-row gap-4 mt-10">
+          <Link
+            to="/collections"
+            className="inline-block bg-primary text-primary-foreground px-8 py-3.5 text-[10px] sm:text-xs tracking-[0.2em] uppercase font-body hover:bg-primary/90 transition-colors text-center"
+          >
+            {c.elevation.cta_collections}
+          </Link>
+        </div>
+      </AboutSection>
     </div>
   );
 };
