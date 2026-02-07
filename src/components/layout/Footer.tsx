@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { siteConfig } from '@/lib/siteConfig';
+import logoWhite from '@/assets/logo-white.png';
 
 const Footer = () => {
   const { t } = useLanguage();
@@ -12,7 +13,7 @@ const Footer = () => {
         {/* Brand + Legal row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <div>
-            <h3 className="text-display text-xl tracking-[0.2em]">LÉONA BLOM</h3>
+            <img src={logoWhite} alt="LÉONA BLOM" className="h-5 md:h-6 w-auto" />
           </div>
 
           {/* Legal links horizontal */}

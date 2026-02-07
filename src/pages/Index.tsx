@@ -10,6 +10,7 @@ import EditableText from '@/components/EditableText';
 import EditableImage from '@/components/EditableImage';
 import EventsSection from '@/components/home/EventsSection';
 import heroImage from '@/assets/hero-home.jpg';
+import logoWhite from '@/assets/logo-white.png';
 
 const Index = () => {
   const { language, t } = useLanguage();
@@ -32,14 +33,14 @@ const Index = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
         <div className="relative z-10 text-center text-background px-6">
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-display text-3xl sm:text-4xl md:text-6xl lg:text-7xl tracking-[0.15em] mb-4 sm:mb-6"
+            className="mb-4 sm:mb-6"
           >
-            LÉONA BLOM
-          </motion.h1>
+            <img src={logoWhite} alt="LÉONA BLOM" className="h-10 sm:h-14 md:h-20 lg:h-24 w-auto mx-auto" />
+          </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
