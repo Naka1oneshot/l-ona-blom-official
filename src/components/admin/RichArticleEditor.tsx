@@ -12,7 +12,8 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import {
   Bold, Italic, Underline as UnderlineIcon, List, ListOrdered,
   Quote, Link as LinkIcon, Image as ImageIcon, Heading1, Heading2,
-  Heading3, Pilcrow, Eye, Type, Highlighter, X, Undo2, Redo2
+  Heading3, Pilcrow, Eye, Type, Highlighter, X, Undo2, Redo2,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify
 } from 'lucide-react';
 import {
   Select,
@@ -257,6 +258,21 @@ const EditorToolbar = ({ editor }: { editor: Editor }) => {
       </ToolbarButton>
       <ToolbarButton active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Citation">
         <Quote size={15} />
+      </ToolbarButton>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+      <ToolbarButton active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Aligner à gauche">
+        <AlignLeft size={15} />
+      </ToolbarButton>
+      <ToolbarButton active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Centrer">
+        <AlignCenter size={15} />
+      </ToolbarButton>
+      <ToolbarButton active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Aligner à droite">
+        <AlignRight size={15} />
+      </ToolbarButton>
+      <ToolbarButton active={editor.isActive({ textAlign: 'justify' })} onClick={() => editor.chain().focus().setTextAlign('justify').run()} title="Justifier">
+        <AlignJustify size={15} />
       </ToolbarButton>
 
       <Separator orientation="vertical" className="h-6 mx-1" />
