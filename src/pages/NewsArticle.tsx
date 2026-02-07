@@ -19,6 +19,10 @@ interface Post {
   cover_image: string | null;
   published_at: string | null;
   tags: string[] | null;
+  category: string;
+  event_link: string | null;
+  event_date: string | null;
+  event_location: string | null;
 }
 
 const NewsArticle = () => {
@@ -130,6 +134,19 @@ const NewsArticle = () => {
               multiline
             />
           </div>
+
+          {post.category === 'event' && post.event_link && (
+            <div className="mt-12 text-center">
+              <a
+                href={post.event_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block bg-primary text-primary-foreground px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-all duration-500"
+              >
+                {language === 'fr' ? 'Réserver sa place' : 'Book your spot'}
+              </a>
+            </div>
+          )}
         </motion.div>
       </article>
     </div>
