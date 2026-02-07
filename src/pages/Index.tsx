@@ -125,7 +125,7 @@ const Index = () => {
                 <h3 className="text-display text-2xl md:text-3xl tracking-[0.1em] mb-4">
                   {t(`home.values.${value}`)}
                 </h3>
-                <div className="w-12 h-px bg-primary mx-auto mb-4" />
+                <div className="w-12 h-px bg-background mx-auto mb-4" />
                 <EditableText
                   settingsKey={`page_home_value_${value}`}
                   defaultText={t(`home.values.${value}.desc`)}
