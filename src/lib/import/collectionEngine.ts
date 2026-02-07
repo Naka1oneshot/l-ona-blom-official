@@ -2,19 +2,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { normText, normList, normDate, arraysEqual } from './normalize';
 import type { PreviewRow, ImportReport, ImportStats, RowMessage } from './types';
 
+/**
+ * Resolve a column value from a raw row, trying multiple possible header names.
+ */
+function col(raw: Record<string, any>, ...keys: string[]): any {
+  for (const k of keys) {
+    if (k in raw && raw[k] !== '' && raw[k] != null) return raw[k];
+  }
+  const lowerMap = new Map(Object.entries(raw).map(([k, v]) => [k.toLowerCase(), v]));
+  for (const k of keys) {
+    const v = lowerMap.get(k.toLowerCase());
+    if (v !== '' && v != null) return v;
+  }
+  return undefined;
+}
+
 function parseRow(raw: Record<string, any>) {
   return {
-    reference_code: normText(raw['Référence Produit']),
-    slug: normText(raw['slug']),
-    title_fr: normText(raw['title_fr']),
-    title_en: normText(raw['title_en']),
-    subtitle_fr: normText(raw['subtitle_fr']),
-    subtitle_en: normText(raw['subtitle_en']),
-    narrative_fr: normText(raw['narrative_fr']),
-    narrative_en: normText(raw['narrative_en']),
-    published_at: normDate(raw['published_at']),
-    tags: normList(raw['tags']),
-    _product_slugs: normList(raw['product_slugs']),
+    reference_code: normText(col(raw, 'Référence Produit', 'reference_code')),
+    slug: normText(col(raw, 'slug')),
+    title_fr: normText(col(raw, 'title_fr')),
+    title_en: normText(col(raw, 'title_en')),
+    subtitle_fr: normText(col(raw, 'subtitle_fr')),
+    subtitle_en: normText(col(raw, 'subtitle_en')),
+    narrative_fr: normText(col(raw, 'narrative_fr')),
+    narrative_en: normText(col(raw, 'narrative_en')),
+    published_at: normDate(col(raw, 'published_at')),
+    tags: normList(col(raw, 'tags')),
+    _product_slugs: normList(col(raw, 'product_slugs')),
   };
 }
 
@@ -43,7 +58,6 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
     bySlug.set(c.slug, c);
   }
 
-  // Fetch products for product_slugs validation
   const { data: products } = await supabase.from('products').select('id, slug');
   const productBySlug = new Map<string, string>();
   for (const p of products || []) productBySlug.set(p.slug, p.id);
@@ -55,21 +69,21 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
   for (let i = 0; i < rows.length; i++) {
     const raw = rows[i];
     const messages: RowMessage[] = [];
-    const ref = normText(raw['Référence Produit']);
-    const slug = normText(raw['slug']);
+    const ref = normText(col(raw, 'Référence Produit', 'reference_code'));
+    const slug = normText(col(raw, 'slug'));
 
     if (!ref || !/^COL\d{3,}$/.test(ref)) {
-      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(raw['title_fr']), status: 'ERROR', messages: [{ severity: 'error', message: `Référence invalide: "${ref}" (format: COL001)` }], data: raw });
+      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: `Référence invalide: "${ref}" (format: COL001)` }], data: raw });
       stats.errors++;
       continue;
     }
     if (!slug) {
-      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(raw['title_fr']), status: 'ERROR', messages: [{ severity: 'error', message: 'Slug manquant' }], data: raw });
+      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: 'Slug manquant' }], data: raw });
       stats.errors++;
       continue;
     }
     if (slugsInFile.has(slug)) {
-      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(raw['title_fr']), status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" dupliqué (ligne ${slugsInFile.get(slug)})` }], data: raw });
+      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" dupliqué (ligne ${slugsInFile.get(slug)})` }], data: raw });
       stats.errors++;
       continue;
     }
@@ -111,7 +125,6 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
     const existingCol = byRef.get(ref);
     if (existingCol) {
       const changes = compareFields(parsed, existingCol);
-      // We'll also update product links regardless
       if (changes.length === 0) {
         preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'NO_CHANGE', messages, data: { ...raw, _validProductIds: validProductIds } });
         stats.no_change++;
@@ -138,7 +151,6 @@ export async function executeCollectionImport(previewRows: PreviewRow[]): Promis
   const toCreate = previewRows.filter(r => r.status === 'CREATE');
   const toUpdate = previewRows.filter(r => r.status === 'UPDATE');
 
-  // Create collections
   for (const r of toCreate) {
     const p = parseRow(r.data);
     const { _product_slugs, ...insertData } = p;
@@ -149,7 +161,6 @@ export async function executeCollectionImport(previewRows: PreviewRow[]): Promis
     }).select('id').single();
     if (error) throw new Error(`Erreur création ${r.referenceCode}: ${error.message}`);
 
-    // Link products
     const productIds: string[] = r.data._validProductIds || [];
     if (productIds.length > 0 && created) {
       const links = productIds.map((pid, idx) => ({
@@ -161,7 +172,6 @@ export async function executeCollectionImport(previewRows: PreviewRow[]): Promis
     }
   }
 
-  // Update collections
   for (const r of toUpdate) {
     const p = parseRow(r.data);
     const { _product_slugs, reference_code, ...updateData } = p;
@@ -174,7 +184,6 @@ export async function executeCollectionImport(previewRows: PreviewRow[]): Promis
     }).eq('id', id);
     if (error) throw new Error(`Erreur update ${r.referenceCode}: ${error.message}`);
 
-    // Re-sync product links
     const productIds: string[] = r.data._validProductIds || [];
     await supabase.from('collection_products').delete().eq('collection_id', id);
     if (productIds.length > 0) {
