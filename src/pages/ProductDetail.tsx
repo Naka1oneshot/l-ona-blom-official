@@ -11,6 +11,7 @@ import MeasurementForm from '@/components/MeasurementForm';
 import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBImage from '@/components/EditableDBImage';
 import EditableDBField from '@/components/EditableDBField';
+import ImageZoom from '@/components/ImageZoom';
 import { Product, MeasurementData } from '@/types';
 
 const emptyMeasurements: MeasurementData = {
@@ -106,19 +107,16 @@ const ProductDetail = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="relative aspect-[3/4] bg-secondary overflow-hidden mb-4">
-              <EditableDBImage
-                table="products"
-                id={product.id}
-                field="images"
-                value={product.images[activeImage]}
-                onSaved={(url) => {
-                  const newImages = [...product.images];
-                  newImages[activeImage] = url;
-                  setProduct(p => p ? { ...p, images: newImages } : p);
-                }}
+              <ImageZoom
+                src={product.images[activeImage]}
                 alt={name}
-                className="w-full h-full object-cover"
-                folder="products"
+                className="w-full h-full"
+                zoomScale={2.5}
+                lensSize={160}
+              />
+              <AdminEditButton
+                to={`/admin/produits?edit=${product.id}`}
+                className="absolute top-2 right-2 z-30"
               />
             </div>
             {product.images.length > 1 && (
