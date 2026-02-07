@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle, AlertTriangle, XCircle, MinusCircle, Download, History, ArrowLeft } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle, AlertTriangle, XCircle, MinusCircle, Download, History, ArrowLeft, Loader2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,7 +7,8 @@ import { toast } from 'sonner';
 import { parseXlsx } from '@/lib/import/parseXlsx';
 import { previewProductImport, executeProductImport } from '@/lib/import/productEngine';
 import { previewCollectionImport, executeCollectionImport } from '@/lib/import/collectionEngine';
-import type { ImportReport, PreviewRow, ImportStats } from '@/lib/import/types';
+import type { ImportReport, PreviewRow, ImportStats, RowMessage } from '@/lib/import/types';
+import * as XLSX from 'xlsx';
 
 const STATUS_CONFIG = {
   CREATE: { icon: CheckCircle, color: 'text-green-600', label: 'Création' },
@@ -15,8 +16,6 @@ const STATUS_CONFIG = {
   NO_CHANGE: { icon: MinusCircle, color: 'text-muted-foreground', label: 'Inchangé' },
   ERROR: { icon: XCircle, color: 'text-destructive', label: 'Erreur' },
 };
-
-const labelClass = "text-[10px] tracking-[0.2em] uppercase font-body block mb-1.5 text-muted-foreground";
 
 interface ImportRun {
   id: string;
@@ -44,10 +43,10 @@ const AdminImport = () => {
         </TabsList>
 
         <TabsContent value="products">
-          <ImportTab type="products" sheetName="products" />
+          <ImportTab type="products" sheetNames={['Produits', 'products']} />
         </TabsContent>
         <TabsContent value="collections">
-          <ImportTab type="collections" sheetName="collections" />
+          <ImportTab type="collections" sheetNames={['Collections', 'collections']} />
         </TabsContent>
         <TabsContent value="history">
           <ImportHistory />
@@ -57,23 +56,102 @@ const AdminImport = () => {
   );
 };
 
+/* ─── Template Download ─── */
+async function downloadProductTemplate() {
+  const { data: cats } = await supabase.from('categories').select('name_fr, slug').order('sort_order');
+  const catNames = (cats || []).map(c => c.name_fr);
+
+  const headers = [
+    'Référence Produit', 'Slug', 'Statut', 'Catégorie', 'Nom (FR)',
+    'Description (FR)', 'Prix (EUR)', 'Tailles (séparées par |)',
+    'Couleurs (séparées par |)', 'Matières - tags (séparées par |)',
+    'Matières (FR - texte)', 'Entretien (FR)', 'Histoire (FR)',
+    'Tressages (séparées par |)', 'Sur commande', 'Délai min (jours)',
+    'Délai max (jours)', 'Précommande', 'Date expédition estimée (YYYY-MM-DD)',
+    'Sur mesure', 'Stock (quantité)', 'Encarts narratifs (FR - Scrollytelling)',
+  ];
+
+  const exampleRow: Record<string, string> = {
+    'Référence Produit': 'PRO001',
+    'Slug': 'ma-robe-exemple',
+    'Statut': 'Brouillon',
+    'Catégorie': catNames[0] || 'Robes',
+    'Nom (FR)': 'Ma Robe Exemple',
+    'Description (FR)': 'Une description…',
+    'Prix (EUR)': '350',
+    'Sur commande': 'Non',
+    'Précommande': 'Non',
+    'Sur mesure': 'Non',
+  };
+
+  const ws = XLSX.utils.json_to_sheet([exampleRow], { header: headers });
+
+  // Add data validation for Statut and Catégorie columns
+  // Statut = column C (index 2), Catégorie = column D (index 3)
+  if (catNames.length > 0) {
+    ws['!dataValidation'] = ws['!dataValidation'] || [];
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Produits');
+  XLSX.writeFile(wb, 'modele-produits.xlsx');
+}
+
+async function downloadCollectionTemplate() {
+  const headers = [
+    'Référence Collection', 'Slug', 'Titre (FR)', 'Sous-titre (FR)',
+    'Narratif (FR)', 'Date de publication (YYYY-MM-DD)',
+    'Tags (séparés par |)', 'Produits (slugs séparés par |)',
+  ];
+
+  const exampleRow: Record<string, string> = {
+    'Référence Collection': 'COL001',
+    'Slug': 'ma-collection-exemple',
+    'Titre (FR)': 'Ma Collection',
+    'Sous-titre (FR)': 'Sous-titre',
+    'Narratif (FR)': 'Le récit de la collection…',
+    'Date de publication (YYYY-MM-DD)': '2026-03-01',
+  };
+
+  const ws = XLSX.utils.json_to_sheet([exampleRow], { header: headers });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Collections');
+  XLSX.writeFile(wb, 'modele-collections.xlsx');
+}
+
 /* ─── Import Tab Component ─── */
-function ImportTab({ type, sheetName }: { type: 'products' | 'collections'; sheetName: string }) {
+function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; sheetNames: string[] }) {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [report, setReport] = useState<ImportReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [done, setDone] = useState(false);
+  const [progress, setProgress] = useState<{ current: number; total: number; label: string } | null>(null);
+  const [importWarnings, setImportWarnings] = useState<RowMessage[]>([]);
 
   const handleFile = useCallback(async (f: File) => {
     setFile(f);
     setReport(null);
     setDone(false);
+    setImportWarnings([]);
     setLoading(true);
     try {
       const buffer = await f.arrayBuffer();
-      const { rows } = parseXlsx(buffer, sheetName);
+      // Try multiple sheet names
+      let rows: Record<string, any>[] | null = null;
+      let lastError = '';
+      for (const name of sheetNames) {
+        try {
+          const result = parseXlsx(buffer, name);
+          rows = result.rows;
+          break;
+        } catch (e: any) {
+          lastError = e.message;
+        }
+      }
+      if (!rows) throw new Error(lastError || `Feuille introuvable (attendue: ${sheetNames.join(' ou ')})`);
+
       const r = type === 'products'
         ? await previewProductImport(rows)
         : await previewCollectionImport(rows);
@@ -83,7 +161,7 @@ function ImportTab({ type, sheetName }: { type: 'products' | 'collections'; shee
     } finally {
       setLoading(false);
     }
-  }, [type, sheetName]);
+  }, [type, sheetNames]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -95,42 +173,47 @@ function ImportTab({ type, sheetName }: { type: 'products' | 'collections'; shee
   const handleImport = async () => {
     if (!report || !user) return;
     setImporting(true);
+    setProgress(null);
     try {
-      if (type === 'products') await executeProductImport(report.rows);
-      else await executeCollectionImport(report.rows);
+      const onProgress = (current: number, total: number, label: string) => {
+        setProgress({ current, total, label });
+      };
 
-      // Save run history
+      let warnings: RowMessage[] = [];
+      if (type === 'products') {
+        warnings = await executeProductImport(report.rows, onProgress);
+      } else {
+        warnings = await executeCollectionImport(report.rows, onProgress);
+      }
+
+      setImportWarnings(warnings);
+
       await supabase.from('import_runs').insert({
         type,
         filename: file?.name || 'import.xlsx',
         user_id: user.id,
         stats_json: report.stats as any,
         report_json: report.rows.map(r => ({
-          row: r.rowIndex,
-          ref: r.referenceCode,
-          status: r.status,
-          messages: r.messages,
-          changes: r.changes,
+          row: r.rowIndex, ref: r.referenceCode, status: r.status,
+          messages: r.messages, changes: r.changes,
         })) as any,
       });
 
-      toast.success('Import terminé avec succès');
+      toast.success(`Import terminé${warnings.length > 0 ? ` (${warnings.length} avertissements)` : ''}`);
       setDone(true);
     } catch (err: any) {
       toast.error(err.message || 'Erreur lors de l\'import');
     } finally {
       setImporting(false);
+      setProgress(null);
     }
   };
 
   const downloadReport = () => {
     if (!report) return;
     const json = JSON.stringify(report.rows.map(r => ({
-      ligne: r.rowIndex,
-      reference: r.referenceCode,
-      slug: r.slug,
-      label: r.label,
-      status: r.status,
+      ligne: r.rowIndex, reference: r.referenceCode, slug: r.slug,
+      label: r.label, status: r.status,
       changes: r.changes?.join(', ') || '',
       messages: r.messages.map(m => `[${m.severity}] ${m.message}`).join(' | '),
     })), null, 2);
@@ -143,17 +226,23 @@ function ImportTab({ type, sheetName }: { type: 'products' | 'collections'; shee
     URL.revokeObjectURL(url);
   };
 
-  const reset = () => {
-    setFile(null);
-    setReport(null);
-    setDone(false);
-  };
+  const reset = () => { setFile(null); setReport(null); setDone(false); setImportWarnings([]); };
 
   const hasErrors = report && report.stats.errors > 0;
   const hasActions = report && (report.stats.created > 0 || report.stats.updated > 0);
 
   return (
     <div className="space-y-6">
+      {/* Template download */}
+      <div className="flex gap-3">
+        <button
+          onClick={() => type === 'products' ? downloadProductTemplate() : downloadCollectionTemplate()}
+          className="flex items-center gap-2 border border-foreground/20 px-5 py-2 text-[10px] tracking-[0.15em] uppercase font-body hover:border-foreground transition-colors"
+        >
+          <Download size={14} /> Télécharger le modèle {type === 'products' ? 'Produits' : 'Collections'}
+        </button>
+      </div>
+
       {!report && !loading && (
         <div
           onDragOver={e => e.preventDefault()}
@@ -175,7 +264,7 @@ function ImportTab({ type, sheetName }: { type: 'products' | 'collections'; shee
             Glissez un fichier <strong>.xlsx</strong> ici ou cliquez pour sélectionner
           </p>
           <p className="text-[10px] tracking-[0.15em] uppercase font-body text-muted-foreground/60 mt-2">
-            Feuille attendue : "{sheetName}"
+            Feuille attendue : "{sheetNames[0]}"
           </p>
         </div>
       )}
@@ -245,6 +334,26 @@ function ImportTab({ type, sheetName }: { type: 'products' | 'collections'; shee
             </table>
           </div>
 
+          {/* Import warnings */}
+          {importWarnings.length > 0 && (
+            <div className="border border-amber-500/30 bg-amber-500/5 p-4 space-y-1">
+              <p className="text-[10px] tracking-[0.15em] uppercase font-body text-amber-500 mb-2">Avertissements de traduction</p>
+              {importWarnings.map((w, i) => (
+                <p key={i} className="text-xs font-body text-amber-400">{w.message}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Progress */}
+          {importing && progress && (
+            <div className="flex items-center gap-3 p-4 border border-border bg-muted/30">
+              <Loader2 size={16} className="animate-spin text-primary" />
+              <span className="text-sm font-body">
+                Traduction & import : {progress.current}/{progress.total} — {progress.label}
+              </span>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex gap-3">
             {!done && (
@@ -254,7 +363,7 @@ function ImportTab({ type, sheetName }: { type: 'products' | 'collections'; shee
                   disabled={importing || !!hasErrors || !hasActions}
                   className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors disabled:opacity-50"
                 >
-                  {importing ? 'Import en cours…' : `Lancer l'import (${(report.stats.created + report.stats.updated)} actions)`}
+                  {importing ? 'Import & traduction en cours…' : `Lancer l'import (${(report.stats.created + report.stats.updated)} actions)`}
                 </button>
                 <button onClick={reset} className="border border-foreground/20 px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:border-foreground transition-colors">
                   Annuler
@@ -321,7 +430,6 @@ function ImportHistory() {
   }
 
   if (loading) return <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin mx-auto mt-8" />;
-
   if (runs.length === 0) return <p className="text-sm text-muted-foreground font-body py-8 text-center">Aucun import effectué.</p>;
 
   return (
