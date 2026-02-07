@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBField from '@/components/EditableDBField';
 import EditableDBImage from '@/components/EditableDBImage';
-import ImageZoom from '@/components/ImageZoom';
+
 
 interface CollectionRow {
   id: string;
@@ -166,7 +166,7 @@ const CollectionDetail = () => {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="aspect-[3/4] bg-secondary overflow-hidden"
               >
-                <ImageZoom src={img} alt={`Look ${i + 1}`} className="w-full h-full" zoomScale={2.5} lensSize={140} />
+                <img src={img} alt={`Look ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
               </motion.div>
             ))}
           </div>
