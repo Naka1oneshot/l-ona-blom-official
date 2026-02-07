@@ -4,10 +4,13 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
+import Highlight from '@tiptap/extension-highlight';
 import { useMemo } from 'react';
 
 interface Props {
-  content: any; // TipTap JSON
+  content: any;
   className?: string;
 }
 
@@ -16,6 +19,9 @@ const extensions = [
   Link.configure({ openOnClick: true, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
   Image.configure({ inline: false }),
   Underline,
+  TextStyle,
+  Color,
+  Highlight.configure({ multicolor: true }),
   TextAlign.configure({ types: ['heading', 'paragraph'] }),
 ];
 
