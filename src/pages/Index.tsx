@@ -130,7 +130,7 @@ const Index = () => {
                   settingsKey={`page_home_value_${value}`}
                   defaultText={t(`home.values.${value}.desc`)}
                   as="p"
-                  className="text-sm font-body opacity-60"
+                  className="text-sm font-body text-background opacity-80"
                 />
               </motion.div>
             ))}

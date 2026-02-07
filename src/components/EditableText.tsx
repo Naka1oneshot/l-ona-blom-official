@@ -92,8 +92,14 @@ const EditableText = ({
     if (editing && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
+      // Auto-resize textarea on open
+      if (multiline && inputRef.current instanceof HTMLTextAreaElement) {
+        const el = inputRef.current;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+      }
     }
-  }, [editing]);
+  }, [editing, multiline]);
 
   // Non-admin: just render the text
   if (!isAdmin) {
@@ -123,18 +129,25 @@ const EditableText = ({
         <textarea
           ref={inputRef as React.RefObject<HTMLTextAreaElement>}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className={`${className} w-full bg-background/90 border-2 border-primary p-3 focus:outline-none resize-y min-h-[80px]`}
+          onChange={(e) => {
+            setValue(e.target.value);
+            // Auto-resize
+            const el = e.target;
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+          }}
+          className={`${className} w-full bg-background/90 border-2 border-primary p-3 focus:outline-none resize-y min-h-[80px] max-h-[300px] overflow-y-auto text-foreground`}
           onKeyDown={(e) => {
             if (e.key === 'Escape') handleCancel();
           }}
+          style={{ height: 'auto' }}
         />
       ) : (
         <input
           ref={inputRef as React.RefObject<HTMLInputElement>}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className={`${className} w-full bg-background/90 border-2 border-primary px-3 py-1 focus:outline-none`}
+          className={`${className} w-full bg-background/90 border-2 border-primary px-3 py-1 focus:outline-none text-foreground`}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSave();
             if (e.key === 'Escape') handleCancel();
