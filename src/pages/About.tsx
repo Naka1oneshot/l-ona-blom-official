@@ -99,7 +99,7 @@ const About = () => {
       </AboutSection>
 
       {/* 6. MATIÈRES */}
-      <AboutSection id={c.matieres.id} eyebrow={c.matieres.eyebrow} title={c.matieres.title} variant="magenta">
+      <AboutSection id={c.matieres.id} eyebrow={c.matieres.eyebrow} title={c.matieres.title} variant="dark">
         <AboutMaterialsGrid materials={c.matieres.materials} />
       </AboutSection>
 
