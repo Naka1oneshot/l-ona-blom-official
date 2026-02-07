@@ -62,6 +62,13 @@ const Footer = () => {
                 <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
               </svg>
             </a>
+            <a href="https://www.linkedin.com/in/l%C3%A9ona-blom-716618382/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="opacity-80 hover:opacity-100 transition-opacity">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                <rect x="2" y="9" width="4" height="12"/>
+                <circle cx="4" cy="4" r="2"/>
+              </svg>
+            </a>
           </div>
         </div>
       </div>
