@@ -67,6 +67,11 @@ const EditableDBField = ({
   useEffect(() => {
     if (editing && inputRef.current) {
       inputRef.current.focus();
+      if (inputRef.current instanceof HTMLTextAreaElement) {
+        const el = inputRef.current;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+      }
     }
   }, [editing]);
 
@@ -91,26 +96,21 @@ const EditableDBField = ({
 
   return (
     <div className="relative w-full">
-      {multiline ? (
-        <textarea
-          ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className={`${className} w-full bg-background/90 border-2 border-primary p-3 focus:outline-none resize-y min-h-[120px]`}
-          onKeyDown={(e) => { if (e.key === 'Escape') handleCancel(); }}
-        />
-      ) : (
-        <input
-          ref={inputRef as React.RefObject<HTMLInputElement>}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className={`${className} w-full bg-background/90 border-2 border-primary px-3 py-1 focus:outline-none`}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSave();
-            if (e.key === 'Escape') handleCancel();
-          }}
-        />
-      )}
+      <textarea
+        ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value);
+          const el = e.target;
+          el.style.height = 'auto';
+          el.style.height = el.scrollHeight + 'px';
+        }}
+        className={`${className} w-full bg-background/90 border-2 border-primary p-3 focus:outline-none resize-y min-h-[120px] max-h-[400px] overflow-y-auto text-foreground whitespace-pre-wrap`}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') handleCancel();
+        }}
+        style={{ height: 'auto' }}
+      />
       <div className="flex gap-1 mt-1 justify-end">
         <button
           onClick={handleSave}
