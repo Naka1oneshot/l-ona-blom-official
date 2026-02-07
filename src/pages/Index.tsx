@@ -113,6 +113,15 @@ const Index = () => {
       {/* 3S Values */}
       <section className="section-dark luxury-section">
         <div className="luxury-container">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-display text-2xl sm:text-3xl md:text-4xl tracking-[0.1em] text-center mb-12"
+          >
+            La règle des 3S
+          </motion.h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 text-center">
             {(['selflove', 'selfcare', 'selfplace'] as const).map((value, i) => (
               <motion.div
