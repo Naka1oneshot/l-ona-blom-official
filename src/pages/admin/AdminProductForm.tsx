@@ -5,14 +5,14 @@ import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { MultiImageUpload } from '@/components/admin/ImageUpload';
 import TranslateButton from '@/components/admin/TranslateButton';
 import { useCategories } from '@/hooks/useCategories';
+import EditorialBlocksBuilder from '@/components/product/EditorialBlocksBuilder';
+import type { EditorialBlock } from '@/types/editorial';
 
 interface Props {
   product?: any;
   onSave: () => void;
   onCancel: () => void;
 }
-
-// Removed hardcoded categories list - now fetched from DB
 
 const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
   const isNew = !product;
@@ -45,11 +45,21 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     braiding_options: (product?.braiding_options || []).join(', '),
     stock_qty: product?.stock_qty ?? '',
     images: product?.images || [],
+    editorial_blocks_json: (product?.editorial_blocks_json || []) as EditorialBlock[],
   });
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate editorial blocks
+    for (const block of form.editorial_blocks_json) {
+      if (!block.title_fr || !block.body_fr) {
+        toast.error('Chaque bloc éditorial doit avoir un titre FR et un texte FR.');
+        return;
+      }
+    }
+
     setSubmitting(true);
 
     const payload = {
@@ -80,6 +90,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       braiding_options: form.braiding_options.split(',').map(s => s.trim()).filter(Boolean),
       stock_qty: form.stock_qty === '' ? null : Number(form.stock_qty),
       images: form.images,
+      editorial_blocks_json: form.editorial_blocks_json.length > 0 ? JSON.parse(JSON.stringify(form.editorial_blocks_json)) : null,
     };
 
     let error;
@@ -127,7 +138,6 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
             <label className={labelClass}>Catégorie</label>
             <select value={form.category_id} onChange={e => {
               const catId = e.target.value;
-              // Also set the legacy category field to the slug for backward compat
               const allCats = groups.flatMap(g => g.categories);
               const cat = allCats.find(c => c.id === catId);
               set('category_id', catId);
@@ -223,6 +233,15 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Matériaux (séparés par virgule)</label><input value={form.materials} onChange={e => set('materials', e.target.value)} className={inputClass} /></div>
           <div><label className={labelClass}>Options de tressage (séparées par virgule)</label><input value={form.braiding_options} onChange={e => set('braiding_options', e.target.value)} className={inputClass} /></div>
+        </div>
+
+        {/* Editorial Blocks Builder */}
+        <div className="border-t border-border pt-8 mt-8">
+          <EditorialBlocksBuilder
+            blocks={form.editorial_blocks_json}
+            onChange={(blocks) => set('editorial_blocks_json', blocks)}
+            imageCount={form.images.length}
+          />
         </div>
 
         <div className="flex gap-3 pt-4">

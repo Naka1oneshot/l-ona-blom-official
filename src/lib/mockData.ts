@@ -29,6 +29,7 @@ export const mockProducts: Product[] = [
     materials: ['Soie sauvage'],
     braiding_options: ['Tressage Soleil', 'Tressage Lune'],
     stock_qty: null,
+    editorial_blocks_json: null,
   },
   {
     id: '2',
@@ -58,6 +59,7 @@ export const mockProducts: Product[] = [
     materials: ['Lin européen'],
     braiding_options: ['Tressage Terre'],
     stock_qty: null,
+    editorial_blocks_json: null,
   },
   {
     id: '3',
@@ -86,6 +88,7 @@ export const mockProducts: Product[] = [
     materials: ['Coton pima'],
     braiding_options: ['Tressage Héritage', 'Tressage Libre'],
     stock_qty: 12,
+    editorial_blocks_json: null,
   },
 ];
 

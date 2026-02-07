@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -14,7 +14,9 @@ import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBImage from '@/components/EditableDBImage';
 import EditableDBField from '@/components/EditableDBField';
 import ImageZoom from '@/components/ImageZoom';
+import Scrollytelling from '@/components/product/Scrollytelling';
 import { Product, MeasurementData } from '@/types';
+import { generateFallbackBlocks, EditorialBlock } from '@/types/editorial';
 
 const emptyMeasurements: MeasurementData = {
   bust: '', waist: '', hips: '', shoulder_width: '', arm_length: '', total_length: '', notes: '',
@@ -42,6 +44,15 @@ const ProductDetail = () => {
     }
   }, [slug]);
 
+  // Editorial blocks: use stored blocks or generate fallback
+  const editorialBlocks: EditorialBlock[] = useMemo(() => {
+    if (!product) return [];
+    if (product.editorial_blocks_json && Array.isArray(product.editorial_blocks_json) && product.editorial_blocks_json.length > 0) {
+      return product.editorial_blocks_json;
+    }
+    return generateFallbackBlocks(product);
+  }, [product]);
+
   if (loading) {
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center">
@@ -61,12 +72,8 @@ const ProductDetail = () => {
 
   const nameField = language === 'fr' ? 'name_fr' : 'name_en';
   const descField = language === 'fr' ? 'description_fr' : 'description_en';
-  const storyField = language === 'fr' ? 'story_fr' : 'story_en';
   const name = language === 'fr' ? product.name_fr : product.name_en;
   const description = language === 'fr' ? product.description_fr : product.description_en;
-  const story = language === 'fr' ? product.story_fr : product.story_en;
-  const materialsText = language === 'fr' ? product.materials_fr : product.materials_en;
-  const care = language === 'fr' ? product.care_fr : product.care_en;
 
   const handleAddToCart = () => {
     if (product.made_to_measure) {
@@ -86,6 +93,12 @@ const ProductDetail = () => {
     toast.success(language === 'fr' ? 'Ajouté au panier' : 'Added to cart');
   };
 
+  // Badges
+  const badges: { label: string; variant: string }[] = [];
+  if (product.made_to_order) badges.push({ label: language === 'fr' ? 'Sur commande' : 'Made to order', variant: 'default' });
+  if (product.preorder) badges.push({ label: language === 'fr' ? 'Précommande' : 'Preorder', variant: 'primary' });
+  if (product.made_to_measure) badges.push({ label: language === 'fr' ? 'Sur mesure' : 'Bespoke', variant: 'default' });
+
   return (
     <div className="pt-20 md:pt-24">
       <SEOHead
@@ -97,10 +110,10 @@ const ProductDetail = () => {
       />
       <div className="luxury-container py-8 md:py-20">
         {/* Breadcrumb */}
-        <div className="mb-8 flex items-center gap-2 text-xs font-body text-muted-foreground tracking-wider">
+        <div className="mb-10 flex items-center gap-2 text-xs font-body text-muted-foreground tracking-wider">
           <Link to="/boutique" className="hover:text-foreground transition-colors">{t('nav.shop')}</Link>
-          <span>/</span>
-          <span>{name}</span>
+          <span className="text-border">/</span>
+          <span className="text-foreground/60">{name}</span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
@@ -110,7 +123,7 @@ const ProductDetail = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="relative aspect-[3/4] bg-secondary overflow-hidden mb-4">
+            <div className="relative aspect-[3/4] bg-secondary overflow-hidden rounded-2xl mb-4">
               {zoomEnabled ? (
                 <ImageZoom
                   src={product.images[activeImage]}
@@ -122,7 +135,7 @@ const ProductDetail = () => {
               ) : (
                 <img src={product.images[activeImage]} alt={name} className="w-full h-full object-cover" loading="lazy" />
               )}
-              <div className="absolute top-2 right-2 z-30 flex gap-2">
+              <div className="absolute top-3 right-3 z-30 flex gap-2">
                 {isAdmin && (
                   <button
                     onClick={() => setZoomEnabled(z => !z)}
@@ -136,9 +149,7 @@ const ProductDetail = () => {
                     <Search size={14} />
                   </button>
                 )}
-                <AdminEditButton
-                  to={`/admin/produits?edit=${product.id}`}
-                />
+                <AdminEditButton to={`/admin/produits?edit=${product.id}`} />
               </div>
             </div>
             {product.images.length > 1 && (
@@ -147,7 +158,7 @@ const ProductDetail = () => {
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
-                    className={`w-14 h-18 sm:w-16 sm:h-20 bg-secondary overflow-hidden border-2 transition-colors flex-shrink-0 ${i === activeImage ? 'border-foreground' : 'border-transparent'}`}
+                    className={`w-14 h-18 sm:w-16 sm:h-20 bg-secondary overflow-hidden rounded-lg border-2 transition-all flex-shrink-0 ${i === activeImage ? 'border-foreground' : 'border-transparent hover:border-foreground/20'}`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -163,6 +174,21 @@ const ProductDetail = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex flex-col"
           >
+            {/* Badges */}
+            {badges.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {badges.map((b, i) => (
+                  <span key={i} className={`inline-block text-[10px] tracking-[0.15em] uppercase font-body px-3 py-1 rounded-full border ${
+                    b.variant === 'primary'
+                      ? 'border-primary/30 bg-primary/5 text-primary'
+                      : 'border-foreground/10 bg-secondary text-muted-foreground'
+                  }`}>
+                    {b.label}
+                  </span>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-start justify-between gap-4">
               <EditableDBField
                 table="products"
@@ -171,17 +197,18 @@ const ProductDetail = () => {
                 value={name}
                 onSaved={(v) => setProduct(p => p ? { ...p, [nameField]: v } : p)}
                 as="h1"
-                className="text-display text-3xl md:text-4xl mb-4"
+                className="text-display text-3xl md:text-4xl lg:text-5xl mb-2"
               />
               <AdminEditButton to={`/admin/produits?edit=${product.id}`} />
             </div>
-            <p className="text-xl font-body mb-6">
+
+            <p className="text-xl md:text-2xl font-body font-light mb-8 tracking-wide">
               {formatPrice(product.base_price_eur, product.price_overrides)}
             </p>
 
             {/* Made to order info */}
             {product.made_to_order && product.made_to_order_min_days && product.made_to_order_max_days && (
-              <div className="border border-foreground/10 p-4 mb-6">
+              <div className="border border-foreground/10 rounded-xl p-4 mb-6">
                 <p className="text-xs font-body tracking-wider text-muted-foreground">
                   {t('shop.crafting_time', { min: product.made_to_order_min_days, max: product.made_to_order_max_days })}
                 </p>
@@ -189,7 +216,7 @@ const ProductDetail = () => {
             )}
 
             {product.preorder && (
-              <div className="border border-primary/30 bg-primary/5 p-4 mb-6">
+              <div className="border border-primary/30 bg-primary/5 rounded-xl p-4 mb-6">
                 <p className="text-xs font-body tracking-wider text-primary">
                   {t('shop.preorder')} — {product.preorder_ship_date_estimate}
                 </p>
@@ -203,7 +230,7 @@ const ProductDetail = () => {
               value={description}
               onSaved={(v) => setProduct(p => p ? { ...p, [descField]: v } : p)}
               as="p"
-              className="text-sm font-body text-muted-foreground leading-relaxed mb-8"
+              className="text-sm font-body text-muted-foreground leading-relaxed mb-10"
               multiline
             />
 
@@ -216,7 +243,7 @@ const ProductDetail = () => {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 border text-xs font-body tracking-wider transition-all ${
+                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
                         selectedSize === size
                           ? 'border-foreground bg-foreground text-background'
                           : 'border-foreground/20 hover:border-foreground/60'
@@ -238,7 +265,7 @@ const ProductDetail = () => {
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
-                      className={`px-4 py-2 border text-xs font-body tracking-wider transition-all ${
+                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
                         selectedColor === color
                           ? 'border-foreground bg-foreground text-background'
                           : 'border-foreground/20 hover:border-foreground/60'
@@ -260,7 +287,7 @@ const ProductDetail = () => {
                     <button
                       key={b}
                       onClick={() => setSelectedBraiding(b)}
-                      className={`px-4 py-2 border text-xs font-body tracking-wider transition-all ${
+                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
                         selectedBraiding === b
                           ? 'border-foreground bg-foreground text-background'
                           : 'border-foreground/20 hover:border-foreground/60'
@@ -281,40 +308,22 @@ const ProductDetail = () => {
             {/* CTA */}
             <button
               onClick={handleAddToCart}
-              className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-colors duration-300"
+              className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body rounded-xl hover:bg-luxury-magenta-light transition-colors duration-300 mt-4"
             >
               {product.preorder ? t('shop.preorder_cta') : t('shop.add_to_cart')}
             </button>
-
-            {/* Story */}
-            <div className="mt-12 pt-8 border-t border-foreground/10">
-              <h3 className="text-display text-xl mb-4">{t('product.story')}</h3>
-              <EditableDBField
-                table="products"
-                id={product.id}
-                field={storyField}
-                value={story}
-                onSaved={(v) => setProduct(p => p ? { ...p, [storyField]: v } : p)}
-                as="p"
-                className="text-sm font-body text-muted-foreground leading-relaxed"
-                multiline
-              />
-            </div>
-
-            {/* Materials */}
-            <div className="mt-8 pt-6 border-t border-foreground/10">
-              <h3 className="text-display text-lg mb-3">{t('product.materials')}</h3>
-              <p className="text-sm font-body text-muted-foreground">{materialsText}</p>
-            </div>
-
-            {/* Care */}
-            <div className="mt-6 pt-6 border-t border-foreground/10">
-              <h3 className="text-display text-lg mb-3">{t('product.care')}</h3>
-              <p className="text-sm font-body text-muted-foreground">{care}</p>
-            </div>
           </motion.div>
         </div>
       </div>
+
+      {/* Scrollytelling editorial section */}
+      {editorialBlocks.length > 0 && (
+        <Scrollytelling
+          images={product.images}
+          blocks={editorialBlocks}
+          lang={language}
+        />
+      )}
     </div>
   );
 };

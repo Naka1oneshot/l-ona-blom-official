@@ -37,6 +37,7 @@ export interface Product {
   materials: string[];
   braiding_options: string[];
   stock_qty: number | null;
+  editorial_blocks_json: any[] | null;
 }
 
 export interface Collection {
