@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import Header from '@/components/layout/Header';
-import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard, FolderTree, FileUp } from 'lucide-react';
+import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard, FolderTree, FileUp, Clock } from 'lucide-react';
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
@@ -13,6 +13,7 @@ const navItems = [
   { to: '/admin/clients', icon: Users, label: 'Clients' },
   { to: '/admin/promos', icon: Tag, label: 'Promos' },
   { to: '/admin/import', icon: FileUp, label: 'Import' },
+  { to: '/admin/coming-soon', icon: Clock, label: 'Coming Soon' },
   { to: '/admin/reglages', icon: Settings, label: 'Réglages' },
 ];
 
