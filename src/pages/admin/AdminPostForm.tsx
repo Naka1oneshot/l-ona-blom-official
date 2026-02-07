@@ -167,17 +167,24 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
           frFields={{
             title_fr: form.title_fr,
             lead_fr: form.lead_fr,
-            content_fr: extractPlainText(form.content_fr_json),
+            ...extractTextNodes(form.content_fr_json),
           }}
           onTranslated={(translations) => {
-            setForm(prev => ({
-              ...prev,
-              ...(translations.title_en && { title_en: translations.title_en }),
-              ...(translations.lead_en && { lead_en: translations.lead_en }),
-              ...(translations.content_en && {
-                content_en_json: plainTextToTiptap(translations.content_en),
-              }),
-            }));
+            setForm(prev => {
+              const next = { ...prev };
+              if (translations.title_en) next.title_en = translations.title_en;
+              if (translations.lead_en) next.lead_en = translations.lead_en;
+
+              // Rebuild content JSON with translated text nodes
+              const translatedNodes: Record<string, string> = {};
+              for (const [k, v] of Object.entries(translations)) {
+                if (k.startsWith('content_en_')) translatedNodes[k] = v;
+              }
+              if (Object.keys(translatedNodes).length > 0 && prev.content_fr_json) {
+                next.content_en_json = rebuildWithTranslations(prev.content_fr_json, translatedNodes);
+              }
+              return next;
+            });
           }}
         />
 
@@ -192,16 +199,45 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
   );
 };
 
-/** Convert plain text to a basic TipTap JSON document (one paragraph per line) */
-function plainTextToTiptap(text: string): any {
-  const paragraphs = text.split(/\n+/).filter(Boolean);
-  return {
-    type: 'doc',
-    content: paragraphs.map(p => ({
-      type: 'paragraph',
-      content: [{ type: 'text', text: p }],
-    })),
-  };
+/**
+ * Walk TipTap JSON and extract every text node as content_fr_0, content_fr_1, …
+ * so the translator treats each one independently.
+ */
+function extractTextNodes(json: any): Record<string, string> {
+  if (!json?.content) return {};
+  const result: Record<string, string> = {};
+  let idx = 0;
+  function walk(node: any) {
+    if (node.type === 'text' && node.text?.trim()) {
+      result[`content_fr_${idx}`] = node.text;
+      idx++;
+    }
+    if (node.content) node.content.forEach(walk);
+  }
+  walk(json);
+  return result;
+}
+
+/**
+ * Clone the FR TipTap JSON structure, replacing text nodes with their
+ * translated counterparts (content_en_0, content_en_1, …).
+ * All formatting (bold, italic, headings, alignment, colors…) is preserved.
+ */
+function rebuildWithTranslations(json: any, translations: Record<string, string>): any {
+  let idx = 0;
+  function walk(node: any): any {
+    if (node.type === 'text' && node.text?.trim()) {
+      const key = `content_en_${idx}`;
+      idx++;
+      return { ...node, text: translations[key] ?? node.text };
+    }
+    const clone: any = { ...node };
+    if (node.content) {
+      clone.content = node.content.map(walk);
+    }
+    return clone;
+  }
+  return walk(json);
 }
 
 /** Extract plain text from TipTap JSON for excerpts/fallback */
