@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import EditableText from '@/components/EditableText';
 
 interface AboutSectionProps {
   eyebrow?: string;
@@ -8,6 +9,8 @@ interface AboutSectionProps {
   variant?: 'light' | 'dark' | 'magenta';
   className?: string;
   id?: string;
+  /** Unique prefix for EditableText keys, e.g. "about_tresor" */
+  editKeyPrefix?: string;
 }
 
 const bgMap = {
@@ -16,7 +19,7 @@ const bgMap = {
   magenta: 'text-background',
 };
 
-const AboutSection = ({ eyebrow, title, children, variant = 'light', className = '', id }: AboutSectionProps) => (
+const AboutSection = ({ eyebrow, title, children, variant = 'light', className = '', id, editKeyPrefix }: AboutSectionProps) => (
   <section
     id={id}
     className={`${bgMap[variant]} ${className}`}
@@ -30,17 +33,37 @@ const AboutSection = ({ eyebrow, title, children, variant = 'light', className =
         transition={{ duration: 0.8 }}
       >
         {eyebrow && (
-          <p className={`text-[10px] sm:text-xs tracking-[0.25em] uppercase font-body mb-3 ${
-            variant === 'light' ? 'text-primary' : 'text-background/60'
-          }`}>
-            {eyebrow}
-          </p>
+          editKeyPrefix ? (
+            <EditableText
+              settingsKey={`${editKeyPrefix}_eyebrow`}
+              defaultText={eyebrow}
+              as="p"
+              className={`text-[10px] sm:text-xs tracking-[0.25em] uppercase font-body mb-3 ${
+                variant === 'light' ? 'text-primary' : 'text-background/60'
+              }`}
+            />
+          ) : (
+            <p className={`text-[10px] sm:text-xs tracking-[0.25em] uppercase font-body mb-3 ${
+              variant === 'light' ? 'text-primary' : 'text-background/60'
+            }`}>
+              {eyebrow}
+            </p>
+          )
         )}
         {title && (
           <>
-            <h2 className="text-display text-2xl sm:text-3xl md:text-[34px] tracking-tight mb-3">
-              {title}
-            </h2>
+            {editKeyPrefix ? (
+              <EditableText
+                settingsKey={`${editKeyPrefix}_title`}
+                defaultText={title}
+                as="h2"
+                className="text-display text-2xl sm:text-3xl md:text-[34px] tracking-tight mb-3"
+              />
+            ) : (
+              <h2 className="text-display text-2xl sm:text-3xl md:text-[34px] tracking-tight mb-3">
+                {title}
+              </h2>
+            )}
             <div className={`w-14 h-px mb-8 md:mb-10 ${
               variant === 'light' ? 'bg-primary' : 'bg-background/30'
             }`} />

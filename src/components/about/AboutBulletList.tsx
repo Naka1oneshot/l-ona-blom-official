@@ -1,13 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import EditableText from '@/components/EditableText';
 
 interface AboutBulletListProps {
   items: string[];
   badge?: string;
   variant?: 'light' | 'dark' | 'magenta';
+  editKeyPrefix?: string;
 }
 
-const AboutBulletList = ({ items, badge, variant = 'light' }: AboutBulletListProps) => {
+const AboutBulletList = ({ items, badge, variant = 'light', editKeyPrefix }: AboutBulletListProps) => {
   const dotColor = variant === 'light' ? 'bg-primary' : 'bg-background';
   const textColor = variant === 'light' ? 'text-foreground' : 'text-background';
 
@@ -29,9 +31,18 @@ const AboutBulletList = ({ items, badge, variant = 'light' }: AboutBulletListPro
             className="flex items-start gap-4"
           >
             <span className={`w-2 h-2 ${dotColor} rounded-full mt-2 flex-shrink-0`} />
-            <span className={`text-base sm:text-lg font-body leading-7 ${textColor}`}>
-              {item}
-            </span>
+            {editKeyPrefix ? (
+              <EditableText
+                settingsKey={`${editKeyPrefix}_${i}`}
+                defaultText={item}
+                as="span"
+                className={`text-base sm:text-lg font-body leading-7 ${textColor}`}
+              />
+            ) : (
+              <span className={`text-base sm:text-lg font-body leading-7 ${textColor}`}>
+                {item}
+              </span>
+            )}
           </motion.li>
         ))}
       </ul>
