@@ -108,12 +108,24 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
       }
     }
 
-    // Slug collision
-    const slugOwner = bySlug.get(slug);
-    if (slugOwner && slugOwner.reference_code !== ref && !byRef.has(ref)) {
-      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" déjà utilisé par une autre collection` }], data: raw });
-      stats.errors++;
-      continue;
+    // --- Matching algorithm: reference_code first, then slug ---
+    let candidate: any = byRef.get(ref);
+
+    if (!candidate) {
+      const slugOwner = bySlug.get(slug);
+      if (slugOwner) {
+        if (!slugOwner.reference_code) {
+          candidate = slugOwner;
+          messages.push({ severity: 'warning', message: `Référence ${ref} attribuée à la collection existante (slug: ${slug})` });
+          stats.warnings++;
+        } else if (slugOwner.reference_code === ref) {
+          candidate = slugOwner;
+        } else {
+          preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" déjà utilisé par une autre collection (ref: ${slugOwner.reference_code})` }], data: raw });
+          stats.errors++;
+          continue;
+        }
+      }
     }
 
     if (messages.some(m => m.severity === 'error')) {
@@ -122,14 +134,16 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
       continue;
     }
 
-    const existingCol = byRef.get(ref);
-    if (existingCol) {
-      const changes = compareFields(parsed, existingCol);
+    if (candidate) {
+      const changes = compareFields(parsed, candidate);
+      if (!candidate.reference_code) {
+        if (!changes.includes('reference_code')) changes.push('reference_code');
+      }
       if (changes.length === 0) {
-        preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'NO_CHANGE', messages, data: { ...raw, _validProductIds: validProductIds } });
+        preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'NO_CHANGE', messages, data: { ...raw, _validProductIds: validProductIds, _candidateId: candidate.id } });
         stats.no_change++;
       } else {
-        preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'UPDATE', messages, data: { ...raw, _validProductIds: validProductIds }, changes });
+        preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'UPDATE', messages, data: { ...raw, _validProductIds: validProductIds, _candidateId: candidate.id }, changes });
         stats.updated++;
       }
     } else {
@@ -142,12 +156,6 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
 }
 
 export async function executeCollectionImport(previewRows: PreviewRow[]): Promise<void> {
-  const { data: existing } = await supabase.from('collections').select('id, reference_code');
-  const byRef = new Map<string, string>();
-  for (const c of existing || []) {
-    if (c.reference_code) byRef.set(c.reference_code, c.id);
-  }
-
   const toCreate = previewRows.filter(r => r.status === 'CREATE');
   const toUpdate = previewRows.filter(r => r.status === 'UPDATE');
 
@@ -163,7 +171,7 @@ export async function executeCollectionImport(previewRows: PreviewRow[]): Promis
 
     const productIds: string[] = r.data._validProductIds || [];
     if (productIds.length > 0 && created) {
-      const links = productIds.map((pid, idx) => ({
+      const links = productIds.map((pid: string, idx: number) => ({
         collection_id: created.id,
         product_id: pid,
         sort_order: idx,
@@ -174,10 +182,11 @@ export async function executeCollectionImport(previewRows: PreviewRow[]): Promis
 
   for (const r of toUpdate) {
     const p = parseRow(r.data);
-    const { _product_slugs, reference_code, ...updateData } = p;
-    const id = byRef.get(r.referenceCode);
+    const { _product_slugs, ...updateData } = p;
+    const id = r.data._candidateId;
     if (!id) continue;
     const pubAt = updateData.published_at ? `${updateData.published_at}T00:00:00` : null;
+    // Include reference_code in update (handles migration of empty reference_code)
     const { error } = await supabase.from('collections').update({
       ...updateData,
       published_at: pubAt,
@@ -187,7 +196,7 @@ export async function executeCollectionImport(previewRows: PreviewRow[]): Promis
     const productIds: string[] = r.data._validProductIds || [];
     await supabase.from('collection_products').delete().eq('collection_id', id);
     if (productIds.length > 0) {
-      const links = productIds.map((pid, idx) => ({
+      const links = productIds.map((pid: string, idx: number) => ({
         collection_id: id,
         product_id: pid,
         sort_order: idx,

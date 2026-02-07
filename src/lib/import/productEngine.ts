@@ -178,22 +178,39 @@ export async function previewProductImport(rows: Record<string, any>[]): Promise
 
     const parsed = parseRow(raw);
 
-    // Check slug collision with different reference
-    const slugOwner = bySlug.get(slug);
-    if (slugOwner && slugOwner.reference_code !== ref && !byRef.has(ref)) {
-      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.name_fr, status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" déjà utilisé par un autre produit (ref: ${slugOwner.reference_code || 'N/A'})` }], data: raw });
-      stats.errors++;
-      continue;
+    // --- Matching algorithm: reference_code first, then slug ---
+    let candidate: any = byRef.get(ref);
+
+    if (!candidate) {
+      const slugOwner = bySlug.get(slug);
+      if (slugOwner) {
+        if (!slugOwner.reference_code) {
+          // Existing product without reference_code -> adopt it
+          candidate = slugOwner;
+          cleanMessages.push({ severity: 'warning', message: `Référence ${ref} attribuée au produit existant (slug: ${slug})` });
+          stats.warnings++;
+        } else if (slugOwner.reference_code === ref) {
+          candidate = slugOwner;
+        } else {
+          // Real conflict: slug used by another product with a different reference_code
+          preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.name_fr, status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" déjà utilisé par un autre produit (ref: ${slugOwner.reference_code})` }], data: raw });
+          stats.errors++;
+          continue;
+        }
+      }
     }
 
-    const existingProduct = byRef.get(ref);
-    if (existingProduct) {
-      const changes = compareFields(parsed, existingProduct);
+    if (candidate) {
+      const changes = compareFields(parsed, candidate);
+      // If reference_code was empty, the assignment itself counts as a change
+      if (!candidate.reference_code) {
+        if (!changes.includes('reference_code')) changes.push('reference_code');
+      }
       if (changes.length === 0) {
-        preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.name_fr, status: 'NO_CHANGE', messages: cleanMessages, data: raw });
+        preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.name_fr, status: 'NO_CHANGE', messages: cleanMessages, data: { ...raw, _candidateId: candidate.id } });
         stats.no_change++;
       } else {
-        preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.name_fr, status: 'UPDATE', messages: cleanMessages, data: raw, changes });
+        preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.name_fr, status: 'UPDATE', messages: cleanMessages, data: { ...raw, _candidateId: candidate.id }, changes });
         stats.updated++;
       }
     } else {
@@ -206,12 +223,6 @@ export async function previewProductImport(rows: Record<string, any>[]): Promise
 }
 
 export async function executeProductImport(previewRows: PreviewRow[]): Promise<void> {
-  const { data: existing } = await supabase.from('products').select('id, reference_code');
-  const byRef = new Map<string, string>();
-  for (const p of existing || []) {
-    if (p.reference_code) byRef.set(p.reference_code, p.id);
-  }
-
   const toCreate = previewRows.filter(r => r.status === 'CREATE');
   const toUpdate = previewRows.filter(r => r.status === 'UPDATE');
 
@@ -228,10 +239,10 @@ export async function executeProductImport(previewRows: PreviewRow[]): Promise<v
     const batch = toUpdate.slice(i, i + 50);
     for (const r of batch) {
       const p = parseRow(r.data);
-      const id = byRef.get(r.referenceCode);
+      const id = r.data._candidateId;
       if (!id) continue;
-      const { reference_code, ...updateData } = p;
-      const { error } = await supabase.from('products').update(updateData).eq('id', id);
+      // Include reference_code in update (handles migration of empty reference_code)
+      const { error } = await supabase.from('products').update(p).eq('id', id);
       if (error) throw new Error(`Erreur update ${r.referenceCode}: ${error.message}`);
     }
   }
