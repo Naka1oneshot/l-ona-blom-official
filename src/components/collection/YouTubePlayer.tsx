@@ -103,9 +103,9 @@ const YouTubePlayer = ({ videoId, className = '' }: YouTubePlayerProps) => {
   }, [muted]);
 
   const goFullscreen = useCallback(() => {
-    const iframe = containerRef.current?.querySelector('iframe');
-    if (iframe) {
-      if (iframe.requestFullscreen) iframe.requestFullscreen();
+    const el = containerRef.current;
+    if (el) {
+      if (el.requestFullscreen) el.requestFullscreen();
     }
   }, []);
 
