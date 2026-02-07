@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { siteConfig } from '@/lib/siteConfig';
-import logoImg from '@/assets/logo_lb.jpg';
 
 const Footer = () => {
   const { t } = useLanguage();
@@ -12,9 +11,9 @@ const Footer = () => {
       <div className="luxury-container py-10 md:py-14">
         {/* Brand + Legal row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-          <Link to="/" className="inline-block">
-            <img src={logoImg} alt="LÉONA BLOM" className="h-14 w-auto" />
-          </Link>
+          <div>
+            <h3 className="text-display text-xl tracking-[0.2em]">LÉONA BLOM</h3>
+          </div>
 
           {/* Legal links horizontal */}
           <div className="flex flex-wrap items-center gap-4 md:gap-6">
