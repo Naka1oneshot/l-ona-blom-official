@@ -22,6 +22,8 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
     cover_image: post?.cover_image || '',
     tags: (post?.tags || []).join(', '),
     published_at: post?.published_at ? new Date(post.published_at).toISOString().slice(0, 10) : '',
+    category: post?.category || 'article',
+    event_date: post?.event_date ? new Date(post.event_date).toISOString().slice(0, 16) : '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -37,6 +39,8 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
       cover_image: form.cover_image,
       tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
       published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
+      category: form.category,
+      event_date: form.event_date ? new Date(form.event_date).toISOString() : null,
     };
     let error;
     if (isNew) {
@@ -66,10 +70,24 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
           label="Image de couverture"
           folder="posts"
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div><label className={labelClass}>Slug</label><input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required /></div>
           <div><label className={labelClass}>Date de publication</label><input type="date" value={form.published_at} onChange={e => set('published_at', e.target.value)} className={inputClass} /></div>
+          <div>
+            <label className={labelClass}>Catégorie</label>
+            <select value={form.category} onChange={e => set('category', e.target.value)} className={inputClass}>
+              <option value="article">Article</option>
+              <option value="interview">Interview</option>
+              <option value="event">Événement</option>
+            </select>
+          </div>
         </div>
+        {form.category === 'event' && (
+          <div>
+            <label className={labelClass}>Date de l'événement</label>
+            <input type="datetime-local" value={form.event_date} onChange={e => set('event_date', e.target.value)} className={inputClass} />
+          </div>
+        )}
         <TranslateButton
           frFields={{
             title_fr: form.title_fr,
