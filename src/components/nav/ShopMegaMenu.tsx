@@ -31,8 +31,7 @@ const ShopMegaMenu = ({ className, onNavigate }: Props) => {
 
       {open && activeGroups.length > 0 && (
         <div
-          className="fixed left-0 right-0 top-16 md:top-20 z-50 border-b border-white/10 shadow-2xl"
-          style={{ background: 'linear-gradient(135deg, #981D70 0%, #6e1550 50%, #981D70 100%)' }}
+          className="fixed left-0 right-0 top-16 md:top-20 z-50 border-b border-white/10 shadow-2xl bg-foreground"
         >
           <div className="luxury-container py-8">
             <div className="flex gap-16">
