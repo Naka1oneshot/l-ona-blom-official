@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { MultiImageUpload } from '@/components/admin/ImageUpload';
 import TranslateButton from '@/components/admin/TranslateButton';
+import { useCategories } from '@/hooks/useCategories';
 
 interface Props {
   product?: any;
@@ -11,14 +12,16 @@ interface Props {
   onCancel: () => void;
 }
 
-const categories = ['dresses', 'sets', 'tops', 'skirts', 'pants', 'accessories'];
+// Removed hardcoded categories list - now fetched from DB
 
 const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
   const isNew = !product;
+  const { groups } = useCategories();
   const [form, setForm] = useState({
     slug: product?.slug || '',
     status: product?.status || 'draft',
-    category: product?.category || 'dresses',
+    category: product?.category || '',
+    category_id: product?.category_id || '',
     name_fr: product?.name_fr || '',
     name_en: product?.name_en || '',
     description_fr: product?.description_fr || '',
@@ -53,6 +56,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       slug: form.slug,
       status: form.status,
       category: form.category,
+      category_id: form.category_id || null,
       name_fr: form.name_fr,
       name_en: form.name_en,
       description_fr: form.description_fr,
@@ -121,9 +125,26 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           </div>
           <div>
             <label className={labelClass}>Catégorie</label>
-            <select value={form.category} onChange={e => set('category', e.target.value)} className={inputClass}>
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            <select value={form.category_id} onChange={e => {
+              const catId = e.target.value;
+              // Also set the legacy category field to the slug for backward compat
+              const allCats = groups.flatMap(g => g.categories);
+              const cat = allCats.find(c => c.id === catId);
+              set('category_id', catId);
+              if (cat) set('category', cat.slug);
+            }} className={inputClass}>
+              <option value="">— Aucune —</option>
+              {groups.map(g => (
+                <optgroup key={g.id} label={g.name_fr}>
+                  {g.categories.map(c => <option key={c.id} value={c.id}>{c.name_fr}</option>)}
+                </optgroup>
+              ))}
             </select>
+            {!form.category_id && (
+              <p className="flex items-center gap-1 mt-1 text-[10px] text-orange-500 font-body">
+                <AlertTriangle size={10} /> Aucune catégorie assignée
+              </p>
+            )}
           </div>
         </div>
 

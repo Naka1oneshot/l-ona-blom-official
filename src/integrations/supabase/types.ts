@@ -62,6 +62,77 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          is_active: boolean
+          name_en: string | null
+          name_fr: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "category_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      category_groups: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name_en: string | null
+          name_fr: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       collection_products: {
         Row: {
           collection_id: string
@@ -300,6 +371,7 @@ export type Database = {
           care_en: string | null
           care_fr: string | null
           category: string
+          category_id: string | null
           colors: string[] | null
           created_at: string
           description_en: string | null
@@ -332,6 +404,7 @@ export type Database = {
           care_en?: string | null
           care_fr?: string | null
           category: string
+          category_id?: string | null
           colors?: string[] | null
           created_at?: string
           description_en?: string | null
@@ -364,6 +437,7 @@ export type Database = {
           care_en?: string | null
           care_fr?: string | null
           category?: string
+          category_id?: string | null
           colors?: string[] | null
           created_at?: string
           description_en?: string | null
@@ -390,7 +464,15 @@ export type Database = {
           story_fr?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

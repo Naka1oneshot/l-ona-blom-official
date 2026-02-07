@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import Header from '@/components/layout/Header';
-import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard } from 'lucide-react';
+import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard, FolderTree } from 'lucide-react';
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { to: '/admin/produits', icon: Package, label: 'Produits' },
+  { to: '/admin/categories', icon: FolderTree, label: 'Catégories' },
   { to: '/admin/collections', icon: Layers, label: 'Collections' },
   { to: '/admin/commandes', icon: ShoppingCart, label: 'Commandes' },
   { to: '/admin/articles', icon: FileText, label: 'Articles' },
