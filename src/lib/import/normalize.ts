@@ -4,18 +4,44 @@ export function normText(v: any): string {
   return String(v).trim().replace(/\s+/g, ' ');
 }
 
-/** Parse boolean from various Excel formats */
-export function normBool(v: any): boolean {
-  if (v == null) return false;
+/** Parse boolean from various Excel formats. Returns null if unrecognizable. */
+export function parseBool(v: any): boolean | null {
+  if (v === true) return true;
+  if (v === false) return false;
+  if (v == null || v === '') return null;
   const s = String(v).trim().toLowerCase();
-  return ['true', '1', 'yes', 'oui'].includes(s);
+  if (['true', '1', 'yes', 'oui', 'vrai'].includes(s)) return true;
+  if (['false', '0', 'no', 'non', 'faux'].includes(s)) return false;
+  return null;
+}
+
+/** Shortcut: parseBool defaulting to false */
+export function normBool(v: any): boolean {
+  return parseBool(v) ?? false;
+}
+
+/** Robust number parser handling Excel numbers, strings, comma decimals */
+export function parseNumber(v: any): number | null {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return isNaN(v) ? null : v;
+  let s = String(v).trim().replace(/[¤$€£¥\s]/g, '');
+  const lastComma = s.lastIndexOf(',');
+  const lastDot = s.lastIndexOf('.');
+  if (lastComma > lastDot) {
+    // European format: 1.234,56
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else {
+    // US format: 1,234.56
+    s = s.replace(/,/g, '');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
 }
 
 /** Parse price string to cents (integer). E.g. 890 -> 89000, 890.00 -> 89000 */
 export function normPriceToCents(v: any): number {
-  if (v == null || v === '') return 0;
-  const n = parseFloat(String(v).replace(/[^\d.,\-]/g, '').replace(',', '.'));
-  if (isNaN(n)) return 0;
+  const n = parseNumber(v);
+  if (n == null) return 0;
   return Math.round(n * 100);
 }
 
@@ -32,24 +58,21 @@ export function normList(v: any): string[] {
 /** Parse date from Excel serial number or string -> YYYY-MM-DD or ISO */
 export function normDate(v: any): string | null {
   if (v == null || v === '') return null;
-  // Excel serial date number
   if (typeof v === 'number') {
     const epoch = new Date(Date.UTC(1899, 11, 30));
     const d = new Date(epoch.getTime() + v * 86400000);
     return d.toISOString().slice(0, 10);
   }
   const s = String(v).trim();
-  // Try parsing as date
   const d = new Date(s);
   if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
-  return s; // return raw if unparseable
+  return s;
 }
 
 /** Normalize integer (stock_qty, days, etc.) */
 export function normInt(v: any): number | null {
-  if (v == null || v === '') return null;
-  const n = parseInt(String(v), 10);
-  return isNaN(n) ? null : n;
+  const n = parseNumber(v);
+  return n == null ? null : Math.round(n);
 }
 
 /** Deep-equal comparison for sorted arrays */
