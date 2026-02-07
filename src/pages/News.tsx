@@ -15,6 +15,8 @@ interface Post {
   title_en: string;
   content_fr: string | null;
   content_en: string | null;
+  lead_fr: string | null;
+  lead_en: string | null;
   cover_image: string | null;
   published_at: string | null;
   tags: string[] | null;
@@ -26,8 +28,9 @@ const CATEGORIES = ['all', 'article', 'interview', 'event'] as const;
 
 const PostCard = ({ post, language, i }: { post: Post; language: string; i: number }) => {
   const title = language === 'fr' ? post.title_fr : post.title_en;
+  const lead = language === 'fr' ? post.lead_fr : post.lead_en;
   const content = language === 'fr' ? post.content_fr : post.content_en;
-  const excerpt = content ? content.substring(0, 160).replace(/[#*_]/g, '') + '…' : '';
+  const excerpt = lead || (content ? content.substring(0, 160).replace(/[#*_]/g, '') + '…' : '');
 
   return (
     <motion.article
