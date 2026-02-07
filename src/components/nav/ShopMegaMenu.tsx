@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCategories, GroupWithCategories } from '@/hooks/useCategories';
+import logoIcon from '@/assets/logo-icon.png';
 
 interface Props {
   className?: string;
@@ -34,7 +35,7 @@ const ShopMegaMenu = ({ className, onNavigate }: Props) => {
           className="fixed left-0 right-0 top-16 md:top-20 z-50 border-b border-white/10 shadow-2xl bg-foreground"
         >
           <div className="luxury-container py-8">
-            <div className="flex gap-16">
+            <div className="flex gap-16 flex-1">
               {activeGroups.map(group => (
                 <div key={group.id} className="min-w-[160px]">
                   <p className="text-xs tracking-[0.25em] uppercase font-body text-white mb-4">
@@ -62,6 +63,9 @@ const ShopMegaMenu = ({ className, onNavigate }: Props) => {
                   </Link>
                 </div>
               ))}
+            </div>
+            <div className="hidden lg:flex items-center pl-8">
+              <img src={logoIcon} alt="" className="h-24 w-auto opacity-30" />
             </div>
           </div>
         </div>
