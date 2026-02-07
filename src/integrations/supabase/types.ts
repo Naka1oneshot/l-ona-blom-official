@@ -231,13 +231,17 @@ export type Database = {
         Row: {
           category: string
           content_en: string | null
+          content_en_json: Json | null
           content_fr: string | null
+          content_fr_json: Json | null
           cover_image: string | null
           created_at: string
           event_date: string | null
           event_link: string | null
           event_location: string | null
           id: string
+          lead_en: string | null
+          lead_fr: string | null
           published_at: string | null
           slug: string
           tags: string[] | null
@@ -248,13 +252,17 @@ export type Database = {
         Insert: {
           category?: string
           content_en?: string | null
+          content_en_json?: Json | null
           content_fr?: string | null
+          content_fr_json?: Json | null
           cover_image?: string | null
           created_at?: string
           event_date?: string | null
           event_link?: string | null
           event_location?: string | null
           id?: string
+          lead_en?: string | null
+          lead_fr?: string | null
           published_at?: string | null
           slug: string
           tags?: string[] | null
@@ -265,13 +273,17 @@ export type Database = {
         Update: {
           category?: string
           content_en?: string | null
+          content_en_json?: Json | null
           content_fr?: string | null
+          content_fr_json?: Json | null
           cover_image?: string | null
           created_at?: string
           event_date?: string | null
           event_link?: string | null
           event_location?: string | null
           id?: string
+          lead_en?: string | null
+          lead_fr?: string | null
           published_at?: string | null
           slug?: string
           tags?: string[] | null

@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import { ImageUpload } from '@/components/admin/ImageUpload';
 import TranslateButton from '@/components/admin/TranslateButton';
+import RichArticleEditor from '@/components/admin/RichArticleEditor';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 interface Props {
   post?: any;
@@ -17,8 +19,10 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
     slug: post?.slug || '',
     title_fr: post?.title_fr || '',
     title_en: post?.title_en || '',
-    content_fr: post?.content_fr || '',
-    content_en: post?.content_en || '',
+    lead_fr: post?.lead_fr || '',
+    lead_en: post?.lead_en || '',
+    content_fr_json: post?.content_fr_json || null,
+    content_en_json: post?.content_en_json || null,
     cover_image: post?.cover_image || '',
     tags: (post?.tags || []).join(', '),
     published_at: post?.published_at ? new Date(post.published_at).toISOString().slice(0, 10) : '',
@@ -32,12 +36,17 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const payload = {
+    const payload: any = {
       slug: form.slug,
       title_fr: form.title_fr,
       title_en: form.title_en,
-      content_fr: form.content_fr,
-      content_en: form.content_en,
+      lead_fr: form.lead_fr,
+      lead_en: form.lead_en,
+      content_fr_json: form.content_fr_json,
+      content_en_json: form.content_en_json,
+      // Keep plain-text fallback for backwards compat / excerpts
+      content_fr: extractPlainText(form.content_fr_json),
+      content_en: extractPlainText(form.content_en_json),
       cover_image: form.cover_image,
       tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
       published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
@@ -67,13 +76,14 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
         <ArrowLeft size={14} /> Retour
       </button>
       <h1 className="text-display text-3xl mb-8">{isNew ? 'Nouvel Article' : "Modifier l'Article"}</h1>
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
         <ImageUpload
           value={form.cover_image}
           onChange={(url) => set('cover_image', url)}
           label="Image de couverture"
           folder="posts"
         />
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div><label className={labelClass}>Slug</label><input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required /></div>
           <div><label className={labelClass}>Date de publication</label><input type="date" value={form.published_at} onChange={e => set('published_at', e.target.value)} className={inputClass} /></div>
@@ -86,6 +96,7 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
             </select>
           </div>
         </div>
+
         {form.category === 'event' && (
           <div className="space-y-4">
             <div>
@@ -102,23 +113,50 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
             </div>
           </div>
         )}
-        <TranslateButton
-          frFields={{
-            title_fr: form.title_fr,
-            content_fr: form.content_fr,
-          }}
-          onTranslated={(t) => setForm(p => ({ ...p, ...t }))}
-        />
 
+        {/* Titles */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Titre FR</label><input value={form.title_fr} onChange={e => set('title_fr', e.target.value)} className={inputClass} required /></div>
           <div><label className={labelClass}>Titre EN</label><input value={form.title_en} onChange={e => set('title_en', e.target.value)} className={inputClass} required /></div>
         </div>
+
+        {/* Leads */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label className={labelClass}>Contenu FR</label><textarea value={form.content_fr} onChange={e => set('content_fr', e.target.value)} className={`${inputClass} min-h-[200px] resize-none`} /></div>
-          <div><label className={labelClass}>Contenu EN</label><textarea value={form.content_en} onChange={e => set('content_en', e.target.value)} className={`${inputClass} min-h-[200px] resize-none`} /></div>
+          <div><label className={labelClass}>Chapô FR</label><textarea value={form.lead_fr} onChange={e => set('lead_fr', e.target.value)} className={`${inputClass} min-h-[60px] resize-none`} placeholder="Introduction de l'article…" /></div>
+          <div><label className={labelClass}>Chapô EN</label><textarea value={form.lead_en} onChange={e => set('lead_en', e.target.value)} className={`${inputClass} min-h-[60px] resize-none`} placeholder="Article introduction…" /></div>
         </div>
+
+        {/* Rich content editor with FR/EN tabs */}
+        <div>
+          <label className={labelClass}>Contenu de l'article</label>
+          <Tabs defaultValue="fr" className="mt-2">
+            <TabsList className="bg-transparent gap-1 mb-2">
+              <TabsTrigger value="fr" className="text-xs tracking-[0.15em] uppercase font-body px-4 py-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background rounded-none border border-foreground/20 data-[state=active]:border-foreground transition-all">
+                Français
+              </TabsTrigger>
+              <TabsTrigger value="en" className="text-xs tracking-[0.15em] uppercase font-body px-4 py-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background rounded-none border border-foreground/20 data-[state=active]:border-foreground transition-all">
+                English
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="fr">
+              <RichArticleEditor
+                content={form.content_fr_json}
+                onChange={(json) => set('content_fr_json', json)}
+                placeholder="Rédigez le contenu de l'article en français…"
+              />
+            </TabsContent>
+            <TabsContent value="en">
+              <RichArticleEditor
+                content={form.content_en_json}
+                onChange={(json) => set('content_en_json', json)}
+                placeholder="Write article content in English…"
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+
         <div><label className={labelClass}>Tags (séparés par virgule)</label><input value={form.tags} onChange={e => set('tags', e.target.value)} className={inputClass} /></div>
+
         <div className="flex gap-3 pt-4">
           <button type="submit" disabled={submitting} className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors disabled:opacity-50">
             {submitting ? '...' : isNew ? 'Créer' : 'Enregistrer'}
@@ -129,5 +167,17 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
     </div>
   );
 };
+
+/** Extract plain text from TipTap JSON for excerpts/fallback */
+function extractPlainText(json: any): string {
+  if (!json || !json.content) return '';
+  const texts: string[] = [];
+  function walk(node: any) {
+    if (node.text) texts.push(node.text);
+    if (node.content) node.content.forEach(walk);
+  }
+  walk(json);
+  return texts.join(' ');
+}
 
 export default AdminPostForm;

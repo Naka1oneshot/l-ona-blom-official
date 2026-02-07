@@ -5,8 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import SEOHead from '@/components/SEOHead';
 import AdminEditButton from '@/components/AdminEditButton';
-import EditableDBField from '@/components/EditableDBField';
-import EditableDBImage from '@/components/EditableDBImage';
+import ArticleRenderer from '@/components/ArticleRenderer';
 import { ArrowLeft } from 'lucide-react';
 
 interface Post {
@@ -14,8 +13,12 @@ interface Post {
   slug: string;
   title_fr: string;
   title_en: string;
+  lead_fr: string | null;
+  lead_en: string | null;
   content_fr: string | null;
   content_en: string | null;
+  content_fr_json: any;
+  content_en_json: any;
   cover_image: string | null;
   published_at: string | null;
   tags: string[] | null;
@@ -38,7 +41,7 @@ const NewsArticle = () => {
       .eq('slug', slug!)
       .maybeSingle()
       .then(({ data }) => {
-        setPost(data);
+        setPost(data as unknown as Post);
         setLoading(false);
       });
   }, [slug]);
@@ -62,16 +65,16 @@ const NewsArticle = () => {
     );
   }
 
-  const titleField = language === 'fr' ? 'title_fr' : 'title_en';
-  const contentField = language === 'fr' ? 'content_fr' : 'content_en';
   const title = language === 'fr' ? post.title_fr : post.title_en;
-  const content = language === 'fr' ? post.content_fr : post.content_en;
+  const lead = language === 'fr' ? post.lead_fr : post.lead_en;
+  const contentJson = language === 'fr' ? post.content_fr_json : post.content_en_json;
+  const contentPlain = language === 'fr' ? post.content_fr : post.content_en;
 
   return (
     <div className="pt-20 md:pt-24">
       <SEOHead
         title={title}
-        description={content ? content.substring(0, 160).replace(/[#*_]/g, '') : ''}
+        description={lead || (contentPlain ? contentPlain.substring(0, 160).replace(/[#*_]/g, '') : '')}
         path={`/actualites/${post.slug}`}
         image={post.cover_image || undefined}
         type="article"
@@ -83,34 +86,29 @@ const NewsArticle = () => {
             {t('nav.news')}
           </Link>
 
-          <div className="relative aspect-[16/9] overflow-hidden bg-secondary mb-8">
-            <EditableDBImage
-              table="posts"
-              id={post.id}
-              field="cover_image"
-              value={post.cover_image}
-              onSaved={(url) => setPost(p => p ? { ...p, cover_image: url } : p)}
-              alt={title}
-              className="w-full h-full object-cover"
-              folder="posts"
-            />
-          </div>
+          {post.cover_image && (
+            <div className="relative aspect-[16/9] overflow-hidden bg-secondary mb-8">
+              <img
+                src={post.cover_image}
+                alt={title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
 
           <time className="text-[10px] tracking-[0.2em] uppercase font-body text-muted-foreground">
             {post.published_at ? new Date(post.published_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
           </time>
 
-          <div className="mt-4 mb-8">
-            <EditableDBField
-              table="posts"
-              id={post.id}
-              field={titleField}
-              value={title}
-              onSaved={(v) => setPost(p => p ? { ...p, [titleField]: v } : p)}
-              as="h1"
-              className="text-display text-3xl md:text-5xl"
-            />
-          </div>
+          <h1 className="text-display text-[32px] md:text-[44px] font-semibold tracking-tight leading-[1.1] mt-4 mb-4">
+            {title}
+          </h1>
+
+          {lead && (
+            <p className="text-[16px] md:text-[18px] font-body text-muted-foreground/90 max-w-prose mb-8 leading-relaxed">
+              {lead}
+            </p>
+          )}
 
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-8">
@@ -122,18 +120,16 @@ const NewsArticle = () => {
             </div>
           )}
 
-          <div className="prose-luxury">
-            <EditableDBField
-              table="posts"
-              id={post.id}
-              field={contentField}
-              value={content || ''}
-              onSaved={(v) => setPost(p => p ? { ...p, [contentField]: v } : p)}
-              as="div"
-              className="text-base font-body text-muted-foreground leading-relaxed whitespace-pre-line"
-              multiline
-            />
-          </div>
+          {/* Rich content rendering */}
+          {contentJson ? (
+            <ArticleRenderer content={contentJson} />
+          ) : contentPlain ? (
+            <div className="lb-article">
+              <p className="text-base font-body text-muted-foreground leading-relaxed whitespace-pre-line">
+                {contentPlain}
+              </p>
+            </div>
+          ) : null}
 
           {post.category === 'event' && post.event_link && (
             <div className="mt-12 text-center">
