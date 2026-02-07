@@ -28,10 +28,8 @@ export function parseNumber(v: any): number | null {
   const lastComma = s.lastIndexOf(',');
   const lastDot = s.lastIndexOf('.');
   if (lastComma > lastDot) {
-    // European format: 1.234,56
     s = s.replace(/\./g, '').replace(',', '.');
   } else {
-    // US format: 1,234.56
     s = s.replace(/,/g, '');
   }
   const n = parseFloat(s);
@@ -79,4 +77,41 @@ export function normInt(v: any): number | null {
 export function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
   return a.every((v, i) => v === b[i]);
+}
+
+/**
+ * Normalize a header string for fuzzy matching:
+ * lowercase, remove accents, remove parentheses content, collapse whitespace, trim
+ */
+export function normalizeHeader(h: string): string {
+  return h
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+    .toLowerCase()
+    .replace(/\(.*?\)/g, '') // remove parenthetical
+    .replace(/[^a-z0-9]/g, ' ') // non-alnum -> space
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Resolve a column value from a raw row using normalized header matching.
+ * Accepts multiple alias strings. Each alias is normalized and compared
+ * against normalized versions of the actual keys in the row.
+ */
+export function colFuzzy(raw: Record<string, any>, ...aliases: string[]): any {
+  // Build a normalized map of row keys
+  const normMap = new Map<string, string>(); // normalizedKey -> originalKey
+  for (const k of Object.keys(raw)) {
+    normMap.set(normalizeHeader(k), k);
+  }
+
+  for (const alias of aliases) {
+    const norm = normalizeHeader(alias);
+    const origKey = normMap.get(norm);
+    if (origKey != null) {
+      const v = raw[origKey];
+      if (v !== '' && v != null) return v;
+    }
+  }
+  return undefined;
 }

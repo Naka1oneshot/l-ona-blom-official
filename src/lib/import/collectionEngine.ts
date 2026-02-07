@@ -1,41 +1,47 @@
 import { supabase } from '@/integrations/supabase/client';
-import { normText, normList, normDate, arraysEqual } from './normalize';
+import { normText, normList, normDate, arraysEqual, colFuzzy } from './normalize';
 import type { PreviewRow, ImportReport, ImportStats, RowMessage } from './types';
 
-/**
- * Resolve a column value from a raw row, trying multiple possible header names.
- */
-function col(raw: Record<string, any>, ...keys: string[]): any {
-  for (const k of keys) {
-    if (k in raw && raw[k] !== '' && raw[k] != null) return raw[k];
+function col(raw: Record<string, any>, ...aliases: string[]): any {
+  return colFuzzy(raw, ...aliases);
+}
+
+/* ── Translate helper ── */
+async function translateTexts(texts: Record<string, string>): Promise<Record<string, string>> {
+  const filtered: Record<string, string> = {};
+  for (const [k, v] of Object.entries(texts)) {
+    if (v && v.trim()) filtered[k] = v;
   }
-  const lowerMap = new Map(Object.entries(raw).map(([k, v]) => [k.toLowerCase(), v]));
-  for (const k of keys) {
-    const v = lowerMap.get(k.toLowerCase());
-    if (v !== '' && v != null) return v;
+  if (Object.keys(filtered).length === 0) return {};
+  try {
+    const { data, error } = await supabase.functions.invoke('translate', {
+      body: { texts: filtered },
+    });
+    if (error) throw error;
+    return data?.translations || {};
+  } catch (e) {
+    console.error('Translation failed:', e);
+    return {};
   }
-  return undefined;
 }
 
 function parseRow(raw: Record<string, any>) {
   return {
-    reference_code: normText(col(raw, 'Référence Produit', 'reference_code')),
-    slug: normText(col(raw, 'slug')),
-    title_fr: normText(col(raw, 'title_fr')),
-    title_en: normText(col(raw, 'title_en')),
-    subtitle_fr: normText(col(raw, 'subtitle_fr')),
-    subtitle_en: normText(col(raw, 'subtitle_en')),
-    narrative_fr: normText(col(raw, 'narrative_fr')),
-    narrative_en: normText(col(raw, 'narrative_en')),
-    published_at: normDate(col(raw, 'published_at')),
-    tags: normList(col(raw, 'tags')),
-    _product_slugs: normList(col(raw, 'product_slugs')),
+    reference_code: normText(col(raw, 'Référence Collection', 'reference_code')),
+    slug: normText(col(raw, 'Slug', 'slug')),
+    title_fr: normText(col(raw, 'Titre (FR)', 'Titre FR', 'title_fr')),
+    subtitle_fr: normText(col(raw, 'Sous-titre (FR)', 'Sous-titre FR', 'subtitle_fr')),
+    narrative_fr: normText(col(raw, 'Narratif (FR)', 'Narratif FR', 'narrative_fr')),
+    published_at: normDate(col(raw, 'Date de publication (YYYY-MM-DD)', 'Date de publication', 'published_at')),
+    tags: normList(col(raw, 'Tags (séparés par |)', 'Tags separes par', 'tags')),
+    _product_slugs: normList(col(raw, 'Produits (slugs séparés par |)', 'Produits slugs separes par', 'product_slugs')),
   };
 }
 
+/* Compare FR-only (no EN comparison) */
 function compareFields(parsed: any, existing: any): string[] {
   const changes: string[] = [];
-  const textFields = ['slug', 'title_fr', 'title_en', 'subtitle_fr', 'subtitle_en', 'narrative_fr', 'narrative_en'];
+  const textFields = ['slug', 'title_fr', 'subtitle_fr', 'narrative_fr'];
   for (const f of textFields) {
     if (normText(parsed[f]) !== normText(existing[f] ?? '')) changes.push(f);
   }
@@ -69,21 +75,21 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
   for (let i = 0; i < rows.length; i++) {
     const raw = rows[i];
     const messages: RowMessage[] = [];
-    const ref = normText(col(raw, 'Référence Produit', 'reference_code'));
-    const slug = normText(col(raw, 'slug'));
+    const ref = normText(col(raw, 'Référence Collection', 'reference_code'));
+    const slug = normText(col(raw, 'Slug', 'slug'));
 
     if (!ref || !/^COL\d{3,}$/.test(ref)) {
-      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: `Référence invalide: "${ref}" (format: COL001)` }], data: raw });
+      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'Titre (FR)', 'Titre FR', 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: `Référence invalide: "${ref}" (format: COL001)` }], data: raw });
       stats.errors++;
       continue;
     }
     if (!slug) {
-      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: 'Slug manquant' }], data: raw });
+      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'Titre (FR)', 'Titre FR', 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: 'Slug manquant' }], data: raw });
       stats.errors++;
       continue;
     }
     if (slugsInFile.has(slug)) {
-      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" dupliqué (ligne ${slugsInFile.get(slug)})` }], data: raw });
+      preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: normText(col(raw, 'Titre (FR)', 'Titre FR', 'title_fr')), status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" dupliqué (ligne ${slugsInFile.get(slug)})` }], data: raw });
       stats.errors++;
       continue;
     }
@@ -91,12 +97,10 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
 
     const parsed = parseRow(raw);
 
-    // Validate published_at
     if (!parsed.published_at) {
-      messages.push({ severity: 'error', message: 'published_at requis (date valide)' });
+      messages.push({ severity: 'error', message: 'Date de publication requise' });
     }
 
-    // Validate product_slugs
     const validProductIds: string[] = [];
     for (const ps of parsed._product_slugs) {
       const pid = productBySlug.get(ps);
@@ -108,9 +112,8 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
       }
     }
 
-    // --- Matching algorithm: reference_code first, then slug ---
+    // Matching: ref first, then slug
     let candidate: any = byRef.get(ref);
-
     if (!candidate) {
       const slugOwner = bySlug.get(slug);
       if (slugOwner) {
@@ -121,7 +124,7 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
         } else if (slugOwner.reference_code === ref) {
           candidate = slugOwner;
         } else {
-          preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" déjà utilisé par une autre collection (ref: ${slugOwner.reference_code})` }], data: raw });
+          preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'ERROR', messages: [{ severity: 'error', message: `Slug "${slug}" utilisé par une autre collection (ref: ${slugOwner.reference_code})` }], data: raw });
           stats.errors++;
           continue;
         }
@@ -136,9 +139,7 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
 
     if (candidate) {
       const changes = compareFields(parsed, candidate);
-      if (!candidate.reference_code) {
-        if (!changes.includes('reference_code')) changes.push('reference_code');
-      }
+      if (!candidate.reference_code && !changes.includes('reference_code')) changes.push('reference_code');
       if (changes.length === 0) {
         preview.push({ rowIndex: i + 2, referenceCode: ref, slug, label: parsed.title_fr, status: 'NO_CHANGE', messages, data: { ...raw, _validProductIds: validProductIds, _candidateId: candidate.id } });
         stats.no_change++;
@@ -155,53 +156,74 @@ export async function previewCollectionImport(rows: Record<string, any>[]): Prom
   return { rows: preview, stats };
 }
 
-export async function executeCollectionImport(previewRows: PreviewRow[]): Promise<void> {
-  const toCreate = previewRows.filter(r => r.status === 'CREATE');
-  const toUpdate = previewRows.filter(r => r.status === 'UPDATE');
+export async function executeCollectionImport(
+  previewRows: PreviewRow[],
+  onProgress?: (current: number, total: number, label: string) => void
+): Promise<RowMessage[]> {
+  const toProcess = previewRows.filter(r => r.status === 'CREATE' || r.status === 'UPDATE');
+  const warnings: RowMessage[] = [];
+  const total = toProcess.length;
 
-  for (const r of toCreate) {
-    const p = parseRow(r.data);
-    const { _product_slugs, ...insertData } = p;
-    const pubAt = insertData.published_at ? `${insertData.published_at}T00:00:00` : null;
-    const { data: created, error } = await supabase.from('collections').insert({
-      ...insertData,
+  for (let idx = 0; idx < toProcess.length; idx++) {
+    const r = toProcess[idx];
+    onProgress?.(idx + 1, total, r.label || r.slug);
+
+    const parsed = parseRow(r.data);
+    const { _product_slugs, ...fields } = parsed;
+    const pubAt = fields.published_at ? `${fields.published_at}T00:00:00` : null;
+
+    // Auto-translate FR -> EN
+    const textsToTranslate: Record<string, string> = {};
+    if (fields.title_fr) textsToTranslate.title_fr = fields.title_fr;
+    if (fields.subtitle_fr) textsToTranslate.subtitle_fr = fields.subtitle_fr;
+    if (fields.narrative_fr) textsToTranslate.narrative_fr = fields.narrative_fr;
+
+    let translations: Record<string, string> = {};
+    if (Object.keys(textsToTranslate).length > 0) {
+      translations = await translateTexts(textsToTranslate);
+      if (Object.keys(translations).length === 0) {
+        warnings.push({ severity: 'warning', message: `${r.referenceCode}: Traduction échouée, fallback FR→EN` });
+        for (const [k, v] of Object.entries(textsToTranslate)) {
+          translations[k.replace('_fr', '_en')] = v;
+        }
+      }
+    }
+
+    const payload: any = {
+      ...fields,
       published_at: pubAt,
-    }).select('id').single();
-    if (error) throw new Error(`Erreur création ${r.referenceCode}: ${error.message}`);
+      title_en: translations.title_en || fields.title_fr,
+      subtitle_en: translations.subtitle_en || fields.subtitle_fr || '',
+      narrative_en: translations.narrative_en || fields.narrative_fr || '',
+    };
 
-    const productIds: string[] = r.data._validProductIds || [];
-    if (productIds.length > 0 && created) {
-      const links = productIds.map((pid: string, idx: number) => ({
-        collection_id: created.id,
-        product_id: pid,
-        sort_order: idx,
-      }));
-      await supabase.from('collection_products').insert(links);
+    if (r.status === 'CREATE') {
+      const { data: created, error } = await supabase.from('collections').insert(payload).select('id').single();
+      if (error) throw new Error(`Erreur création ${r.referenceCode}: ${error.message}`);
+
+      const productIds: string[] = r.data._validProductIds || [];
+      if (productIds.length > 0 && created) {
+        const links = productIds.map((pid: string, i: number) => ({
+          collection_id: created.id, product_id: pid, sort_order: i,
+        }));
+        await supabase.from('collection_products').insert(links);
+      }
+    } else {
+      const id = r.data._candidateId;
+      if (!id) continue;
+      const { error } = await supabase.from('collections').update(payload).eq('id', id);
+      if (error) throw new Error(`Erreur update ${r.referenceCode}: ${error.message}`);
+
+      const productIds: string[] = r.data._validProductIds || [];
+      await supabase.from('collection_products').delete().eq('collection_id', id);
+      if (productIds.length > 0) {
+        const links = productIds.map((pid: string, i: number) => ({
+          collection_id: id, product_id: pid, sort_order: i,
+        }));
+        await supabase.from('collection_products').insert(links);
+      }
     }
   }
 
-  for (const r of toUpdate) {
-    const p = parseRow(r.data);
-    const { _product_slugs, ...updateData } = p;
-    const id = r.data._candidateId;
-    if (!id) continue;
-    const pubAt = updateData.published_at ? `${updateData.published_at}T00:00:00` : null;
-    // Include reference_code in update (handles migration of empty reference_code)
-    const { error } = await supabase.from('collections').update({
-      ...updateData,
-      published_at: pubAt,
-    }).eq('id', id);
-    if (error) throw new Error(`Erreur update ${r.referenceCode}: ${error.message}`);
-
-    const productIds: string[] = r.data._validProductIds || [];
-    await supabase.from('collection_products').delete().eq('collection_id', id);
-    if (productIds.length > 0) {
-      const links = productIds.map((pid: string, idx: number) => ({
-        collection_id: id,
-        product_id: pid,
-        sort_order: idx,
-      }));
-      await supabase.from('collection_products').insert(links);
-    }
-  }
+  return warnings;
 }
