@@ -114,7 +114,7 @@ const CollectionDetail = () => {
             value={title}
             onSaved={(v) => setCollection(c => c ? { ...c, [titleField]: v } : c)}
             as="h1"
-            className="text-display text-4xl md:text-6xl tracking-[0.15em] mb-4"
+            className="text-display text-3xl sm:text-4xl md:text-6xl tracking-[0.15em] mb-4"
           />
           <EditableDBField
             table="collections"

@@ -124,7 +124,7 @@ const About = () => {
                 className="text-center"
               >
                 <h3 className="text-display text-2xl tracking-[0.1em] mb-4">{item.title}</h3>
-                <div className="w-12 h-px bg-primary mx-auto mb-6" />
+                <div className="w-12 h-px bg-background mx-auto mb-6" />
                 <EditableText
                   settingsKey={item.key}
                   defaultText={language === 'fr' ? item.defaultFr : item.defaultEn}

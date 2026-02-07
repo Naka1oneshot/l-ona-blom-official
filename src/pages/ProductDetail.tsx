@@ -90,7 +90,7 @@ const ProductDetail = () => {
         image={product.images[0]}
         type="product"
       />
-      <div className="luxury-container py-12 md:py-20">
+      <div className="luxury-container py-8 md:py-20">
         {/* Breadcrumb */}
         <div className="mb-8 flex items-center gap-2 text-xs font-body text-muted-foreground tracking-wider">
           <Link to="/boutique" className="hover:text-foreground transition-colors">{t('nav.shop')}</Link>
@@ -122,12 +122,12 @@ const ProductDetail = () => {
               />
             </div>
             {product.images.length > 1 && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {product.images.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
-                    className={`w-16 h-20 bg-secondary overflow-hidden border-2 transition-colors ${i === activeImage ? 'border-foreground' : 'border-transparent'}`}
+                    className={`w-14 h-18 sm:w-16 sm:h-20 bg-secondary overflow-hidden border-2 transition-colors flex-shrink-0 ${i === activeImage ? 'border-foreground' : 'border-transparent'}`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>

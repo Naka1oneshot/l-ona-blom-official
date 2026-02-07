@@ -64,10 +64,10 @@ const EventsSection = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
       >
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center justify-between mb-8 md:mb-12">
           <div>
-            <h2 className="text-display text-3xl md:text-4xl">{t('home.events.title')}</h2>
-            <p className="text-xs tracking-[0.15em] uppercase font-body text-muted-foreground mt-2">
+            <h2 className="text-display text-2xl sm:text-3xl md:text-4xl">{t('home.events.title')}</h2>
+            <p className="text-[10px] sm:text-xs tracking-[0.15em] uppercase font-body text-muted-foreground mt-1 sm:mt-2">
               {isUpcoming ? t('home.events.upcoming') : t('home.events.past')}
             </p>
           </div>
@@ -79,7 +79,7 @@ const EventsSection = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
           {events.map((event, i) => {
             const title = language === 'fr' ? event.title_fr : event.title_en;
             return (

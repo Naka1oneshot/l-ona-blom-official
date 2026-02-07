@@ -36,7 +36,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-display text-4xl md:text-6xl lg:text-7xl tracking-[0.15em] mb-6"
+            className="text-display text-3xl sm:text-4xl md:text-6xl lg:text-7xl tracking-[0.15em] mb-4 sm:mb-6"
           >
             LÉONA BLOM
           </motion.h1>
@@ -113,7 +113,7 @@ const Index = () => {
       {/* 3S Values */}
       <section className="section-dark luxury-section">
         <div className="luxury-container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 text-center">
             {(['selflove', 'selfcare', 'selfplace'] as const).map((value, i) => (
               <motion.div
                 key={value}
