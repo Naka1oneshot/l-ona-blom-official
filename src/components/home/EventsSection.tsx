@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CalendarDays, ArrowRight } from 'lucide-react';
+import { CalendarDays, ArrowRight, MapPin, Clock, ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,6 +12,8 @@ interface EventPost {
   title_en: string;
   cover_image: string | null;
   event_date: string | null;
+  event_link: string | null;
+  event_location: string | null;
   published_at: string | null;
 }
 
@@ -26,7 +28,7 @@ const EventsSection = () => {
     // Try upcoming events first
     supabase
       .from('posts')
-      .select('id, slug, title_fr, title_en, cover_image, event_date, published_at')
+      .select('id, slug, title_fr, title_en, cover_image, event_date, event_link, event_location, published_at')
       .eq('category', 'event')
       .not('published_at', 'is', null)
       .gte('event_date', now)
@@ -37,10 +39,9 @@ const EventsSection = () => {
           setEvents(data as EventPost[]);
           setIsUpcoming(true);
         } else {
-          // Fallback to past events
           supabase
             .from('posts')
-            .select('id, slug, title_fr, title_en, cover_image, event_date, published_at')
+            .select('id, slug, title_fr, title_en, cover_image, event_date, event_link, event_location, published_at')
             .eq('category', 'event')
             .not('published_at', 'is', null)
             .order('event_date', { ascending: false })
@@ -100,16 +101,36 @@ const EventsSection = () => {
                       />
                     </div>
                   )}
-                  {event.event_date && (
-                    <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.15em] uppercase font-body text-primary mb-2">
-                      <CalendarDays size={12} />
-                      {new Date(event.event_date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
-                  )}
+                  <div className="space-y-2">
+                    {event.event_date && (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.15em] uppercase font-body text-primary">
+                        <CalendarDays size={12} />
+                        {new Date(event.event_date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {' — '}
+                        {new Date(event.event_date).toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                    {event.event_location && (
+                      <span className="flex items-center gap-1.5 text-[10px] tracking-[0.1em] font-body text-muted-foreground">
+                        <MapPin size={12} />
+                        {event.event_location}
+                      </span>
+                    )}
+                  </div>
                   <h3 className="text-display text-lg md:text-xl group-hover:text-primary transition-colors">
                     {title}
                   </h3>
                 </Link>
+                {event.event_link && (
+                  <a
+                    href={event.event_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-3 bg-primary text-primary-foreground px-5 py-2.5 text-[10px] tracking-[0.2em] uppercase font-body hover:bg-primary/90 transition-colors"
+                  >
+                    {language === 'fr' ? 'Réserver sa place' : 'Book your spot'} <ExternalLink size={12} />
+                  </a>
+                )}
               </motion.div>
             );
           })}
