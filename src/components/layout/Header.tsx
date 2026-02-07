@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCategories } from '@/hooks/useCategories';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -9,6 +9,7 @@ import { Language, Currency } from '@/types';
 import { ShoppingBag, Menu, X, Globe, ChevronDown, User } from 'lucide-react';
 import CollectionsDropdown from './CollectionsDropdown';
 import ShopMegaMenu from '@/components/nav/ShopMegaMenu';
+import { supabase } from '@/integrations/supabase/client';
 
 const Header = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -18,8 +19,19 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mobileShopOpen, setMobileShopOpen] = useState(false);
+  const [mobileCollectionsOpen, setMobileCollectionsOpen] = useState(false);
+  const [mobileNewsOpen, setMobileNewsOpen] = useState(false);
+  const [collections, setCollections] = useState<{ id: string; slug: string; title_fr: string; title_en: string }[]>([]);
   const location = useLocation();
   const { groups } = useCategories();
+
+  React.useEffect(() => {
+    supabase
+      .from('collections')
+      .select('id, slug, title_fr, title_en')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setCollections(data || []));
+  }, []);
 
   const isHome = location.pathname === '/';
 
@@ -154,6 +166,71 @@ const Header = () => {
                               </Link>
                             ))}
                           </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              if (link.to === '/collections') {
+                return (
+                  <div key={link.to}>
+                    <button
+                      onClick={() => setMobileCollectionsOpen(!mobileCollectionsOpen)}
+                      className="text-sm tracking-[0.15em] uppercase font-body flex items-center gap-2"
+                    >
+                      {link.label}
+                      <ChevronDown size={12} className={`transition-transform ${mobileCollectionsOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {mobileCollectionsOpen && (
+                      <div className="mt-3 ml-4 space-y-2">
+                        <Link to="/collections" onClick={() => setMobileOpen(false)} className="block text-xs tracking-[0.12em] uppercase font-body opacity-70">
+                          {language === 'en' ? 'View all' : 'Voir tout'}
+                        </Link>
+                        {collections.map(col => (
+                          <Link
+                            key={col.id}
+                            to={`/collections/${col.slug}`}
+                            onClick={() => setMobileOpen(false)}
+                            className="block text-xs tracking-[0.1em] font-body py-1 opacity-80 hover:opacity-100"
+                          >
+                            {language === 'en' ? col.title_en : col.title_fr}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              if (link.to === '/actualites') {
+                const newsCategories = [
+                  { slug: 'article', labelFr: 'Articles', labelEn: 'Articles' },
+                  { slug: 'event', labelFr: 'Événements', labelEn: 'Events' },
+                  { slug: 'interview', labelFr: 'Interviews', labelEn: 'Interviews' },
+                ];
+                return (
+                  <div key={link.to}>
+                    <button
+                      onClick={() => setMobileNewsOpen(!mobileNewsOpen)}
+                      className="text-sm tracking-[0.15em] uppercase font-body flex items-center gap-2"
+                    >
+                      {link.label}
+                      <ChevronDown size={12} className={`transition-transform ${mobileNewsOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {mobileNewsOpen && (
+                      <div className="mt-3 ml-4 space-y-2">
+                        <Link to="/actualites" onClick={() => setMobileOpen(false)} className="block text-xs tracking-[0.12em] uppercase font-body opacity-70">
+                          {language === 'en' ? 'View all' : 'Voir tout'}
+                        </Link>
+                        {newsCategories.map(cat => (
+                          <Link
+                            key={cat.slug}
+                            to={`/actualites?category=${cat.slug}`}
+                            onClick={() => setMobileOpen(false)}
+                            className="block text-xs tracking-[0.1em] font-body py-1 opacity-80 hover:opacity-100"
+                          >
+                            {language === 'en' ? cat.labelEn : cat.labelFr}
+                          </Link>
                         ))}
                       </div>
                     )}
