@@ -11,6 +11,7 @@ import EditableImage from '@/components/EditableImage';
 import EventsSection from '@/components/home/EventsSection';
 import heroImage from '@/assets/hero-home.jpg';
 import logoWhite from '@/assets/logo-white.png';
+import logoIcon from '@/assets/logo-icon.png';
 
 const Index = () => {
   const { language, t } = useLanguage();
@@ -33,14 +34,24 @@ const Index = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
         <div className="relative z-10 text-center text-background px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="mb-4 sm:mb-6"
-          >
-            <img src={logoWhite} alt="LÉONA BLOM" className="h-10 sm:h-14 md:h-20 lg:h-24 w-auto mx-auto" />
-          </motion.div>
+          <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 mb-4 sm:mb-6">
+            <motion.img
+              src={logoIcon}
+              alt=""
+              initial={{ opacity: 0, scale: 0.6, rotate: -15 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="h-16 sm:h-24 md:h-32 lg:h-40 w-auto drop-shadow-[0_0_30px_rgba(152,29,112,0.4)]"
+            />
+            <motion.img
+              src={logoWhite}
+              alt="LÉONA BLOM"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="h-10 sm:h-14 md:h-20 lg:h-24 w-auto"
+            />
+          </div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
