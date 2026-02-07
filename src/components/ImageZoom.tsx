@@ -8,18 +8,37 @@ interface ImageZoomProps {
   lensSize?: number;
 }
 
-const ImageZoom = ({ src, alt, className = '', zoomScale = 2.5, lensSize = 180 }: ImageZoomProps) => {
+const ImageZoom = ({ src, alt, className = '', zoomScale = 2.8, lensSize = 200 }: ImageZoomProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovering, setHovering] = useState(false);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
+  const [bgPos, setBgPos] = useState({ x: 0, y: 0 });
 
   const handleMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setPos({ x, y });
-  }, []);
+
+    // Cursor position relative to container in px
+    const cursorX = e.clientX - rect.left;
+    const cursorY = e.clientY - rect.top;
+
+    // Lens position (centered on cursor)
+    setLensPos({
+      x: cursorX - lensSize / 2,
+      y: cursorY - lensSize / 2,
+    });
+
+    // Background position: map cursor % to zoomed image offset
+    const pctX = cursorX / rect.width;
+    const pctY = cursorY / rect.height;
+
+    // The zoomed image is (zoomScale * rect.width) wide.
+    // We want the point under the cursor to appear at the center of the lens.
+    setBgPos({
+      x: -(pctX * rect.width * zoomScale - lensSize / 2),
+      y: -(pctY * rect.height * zoomScale - lensSize / 2),
+    });
+  }, [lensSize, zoomScale]);
 
   return (
     <div
@@ -33,23 +52,24 @@ const ImageZoom = ({ src, alt, className = '', zoomScale = 2.5, lensSize = 180 }
 
       {hovering && (
         <div
-          className="absolute pointer-events-none rounded-full border-2 border-background/60 shadow-lg z-20 overflow-hidden"
+          className="absolute pointer-events-none rounded-full border-2 border-background/60 shadow-[0_0_24px_rgba(0,0,0,0.18)] z-20 overflow-hidden"
           style={{
             width: lensSize,
             height: lensSize,
-            left: `calc(${pos.x}% - ${lensSize / 2}px)`,
-            top: `calc(${pos.y}% - ${lensSize / 2}px)`,
+            left: lensPos.x,
+            top: lensPos.y,
           }}
         >
           <img
             src={src}
             alt=""
-            className="absolute max-w-none"
+            draggable={false}
+            className="absolute max-w-none pointer-events-none"
             style={{
-              width: `${zoomScale * 100}%`,
-              height: `${zoomScale * 100}%`,
-              left: `${-pos.x * zoomScale + 50}%`,
-              top: `${-pos.y * zoomScale + 50}%`,
+              width: containerRef.current ? containerRef.current.offsetWidth * zoomScale : '100%',
+              height: containerRef.current ? containerRef.current.offsetHeight * zoomScale : '100%',
+              left: bgPos.x,
+              top: bgPos.y,
             }}
           />
         </div>
