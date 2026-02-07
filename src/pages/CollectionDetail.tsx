@@ -155,7 +155,7 @@ const CollectionDetail = () => {
       {/* Gallery */}
       {galleryImages.length > 0 && (
         <section className="luxury-container pb-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {galleryImages.map((img, i) => (
               <motion.div
                 key={i}
