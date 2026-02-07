@@ -96,7 +96,7 @@ const NewsArticle = () => {
             </div>
           )}
 
-          <time className="text-[10px] tracking-[0.2em] uppercase font-body text-muted-foreground">
+          <time className="text-[10px] tracking-[0.2em] uppercase font-body text-muted-foreground mb-8 block">
             {post.published_at ? new Date(post.published_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
           </time>
 
