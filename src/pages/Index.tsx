@@ -139,38 +139,6 @@ const Index = () => {
       </section>
 
 
-      {/* Materials */}
-      <section className="bg-luxury-cream luxury-section">
-        <div className="luxury-container text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <EditableText
-              settingsKey="page_home_materials_title"
-              defaultText={t('home.materials.title')}
-              as="h2"
-              className="text-display text-3xl md:text-4xl mb-8"
-            />
-            <EditableText
-              settingsKey="page_home_materials_text"
-              defaultText={t('home.materials.text')}
-              as="p"
-              className="text-base font-body text-muted-foreground max-w-2xl mx-auto leading-relaxed"
-              multiline
-            />
-            <div className="flex flex-wrap justify-center gap-8 mt-12">
-              {['Lin', 'Coton', 'Soie', 'Pierres précieuses'].map(mat => (
-                <span key={mat} className="text-display text-xl md:text-2xl tracking-[0.1em] opacity-40">
-                  {mat}
-                </span>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Events */}
       <EventsSection />
