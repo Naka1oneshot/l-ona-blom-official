@@ -88,7 +88,9 @@ const Shop = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-display text-4xl md:text-5xl text-center mb-6">{t('shop.title')}</h1>
+          {!hasFilter && (
+            <h1 className="text-display text-4xl md:text-5xl text-center mb-6">{t('shop.title')}</h1>
+          )}
 
           {/* Breadcrumb */}
           {hasFilter && (

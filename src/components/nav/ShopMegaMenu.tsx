@@ -37,7 +37,7 @@ const ShopMegaMenu = ({ className, onNavigate }: Props) => {
             <div className="flex gap-16">
               {activeGroups.map(group => (
                 <div key={group.id} className="min-w-[160px]">
-                  <p className="text-[10px] tracking-[0.25em] uppercase font-body text-white mb-4">
+                  <p className="text-xs tracking-[0.25em] uppercase font-body text-white mb-4">
                     {getName(group)}
                   </p>
                   <ul className="space-y-2.5">
@@ -56,7 +56,7 @@ const ShopMegaMenu = ({ className, onNavigate }: Props) => {
                   <Link
                     to={`/boutique?group=${group.slug}`}
                     onClick={handleClick}
-                    className="inline-block mt-4 text-[10px] tracking-[0.15em] uppercase font-body text-white hover:text-white underline underline-offset-4 decoration-white/40 hover:decoration-white transition-colors"
+                    className="inline-block mt-4 text-xs tracking-[0.15em] uppercase font-body text-white hover:text-white underline underline-offset-4 decoration-white/40 hover:decoration-white transition-colors"
                   >
                     {language === 'en' ? 'View all' : 'Voir tout'}
                   </Link>

@@ -48,21 +48,25 @@ const Header = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map(link =>
-              link.to === '/boutique' ? (
-                <ShopMegaMenu
-                  key={link.to}
-                  className="luxury-link text-xs tracking-[0.15em] uppercase font-body"
-                />
-              ) : link.to === '/collections' ? (
-                <CollectionsDropdown
-                  key={link.to}
-                  className="luxury-link text-xs tracking-[0.15em] uppercase font-body"
-                />
-              ) : (
-                <Link key={link.to} to={link.to} className="luxury-link text-xs tracking-[0.15em] uppercase font-body">{link.label}</Link>
-              )
-            )}
+            {navLinks.map(link => {
+              const isActive = link.to === '/boutique'
+                ? location.pathname === '/boutique'
+                : link.to === '/collections'
+                  ? location.pathname.startsWith('/collections')
+                  : location.pathname === link.to;
+              const base = "luxury-link text-xs tracking-[0.15em] uppercase font-body";
+              const activeClass = isActive ? 'opacity-100 underline underline-offset-4 decoration-current' : '';
+              
+              if (link.to === '/boutique') return (
+                <ShopMegaMenu key={link.to} className={`${base} ${activeClass}`} />
+              );
+              if (link.to === '/collections') return (
+                <CollectionsDropdown key={link.to} className={`${base} ${activeClass}`} />
+              );
+              return (
+                <Link key={link.to} to={link.to} className={`${base} ${activeClass}`}>{link.label}</Link>
+              );
+            })}
           </nav>
 
           {/* Right actions */}
