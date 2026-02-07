@@ -10,6 +10,7 @@ import { ShoppingBag, Menu, X, Globe, ChevronDown, User } from 'lucide-react';
 import CollectionsDropdown from './CollectionsDropdown';
 import ShopMegaMenu from '@/components/nav/ShopMegaMenu';
 import { supabase } from '@/integrations/supabase/client';
+import logoImg from '@/assets/logo_lb.jpg';
 
 const Header = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -54,8 +55,8 @@ const Header = () => {
           </button>
 
           {/* Logo */}
-          <Link to="/" className="text-display tracking-[0.2em] text-lg md:text-xl">
-            LÉONA BLOM
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logoImg} alt="LÉONA BLOM" className="h-10 md:h-12 w-auto" />
           </Link>
 
           {/* Desktop Nav */}
