@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import logoIcon from '@/assets/logo-icon.png';
 
 interface CollectionItem {
   id: string;
@@ -69,34 +70,39 @@ const CollectionsDropdown = ({ className, onNavigate }: CollectionsDropdownProps
           style={{ background: 'linear-gradient(135deg, #981D70 0%, #6e1550 50%, #981D70 100%)' }}
         >
           <div className="luxury-container py-6">
-            <div className="flex gap-8 overflow-x-auto">
-              {collections.map((col) => {
-                const title = language === 'fr' ? col.title_fr : col.title_en;
-                return (
-                  <Link
-                    key={col.id}
-                    to={`/collections/${col.slug}`}
-                    className="group flex-shrink-0 w-44"
-                    onClick={handleClick}
-                  >
-                    <div className="aspect-[4/5] overflow-hidden bg-secondary mb-2">
-                      {col.cover_image ? (
-                        <img
-                          src={col.cover_image}
-                          alt={title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-muted" />
-                      )}
-                    </div>
-                    <p className="text-[11px] tracking-[0.12em] uppercase font-body text-white/90 group-hover:text-white transition-colors">
-                      {title}
-                    </p>
-                  </Link>
-                );
-              })}
+            <div className="flex items-center gap-8">
+              <div className="flex gap-8 overflow-x-auto flex-1">
+                {collections.map((col) => {
+                  const title = language === 'fr' ? col.title_fr : col.title_en;
+                  return (
+                    <Link
+                      key={col.id}
+                      to={`/collections/${col.slug}`}
+                      className="group flex-shrink-0 w-44"
+                      onClick={handleClick}
+                    >
+                      <div className="aspect-[4/5] overflow-hidden bg-secondary mb-2">
+                        {col.cover_image ? (
+                          <img
+                            src={col.cover_image}
+                            alt={title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted" />
+                        )}
+                      </div>
+                      <p className="text-[11px] tracking-[0.12em] uppercase font-body text-white/90 group-hover:text-white transition-colors">
+                        {title}
+                      </p>
+                    </Link>
+                  );
+                })}
+              </div>
+              <div className="hidden lg:flex items-center pl-4 flex-shrink-0">
+                <img src={logoIcon} alt="" className="h-24 w-auto opacity-30" />
+              </div>
             </div>
           </div>
         </div>

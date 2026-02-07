@@ -11,7 +11,6 @@ import CollectionsDropdown from './CollectionsDropdown';
 import ShopMegaMenu from '@/components/nav/ShopMegaMenu';
 import { supabase } from '@/integrations/supabase/client';
 import logoWhite from '@/assets/logo-white.png';
-import logoIcon from '@/assets/logo-icon.png';
 
 const Header = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -56,8 +55,7 @@ const Header = () => {
           </button>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logoIcon} alt="" className="h-6 md:h-7 w-auto" />
+          <Link to="/" className="flex items-center">
             <img src={logoWhite} alt="LÉONA BLOM" className="h-4 md:h-5 w-auto" />
           </Link>
 
