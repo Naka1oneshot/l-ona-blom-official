@@ -143,36 +143,6 @@ const Index = () => {
       {/* Events */}
       <EventsSection />
 
-      {/* Newsletter */}
-      <section className="luxury-section luxury-container text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <EditableText
-            settingsKey="page_home_newsletter_title"
-            defaultText={t('home.newsletter.title')}
-            as="h2"
-            className="text-display text-2xl md:text-3xl mb-8"
-          />
-          <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto" onSubmit={e => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder={t('home.newsletter.placeholder')}
-              className="flex-1 border border-foreground/20 bg-transparent px-4 py-3 text-sm font-body tracking-wider focus:outline-none focus:border-primary transition-colors"
-              required
-            />
-            <button
-              type="submit"
-              className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors duration-300"
-            >
-              {t('home.newsletter.cta')}
-            </button>
-          </form>
-        </motion.div>
-      </section>
     </div>
   );
 };
