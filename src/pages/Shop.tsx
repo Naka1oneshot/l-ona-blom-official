@@ -1,34 +1,76 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { fetchProducts } from '@/lib/products';
+import { supabase } from '@/integrations/supabase/client';
+import { mapProduct } from '@/lib/products';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
-
-const categories = ['all', 'dresses', 'sets', 'tops', 'skirts', 'pants', 'accessories'] as const;
-const categoryKeys: Record<string, string> = {
-  all: 'shop.all',
-  dresses: 'shop.dresses',
-  sets: 'shop.sets',
-  tops: 'shop.tops',
-  skirts: 'shop.skirts',
-  pants: 'shop.pants',
-  accessories: 'shop.accessories',
-};
+import { useCategories } from '@/hooks/useCategories';
 
 const Shop = () => {
-  const { t } = useLanguage();
-  const [activeCategory, setActiveCategory] = useState('all');
+  const { t, language } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { groups } = useCategories();
+
+  const categorySlug = searchParams.get('category');
+  const groupSlug = searchParams.get('group');
 
   useEffect(() => {
-    fetchProducts().then(p => { setProducts(p); setLoading(false); });
-  }, []);
+    (async () => {
+      setLoading(true);
 
-  const filtered = activeCategory === 'all'
-    ? products
-    : products.filter(p => p.category === activeCategory);
+      // Fetch products and categories separately for robustness
+      const [{ data: prodData }, { data: catData }, { data: groupData }] = await Promise.all([
+        supabase.from('products').select('*').eq('status', 'active').order('created_at', { ascending: false }),
+        supabase.from('categories').select('*'),
+        supabase.from('category_groups').select('*'),
+      ]);
+
+      const catMap = new Map((catData || []).map((c: any) => [c.id, c]));
+      const groupMap = new Map((groupData || []).map((g: any) => [g.id, g]));
+
+      let mapped = (prodData || []).map((row: any) => {
+        const p = mapProduct(row);
+        const cat = catMap.get(row.category_id);
+        (p as any)._catSlug = cat?.slug || null;
+        (p as any)._groupSlug = cat ? groupMap.get(cat.group_id)?.slug || null : null;
+        return p;
+      });
+
+      // Filter
+      if (categorySlug) {
+        mapped = mapped.filter((p: any) => p._catSlug === categorySlug);
+      } else if (groupSlug) {
+        mapped = mapped.filter((p: any) => p._groupSlug === groupSlug);
+      }
+
+      setProducts(mapped);
+      setLoading(false);
+    })();
+  }, [categorySlug, groupSlug]);
+
+  const clearFilter = () => setSearchParams({});
+
+  // Resolve active filter label
+  let activeFilterLabel: string | null = null;
+  if (categorySlug) {
+    for (const g of groups) {
+      const cat = g.categories.find(c => c.slug === categorySlug);
+      if (cat) {
+        activeFilterLabel = language === 'en' && cat.name_en ? cat.name_en : cat.name_fr;
+        break;
+      }
+    }
+    if (!activeFilterLabel) activeFilterLabel = categorySlug;
+  } else if (groupSlug) {
+    const g = groups.find(g => g.slug === groupSlug);
+    if (g) activeFilterLabel = language === 'en' && g.name_en ? g.name_en : g.name_fr;
+    if (!activeFilterLabel) activeFilterLabel = groupSlug;
+  }
 
   return (
     <div className="pt-20 md:pt-24">
@@ -38,24 +80,20 @@ const Shop = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-display text-4xl md:text-5xl text-center mb-12">{t('shop.title')}</h1>
+          <h1 className="text-display text-4xl md:text-5xl text-center mb-6">{t('shop.title')}</h1>
 
-          {/* Category Filters */}
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-10 md:mb-16">
-            {categories.map(cat => (
+          {/* Active filter tag */}
+          {activeFilterLabel && (
+            <div className="flex justify-center mb-10">
               <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase font-body px-3 sm:px-4 py-1.5 sm:py-2 border transition-all duration-300 ${
-                  activeCategory === cat
-                    ? 'border-foreground bg-foreground text-background'
-                    : 'border-foreground/20 hover:border-foreground/60'
-                }`}
+                onClick={clearFilter}
+                className="flex items-center gap-2 border border-foreground/20 px-4 py-1.5 text-xs tracking-[0.15em] uppercase font-body hover:border-foreground/60 transition-colors group"
               >
-                {t(categoryKeys[cat])}
+                {activeFilterLabel}
+                <X size={12} className="opacity-50 group-hover:opacity-100 transition-opacity" />
               </button>
-            ))}
-          </div>
+            </div>
+          )}
 
           {loading ? (
             <div className="flex justify-center py-20">
@@ -63,9 +101,8 @@ const Shop = () => {
             </div>
           ) : (
             <>
-              {/* Product Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
-                {filtered.map((product, i) => (
+                {products.map((product, i) => (
                   <motion.div
                     key={product.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -77,9 +114,9 @@ const Shop = () => {
                 ))}
               </div>
 
-              {filtered.length === 0 && (
+              {products.length === 0 && (
                 <p className="text-center text-muted-foreground font-body py-20">
-                  {activeCategory !== 'all' ? 'Aucun produit dans cette catégorie.' : 'Aucun produit pour le moment.'}
+                  {language === 'fr' ? 'Aucun produit dans cette catégorie.' : 'No products in this category.'}
                 </p>
               )}
             </>

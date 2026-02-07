@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCategories } from '@/hooks/useCategories';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -7,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Language, Currency } from '@/types';
 import { ShoppingBag, Menu, X, Globe, ChevronDown, User } from 'lucide-react';
 import CollectionsDropdown from './CollectionsDropdown';
+import ShopMegaMenu from '@/components/nav/ShopMegaMenu';
 
 const Header = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -15,7 +17,9 @@ const Header = () => {
   const { user, isAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [mobileShopOpen, setMobileShopOpen] = useState(false);
   const location = useLocation();
+  const { groups } = useCategories();
 
   const isHome = location.pathname === '/';
 
@@ -45,7 +49,12 @@ const Header = () => {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map(link =>
-              link.to === '/collections' ? (
+              link.to === '/boutique' ? (
+                <ShopMegaMenu
+                  key={link.to}
+                  className="luxury-link text-xs tracking-[0.15em] uppercase font-body"
+                />
+              ) : link.to === '/collections' ? (
                 <CollectionsDropdown
                   key={link.to}
                   className="luxury-link text-xs tracking-[0.15em] uppercase font-body"
@@ -109,9 +118,48 @@ const Header = () => {
       {mobileOpen && (
         <nav className={`md:hidden border-t ${isHome ? 'border-background/10 bg-foreground' : 'border-primary-foreground/20 bg-primary'}`}>
           <div className="luxury-container py-6 flex flex-col gap-4">
-            {navLinks.map(link => (
-              <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className="text-sm tracking-[0.15em] uppercase font-body">{link.label}</Link>
-            ))}
+            {navLinks.map(link => {
+              if (link.to === '/boutique') {
+                return (
+                  <div key={link.to}>
+                    <button
+                      onClick={() => setMobileShopOpen(!mobileShopOpen)}
+                      className="text-sm tracking-[0.15em] uppercase font-body flex items-center gap-2"
+                    >
+                      {link.label}
+                      <ChevronDown size={12} className={`transition-transform ${mobileShopOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {mobileShopOpen && (
+                      <div className="mt-3 ml-4 space-y-3">
+                        <Link to="/boutique" onClick={() => setMobileOpen(false)} className="block text-xs tracking-[0.12em] uppercase font-body opacity-70">
+                          {language === 'en' ? 'View all' : 'Voir tout'}
+                        </Link>
+                        {groups.filter(g => g.is_active).map(group => (
+                          <div key={group.id}>
+                            <p className="text-[9px] tracking-[0.2em] uppercase font-body opacity-40 mb-1.5">
+                              {language === 'en' && group.name_en ? group.name_en : group.name_fr}
+                            </p>
+                            {group.categories.filter(c => c.is_active).map(cat => (
+                              <Link
+                                key={cat.id}
+                                to={`/boutique?category=${cat.slug}`}
+                                onClick={() => setMobileOpen(false)}
+                                className="block text-xs tracking-[0.1em] font-body py-1 opacity-80 hover:opacity-100"
+                              >
+                                {language === 'en' && cat.name_en ? cat.name_en : cat.name_fr}
+                              </Link>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return (
+                <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className="text-sm tracking-[0.15em] uppercase font-body">{link.label}</Link>
+              );
+            })}
             <Link to={user ? '/compte' : '/connexion'} onClick={() => setMobileOpen(false)} className="text-sm tracking-[0.15em] uppercase font-body">
               {user ? t('nav.account') : t('auth.login')}
             </Link>
