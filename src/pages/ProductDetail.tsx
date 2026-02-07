@@ -7,13 +7,10 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchProductBySlug } from '@/lib/products';
 import { toast } from 'sonner';
-import { Search } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import MeasurementForm from '@/components/MeasurementForm';
 import AdminEditButton from '@/components/AdminEditButton';
-import EditableDBImage from '@/components/EditableDBImage';
 import EditableDBField from '@/components/EditableDBField';
-import ImageZoom from '@/components/ImageZoom';
 import Scrollytelling from '@/components/product/Scrollytelling';
 import { Product, MeasurementData } from '@/types';
 import { generateFallbackBlocks, EditorialBlock } from '@/types/editorial';
@@ -34,7 +31,6 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedBraiding, setSelectedBraiding] = useState('');
   const [activeImage, setActiveImage] = useState(0);
-  const [zoomEnabled, setZoomEnabled] = useState(false);
   const [measurements, setMeasurements] = useState<MeasurementData>(emptyMeasurements);
   const { isAdmin } = useAuth();
 
@@ -124,31 +120,8 @@ const ProductDetail = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="relative aspect-[3/4] bg-secondary overflow-hidden rounded-2xl mb-4">
-              {zoomEnabled ? (
-                <ImageZoom
-                  src={product.images[activeImage]}
-                  alt={name}
-                  className="w-full h-full"
-                  zoomScale={2.8}
-                  lensSize={200}
-                />
-              ) : (
-                <img src={product.images[activeImage]} alt={name} className="w-full h-full object-cover" loading="lazy" />
-              )}
+              <img src={product.images[activeImage]} alt={name} className="w-full h-full object-cover" loading="lazy" />
               <div className="absolute top-3 right-3 z-30 flex gap-2">
-                {isAdmin && (
-                  <button
-                    onClick={() => setZoomEnabled(z => !z)}
-                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full shadow-lg transition-colors ${
-                      zoomEnabled
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-background/80 text-foreground/60 hover:bg-background'
-                    }`}
-                    title={zoomEnabled ? 'Désactiver le zoom' : 'Activer le zoom'}
-                  >
-                    <Search size={14} />
-                  </button>
-                )}
                 <AdminEditButton to={`/admin/produits?edit=${product.id}`} />
               </div>
             </div>
