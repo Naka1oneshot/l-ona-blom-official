@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,6 +12,7 @@ import MeasurementForm from '@/components/MeasurementForm';
 import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBField from '@/components/EditableDBField';
 import Scrollytelling from '@/components/product/Scrollytelling';
+import StickyAddToCart from '@/components/product/StickyAddToCart';
 import { Product, MeasurementData } from '@/types';
 import { generateFallbackBlocks, EditorialBlock } from '@/types/editorial';
 
@@ -33,6 +34,8 @@ const ProductDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [measurements, setMeasurements] = useState<MeasurementData>(emptyMeasurements);
   const { isAdmin } = useAuth();
+  const ctaRef = useRef<HTMLButtonElement>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (slug) {
@@ -48,6 +51,19 @@ const ProductDetail = () => {
     }
     return generateFallbackBlocks(product);
   }, [product]);
+
+  // Check if all required selections are made
+  const isReadyToAdd = useMemo(() => {
+    if (!product) return false;
+    if (product.sizes.length > 0 && !selectedSize) return false;
+    if (product.colors.length > 0 && !selectedColor) return false;
+    if (product.braiding_options.length > 0 && !selectedBraiding) return false;
+    if (product.made_to_measure) {
+      const required = ['bust', 'waist', 'hips'] as const;
+      if (required.some(k => !measurements[k])) return false;
+    }
+    return true;
+  }, [product, selectedSize, selectedColor, selectedBraiding, measurements]);
 
   if (loading) {
     return (
@@ -207,6 +223,8 @@ const ProductDetail = () => {
               multiline
             />
 
+            {/* Options section - ref for scroll-to */}
+            <div ref={optionsRef}>
             {/* Size */}
             {product.sizes.length > 0 && (
               <div className="mb-6">
@@ -280,11 +298,13 @@ const ProductDetail = () => {
 
             {/* CTA */}
             <button
+              ref={ctaRef}
               onClick={handleAddToCart}
               className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body rounded-xl hover:bg-luxury-magenta-light transition-colors duration-300 mt-4"
             >
               {product.preorder ? t('shop.preorder_cta') : t('shop.add_to_cart')}
             </button>
+            </div> {/* end options ref */}
           </motion.div>
         </div>
       </div>
@@ -297,6 +317,17 @@ const ProductDetail = () => {
           lang={language}
         />
       )}
+
+      {/* Sticky floating CTA */}
+      <StickyAddToCart
+        ctaRef={ctaRef}
+        optionsRef={optionsRef}
+        isReady={isReadyToAdd}
+        onAddToCart={handleAddToCart}
+        label={product.preorder ? t('shop.preorder_cta') : t('shop.add_to_cart')}
+        price={formatPrice(product.base_price_eur, product.price_overrides)}
+        productName={name}
+      />
     </div>
   );
 };
