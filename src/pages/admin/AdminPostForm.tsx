@@ -62,8 +62,14 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
       ({ error } = await supabase.from('posts').update(payload).eq('id', post.id));
     }
     setSubmitting(false);
-    if (error) toast.error(error.message);
-    else { toast.success(isNew ? 'Article créé' : 'Article mis à jour'); onSave(); }
+    if (error) { toast.error(error.message); return; }
+
+    const missingEn = !form.title_en?.trim() || !form.content_en_json?.content?.length;
+    if (missingEn) {
+      toast.warning('La version anglaise de l\'article n\'a pas été rédigée.');
+    }
+    toast.success(isNew ? 'Article créé' : 'Article mis à jour');
+    onSave();
   };
 
   const inputClass = "w-full border border-border bg-transparent px-3 py-2 text-sm font-body focus:outline-none focus:border-primary transition-colors";
@@ -168,6 +174,9 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
               ...prev,
               ...(translations.title_en && { title_en: translations.title_en }),
               ...(translations.lead_en && { lead_en: translations.lead_en }),
+              ...(translations.content_en && {
+                content_en_json: plainTextToTiptap(translations.content_en),
+              }),
             }));
           }}
         />
@@ -182,6 +191,18 @@ const AdminPostForm = ({ post, onSave, onCancel }: Props) => {
     </div>
   );
 };
+
+/** Convert plain text to a basic TipTap JSON document (one paragraph per line) */
+function plainTextToTiptap(text: string): any {
+  const paragraphs = text.split(/\n+/).filter(Boolean);
+  return {
+    type: 'doc',
+    content: paragraphs.map(p => ({
+      type: 'paragraph',
+      content: [{ type: 'text', text: p }],
+    })),
+  };
+}
 
 /** Extract plain text from TipTap JSON for excerpts/fallback */
 function extractPlainText(json: any): string {
