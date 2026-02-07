@@ -8,12 +8,15 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Highlight from '@tiptap/extension-highlight';
+import { Video } from './tiptap-video';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useEffect, useCallback, useState, useRef } from 'react';
 import {
   Bold, Italic, Underline as UnderlineIcon, List, ListOrdered,
   Quote, Link as LinkIcon, Image as ImageIcon, Heading1, Heading2,
   Heading3, Pilcrow, Eye, Type, Highlighter, X, Undo2, Redo2,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify
+  AlignLeft, AlignCenter, AlignRight, AlignJustify, Film, Loader2
 } from 'lucide-react';
 import {
   Select,
@@ -119,17 +122,44 @@ const ToolbarButton = ({
   </button>
 );
 
+async function uploadToStorage(file: File, folder: string): Promise<string | null> {
+  const ext = file.name.split('.').pop();
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage.from('images').upload(path, file, { cacheControl: '3600', upsert: false });
+  if (error) { toast.error(`Erreur upload: ${error.message}`); return null; }
+  const { data } = supabase.storage.from('images').getPublicUrl(path);
+  return data.publicUrl;
+}
+
 const EditorToolbar = ({ editor }: { editor: Editor }) => {
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<'image' | 'video' | null>(null);
+
   const addLink = useCallback(() => {
     const url = prompt('URL du lien :');
     if (!url) return;
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }, [editor]);
 
-  const addImage = useCallback(() => {
-    const url = prompt("URL de l'image :");
-    if (!url) return;
-    editor.chain().focus().setImage({ src: url }).run();
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading('image');
+    const url = await uploadToStorage(file, 'posts');
+    if (url) editor.chain().focus().setImage({ src: url }).run();
+    setUploading(null);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  }, [editor]);
+
+  const handleVideoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading('video');
+    const url = await uploadToStorage(file, 'posts');
+    if (url) editor.chain().focus().insertContent({ type: 'video', attrs: { src: url } }).run();
+    setUploading(null);
+    if (videoInputRef.current) videoInputRef.current.value = '';
   }, [editor]);
 
   const currentHeading = editor.isActive('heading', { level: 1 })
@@ -280,9 +310,14 @@ const EditorToolbar = ({ editor }: { editor: Editor }) => {
       <ToolbarButton active={editor.isActive('link')} onClick={addLink} title="Lien">
         <LinkIcon size={15} />
       </ToolbarButton>
-      <ToolbarButton onClick={addImage} title="Image">
-        <ImageIcon size={15} />
+      <ToolbarButton onClick={() => imageInputRef.current?.click()} title="Importer une image">
+        {uploading === 'image' ? <Loader2 size={15} className="animate-spin" /> : <ImageIcon size={15} />}
       </ToolbarButton>
+      <ToolbarButton onClick={() => videoInputRef.current?.click()} title="Importer une vidéo">
+        {uploading === 'video' ? <Loader2 size={15} className="animate-spin" /> : <Film size={15} />}
+      </ToolbarButton>
+      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+      <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
 
       <Separator orientation="vertical" className="h-6 mx-1" />
 
@@ -329,6 +364,7 @@ const RichArticleEditor = ({ content, onChange, placeholder }: Props) => {
         HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
       }),
       Image.configure({ inline: false }),
+      Video,
       Underline,
       TextStyle,
       Color,

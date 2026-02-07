@@ -7,6 +7,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Highlight from '@tiptap/extension-highlight';
+import { Video } from './admin/tiptap-video';
 import { useMemo } from 'react';
 
 interface Props {
@@ -18,6 +19,7 @@ const extensions = [
   StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
   Link.configure({ openOnClick: true, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
   Image.configure({ inline: false }),
+  Video,
   Underline,
   TextStyle,
   Color,
