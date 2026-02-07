@@ -229,10 +229,12 @@ export type Database = {
       }
       posts: {
         Row: {
+          category: string
           content_en: string | null
           content_fr: string | null
           cover_image: string | null
           created_at: string
+          event_date: string | null
           id: string
           published_at: string | null
           slug: string
@@ -242,10 +244,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: string
           content_en?: string | null
           content_fr?: string | null
           cover_image?: string | null
           created_at?: string
+          event_date?: string | null
           id?: string
           published_at?: string | null
           slug: string
@@ -255,10 +259,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: string
           content_en?: string | null
           content_fr?: string | null
           cover_image?: string | null
           created_at?: string
+          event_date?: string | null
           id?: string
           published_at?: string | null
           slug?: string

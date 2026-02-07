@@ -8,6 +8,7 @@ import ProductCard from '@/components/ProductCard';
 import SEOHead from '@/components/SEOHead';
 import EditableText from '@/components/EditableText';
 import EditableImage from '@/components/EditableImage';
+import EventsSection from '@/components/home/EventsSection';
 import heroImage from '@/assets/hero-home.jpg';
 
 const Index = () => {
@@ -194,6 +195,9 @@ const Index = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Events */}
+      <EventsSection />
 
       {/* Newsletter */}
       <section className="luxury-section luxury-container text-center">
