@@ -33,7 +33,7 @@ const Header = () => {
   ];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-500 ${isHome ? 'bg-foreground/90 text-background backdrop-blur-md' : 'bg-primary/95 text-primary-foreground backdrop-blur-md'}`}>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-foreground/90 text-background backdrop-blur-md transition-colors duration-500">
       <div className="luxury-container">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Mobile menu */}
@@ -120,7 +120,7 @@ const Header = () => {
 
       {/* Mobile Nav */}
       {mobileOpen && (
-        <nav className={`md:hidden border-t ${isHome ? 'border-background/10 bg-foreground' : 'border-primary-foreground/20 bg-primary'}`}>
+        <nav className="md:hidden border-t border-background/10 bg-foreground">
           <div className="luxury-container py-6 flex flex-col gap-4">
             {navLinks.map(link => {
               if (link.to === '/boutique') {
