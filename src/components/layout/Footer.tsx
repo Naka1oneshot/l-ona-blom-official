@@ -12,8 +12,7 @@ const Footer = () => {
         {/* Brand + Legal row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <div>
-            <h3 className="text-display text-xl tracking-[0.2em] mb-2">LÉONA BLOM</h3>
-            <p className="text-xs opacity-80 font-body">{t('hero.tagline')}</p>
+            <h3 className="text-display text-xl tracking-[0.2em]">LÉONA BLOM</h3>
           </div>
 
           {/* Legal links horizontal */}
