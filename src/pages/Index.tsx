@@ -138,30 +138,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="luxury-section luxury-container">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-display text-3xl md:text-4xl text-center mb-16">{t('home.featured')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredProducts.map((product, i) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-              >
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
 
       {/* Materials */}
       <section className="bg-luxury-cream luxury-section">
