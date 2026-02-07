@@ -150,53 +150,6 @@ const ComingSoon = ({ config }: Props) => {
             ))}
           </motion.div>
 
-          {/* Photo carousel */}
-          {config.images.length > 0 && (
-            <motion.div
-              className="relative w-full max-w-md md:max-w-lg overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9, duration: 0.8 }}
-            >
-              <div className="relative aspect-[3/4] overflow-hidden">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={imgIdx}
-                    src={config.images[imgIdx]}
-                    alt="Collection"
-                    className="absolute inset-0 w-full h-full object-cover"
-                    initial={{ opacity: 0, scale: 1.05 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
-                    transition={{ duration: 0.8 }}
-                  />
-                </AnimatePresence>
-                {/* nav arrows */}
-                <button
-                  onClick={() => setImgIdx(p => (p - 1 + config.images.length) % config.images.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/40 backdrop-blur-sm text-white/80 hover:text-white transition-colors"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={() => setImgIdx(p => (p + 1) % config.images.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/40 backdrop-blur-sm text-white/80 hover:text-white transition-colors"
-                >
-                  <ChevronRight size={16} />
-                </button>
-                {/* dots */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {config.images.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setImgIdx(i)}
-                      className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIdx ? 'bg-white w-4' : 'bg-white/40'}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
 
           {/* Auth button / form */}
           <motion.div
