@@ -55,22 +55,30 @@ const Shop = () => {
 
   const clearFilter = () => setSearchParams({});
 
-  // Resolve active filter label
-  let activeFilterLabel: string | null = null;
+  // Resolve breadcrumb parts
+  const getName = (item: { name_fr: string; name_en: string | null }) =>
+    language === 'en' && item.name_en ? item.name_en : item.name_fr;
+
+  let breadcrumbGroup: { label: string; slug: string } | null = null;
+  let breadcrumbCategory: string | null = null;
+
   if (categorySlug) {
     for (const g of groups) {
       const cat = g.categories.find(c => c.slug === categorySlug);
       if (cat) {
-        activeFilterLabel = language === 'en' && cat.name_en ? cat.name_en : cat.name_fr;
+        breadcrumbGroup = { label: getName(g), slug: g.slug };
+        breadcrumbCategory = getName(cat);
         break;
       }
     }
-    if (!activeFilterLabel) activeFilterLabel = categorySlug;
+    if (!breadcrumbCategory) breadcrumbCategory = categorySlug;
   } else if (groupSlug) {
-    const g = groups.find(g => g.slug === groupSlug);
-    if (g) activeFilterLabel = language === 'en' && g.name_en ? g.name_en : g.name_fr;
-    if (!activeFilterLabel) activeFilterLabel = groupSlug;
+    const g = groups.find(gr => gr.slug === groupSlug);
+    if (g) breadcrumbGroup = { label: getName(g), slug: g.slug };
+    if (!breadcrumbGroup) breadcrumbGroup = { label: groupSlug, slug: groupSlug };
   }
+
+  const hasFilter = !!(categorySlug || groupSlug);
 
   return (
     <div className="pt-20 md:pt-24">
@@ -82,15 +90,35 @@ const Shop = () => {
         >
           <h1 className="text-display text-4xl md:text-5xl text-center mb-6">{t('shop.title')}</h1>
 
-          {/* Active filter tag */}
-          {activeFilterLabel && (
-            <div className="flex justify-center mb-10">
-              <button
-                onClick={clearFilter}
-                className="flex items-center gap-2 border border-foreground/20 px-4 py-1.5 text-xs tracking-[0.15em] uppercase font-body hover:border-foreground/60 transition-colors group"
-              >
-                {activeFilterLabel}
-                <X size={12} className="opacity-50 group-hover:opacity-100 transition-opacity" />
+          {/* Breadcrumb */}
+          {hasFilter && (
+            <div className="flex items-center justify-center gap-2 mb-10 text-xs tracking-[0.12em] uppercase font-body">
+              <Link to="/boutique" onClick={clearFilter} className="text-muted-foreground hover:text-foreground transition-colors">
+                {t('shop.title')}
+              </Link>
+              {breadcrumbGroup && (
+                <>
+                  <span className="text-muted-foreground">/</span>
+                  {breadcrumbCategory ? (
+                    <Link
+                      to={`/boutique?group=${breadcrumbGroup.slug}`}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {breadcrumbGroup.label}
+                    </Link>
+                  ) : (
+                    <span className="text-foreground">{breadcrumbGroup.label}</span>
+                  )}
+                </>
+              )}
+              {breadcrumbCategory && (
+                <>
+                  <span className="text-muted-foreground">/</span>
+                  <span className="text-foreground">{breadcrumbCategory}</span>
+                </>
+              )}
+              <button onClick={clearFilter} className="ml-2 p-1 text-muted-foreground hover:text-foreground transition-colors">
+                <X size={12} />
               </button>
             </div>
           )}
