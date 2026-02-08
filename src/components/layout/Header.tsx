@@ -7,7 +7,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Language, Currency } from '@/types';
-import { ShoppingBag, Menu, X, Globe, ChevronDown, User } from 'lucide-react';
+import { ShoppingBag, Menu, X, Globe, ChevronDown, User, MoreHorizontal } from 'lucide-react';
 import CollectionsDropdown from './CollectionsDropdown';
 import ShopMegaMenu from '@/components/nav/ShopMegaMenu';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,9 +20,11 @@ const Header = () => {
   const { user, isAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [mobileShopOpen, setMobileShopOpen] = useState(false);
   const [mobileCollectionsOpen, setMobileCollectionsOpen] = useState(false);
   const [mobileNewsOpen, setMobileNewsOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
   const [collections, setCollections] = useState<{ id: string; slug: string; title_fr: string; title_en: string }[]>([]);
   const location = useLocation();
   const { groups } = useCategories();
@@ -37,14 +39,28 @@ const Header = () => {
 
   const isHome = location.pathname === '/';
 
-  const navLinks = [
+  const primaryLinks = [
     { to: '/boutique', label: t('nav.shop') },
     { to: '/collections', label: t('nav.collections') },
     { to: '/a-propos', label: t('nav.about') },
     { to: '/actualites', label: t('nav.news') },
+  ];
+
+  const secondaryLinks = [
     { to: '/contact', label: t('nav.contact') },
     { to: '/faq', label: t('nav.faq') },
   ];
+
+  const navLinks = [...primaryLinks, ...secondaryLinks];
+
+  // Close "more" dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-foreground/90 text-background backdrop-blur-md transition-colors duration-500">
@@ -61,8 +77,8 @@ const Header = () => {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map(link => {
+          <nav className="hidden md:flex items-center gap-4 lg:gap-8">
+            {primaryLinks.map(link => {
               const isActive = link.to === '/boutique'
                 ? location.pathname === '/boutique'
                 : link.to === '/collections'
@@ -81,6 +97,48 @@ const Header = () => {
                 <Link key={link.to} to={link.to} className={`${base} ${activeClass}`}>{link.label}</Link>
               );
             })}
+
+            {/* Secondary links — visible on lg+, hidden on md (in "more" dropdown) */}
+            {secondaryLinks.map(link => {
+              const isActive = location.pathname === link.to;
+              const base = "luxury-link text-xs tracking-[0.15em] uppercase font-body";
+              const activeClass = isActive ? 'opacity-100 underline underline-offset-4 decoration-current' : '';
+              return (
+                <Link key={link.to} to={link.to} className={`${base} ${activeClass} hidden lg:inline-block`}>{link.label}</Link>
+              );
+            })}
+
+            {/* "More" dropdown — visible only on md, hidden on lg+ */}
+            <div ref={moreRef} className="relative lg:hidden">
+              <button
+                onClick={() => setMoreOpen(!moreOpen)}
+                className="luxury-link text-xs tracking-[0.15em] uppercase font-body flex items-center gap-1"
+              >
+                <MoreHorizontal size={16} />
+              </button>
+              <AnimatePresence>
+                {moreOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 top-full mt-3 min-w-[160px] bg-foreground border border-background/10 py-3 z-50 shadow-lg"
+                  >
+                    {secondaryLinks.map(link => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => setMoreOpen(false)}
+                        className="block px-5 py-2 text-xs tracking-[0.12em] uppercase font-body text-background/80 hover:text-background hover:bg-background/5 transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </nav>
 
           {/* Right actions */}
