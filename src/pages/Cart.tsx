@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
+import { getUnitPriceEurCents } from '@/lib/pricing';
 import { Minus, Plus, X } from 'lucide-react';
 
 const Cart = () => {
@@ -81,7 +82,7 @@ const Cart = () => {
                             <span className="text-xs text-muted-foreground font-body">{language === 'fr' ? 'Stock max.' : 'Max stock'}</span>
                           )}
                           <span className="text-sm font-body">
-                            {formatPrice(item.product.base_price_eur * item.quantity, {})}
+                            {formatPrice((item.unit_price_eur_cents ?? getUnitPriceEurCents(item.product, item.size)) * item.quantity, {})}
                           </span>
                         </div>
                       </div>

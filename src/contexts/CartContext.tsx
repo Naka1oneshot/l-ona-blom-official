@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { CartItem, Product, MeasurementData } from '@/types';
+import { getUnitPriceEurCents } from '@/lib/pricing';
 
 interface CartContextType {
   items: CartItem[];
@@ -29,7 +30,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
       }
       if (product.stock_qty != null && product.stock_qty <= 0) return prev;
-      return [...prev, { product, quantity: 1, ...options }];
+      const unitPrice = getUnitPriceEurCents(product, options?.size);
+      return [...prev, { product, quantity: 1, unit_price_eur_cents: unitPrice, ...options }];
     });
   }, []);
 
@@ -52,7 +54,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = useCallback(() => setItems([]), []);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalCentsEur = items.reduce((sum, i) => sum + i.product.base_price_eur * i.quantity, 0);
+  const totalCentsEur = items.reduce((sum, i) => {
+    const unitPrice = i.unit_price_eur_cents ?? getUnitPriceEurCents(i.product, i.size);
+    return sum + unitPrice * i.quantity;
+  }, 0);
 
   return (
     <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalCentsEur }}>

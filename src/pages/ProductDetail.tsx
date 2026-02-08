@@ -6,6 +6,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchProductBySlug } from '@/lib/products';
+import { getUnitPriceEurCents, getPriceRange } from '@/lib/pricing';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
 import MeasurementForm from '@/components/MeasurementForm';
@@ -44,6 +45,13 @@ const ProductDetail = () => {
     }
   }, [slug]);
 
+  // Auto-select TU if only size
+  useEffect(() => {
+    if (product && product.sizes.length === 1 && product.sizes[0] === 'TU') {
+      setSelectedSize('TU');
+    }
+  }, [product]);
+
   // Editorial blocks: use stored blocks or generate fallback
   const editorialBlocks: EditorialBlock[] = useMemo(() => {
     if (!product) return [];
@@ -53,10 +61,24 @@ const ProductDetail = () => {
     return generateFallbackBlocks(product);
   }, [product]);
 
+  // Dynamic price based on selected size
+  const displayPrice = useMemo(() => {
+    if (!product) return 0;
+    return getUnitPriceEurCents(product, selectedSize || undefined);
+  }, [product, selectedSize]);
+
+  // Check if product has multiple price tiers
+  const priceRange = useMemo(() => {
+    if (!product) return null;
+    return getPriceRange(product);
+  }, [product]);
+
+  const isTU = product?.sizes.length === 1 && product?.sizes[0] === 'TU';
+
   // Check if all required selections are made
   const isReadyToAdd = useMemo(() => {
     if (!product) return false;
-    if (product.sizes.length > 0 && !selectedSize) return false;
+    if (product.sizes.length > 0 && !isTU && !selectedSize) return false;
     if (product.colors.length > 0 && !selectedColor) return false;
     if (product.braiding_options.length > 0 && !selectedBraiding) return false;
     if (product.braiding_colors?.length > 0 && !selectedBraidingColor) return false;
@@ -65,7 +87,7 @@ const ProductDetail = () => {
       if (required.some(k => !measurements[k])) return false;
     }
     return true;
-  }, [product, selectedSize, selectedColor, selectedBraiding, selectedBraidingColor, measurements]);
+  }, [product, isTU, selectedSize, selectedColor, selectedBraiding, selectedBraidingColor, measurements]);
 
   if (loading) {
     return (
@@ -99,7 +121,7 @@ const ProductDetail = () => {
       }
     }
     addItem(product, {
-      size: selectedSize,
+      size: selectedSize || (isTU ? 'TU' : undefined),
       color: selectedColor,
       braiding: selectedBraiding,
       braiding_color: selectedBraidingColor || undefined,
@@ -195,7 +217,12 @@ const ProductDetail = () => {
             </div>
 
             <p className="text-xl md:text-2xl font-body font-light mb-8 tracking-wide">
-              {formatPrice(product.base_price_eur, product.price_overrides)}
+              {priceRange?.hasRange && !selectedSize && (
+                <span className="text-muted-foreground text-base mr-1">
+                  {language === 'fr' ? 'À partir de' : 'From'}
+                </span>
+              )}
+              {formatPrice(displayPrice, product.price_overrides)}
             </p>
 
             {/* Made to order info */}
@@ -228,24 +255,33 @@ const ProductDetail = () => {
 
             {/* Options section - ref for scroll-to */}
             <div ref={optionsRef}>
-            {/* Size */}
-            {product.sizes.length > 0 && (
+            {/* Size - hide if TU (auto-selected) */}
+            {product.sizes.length > 0 && !isTU && (
               <div className="mb-6">
                 <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-3">{t('product.select_size')}</label>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map(size => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
-                        selectedSize === size
-                          ? 'border-foreground bg-foreground text-background'
-                          : 'border-foreground/20 hover:border-foreground/60'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {product.sizes.map(size => {
+                    const sizePrice = product.price_by_size_eur?.[size];
+                    const showPrice = priceRange?.hasRange && sizePrice != null;
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
+                          selectedSize === size
+                            ? 'border-foreground bg-foreground text-background'
+                            : 'border-foreground/20 hover:border-foreground/60'
+                        }`}
+                      >
+                        {size}
+                        {showPrice && (
+                          <span className="ml-1 opacity-60">
+                            ({formatPrice(sizePrice)})
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -352,7 +388,7 @@ const ProductDetail = () => {
         isReady={isReadyToAdd}
         onAddToCart={handleAddToCart}
         label={product.preorder ? t('shop.preorder_cta') : t('shop.add_to_cart')}
-        price={formatPrice(product.base_price_eur, product.price_overrides)}
+        price={formatPrice(displayPrice, product.price_overrides)}
         productName={name}
       />
     </div>

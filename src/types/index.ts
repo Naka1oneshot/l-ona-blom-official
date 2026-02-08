@@ -1,5 +1,6 @@
 export type Language = 'fr' | 'en';
 export type Currency = 'EUR' | 'USD' | 'GBP' | 'CAD';
+export type SizeCode = 'TU' | 'S' | 'M' | 'L' | 'XL' | '2XL' | '3XL';
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   EUR: '€',
@@ -24,6 +25,7 @@ export interface Product {
   care_fr: string;
   care_en: string;
   base_price_eur: number; // cents
+  price_by_size_eur: Record<string, number>;
   price_overrides: Partial<Record<Currency, number>>;
   made_to_order: boolean;
   made_to_order_min_days?: number;
@@ -86,5 +88,6 @@ export interface CartItem {
   color?: string;
   braiding?: string;
   braiding_color?: string;
+  unit_price_eur_cents?: number;
   measurements?: MeasurementData;
 }
