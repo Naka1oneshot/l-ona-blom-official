@@ -61,7 +61,7 @@ const CollectionScrollNav: React.FC<CollectionScrollNavProps> = ({ collections, 
       initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.8, delay: 0.6 }}
-      className="fixed right-6 xl:right-10 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-center gap-5"
+      className="fixed left-6 xl:left-10 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-center gap-5"
       aria-label="Collection navigation"
     >
       {/* Current / Total counter */}
@@ -73,8 +73,7 @@ const CollectionScrollNav: React.FC<CollectionScrollNavProps> = ({ collections, 
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.3 }}
-            className="text-lg font-light tracking-widest"
-            style={{ color: 'hsl(40 50% 65%)' }}
+            className="text-lg font-light tracking-widest text-primary"
           >
             {pad(activeIndex + 1)}
           </motion.span>
@@ -88,11 +87,11 @@ const CollectionScrollNav: React.FC<CollectionScrollNavProps> = ({ collections, 
       </div>
 
       {/* Progress track */}
-      <div className="relative w-px h-28 rounded-full overflow-hidden" style={{ backgroundColor: 'hsl(40 20% 75% / 0.2)' }}>
+      <div className="relative w-px h-28 rounded-full overflow-hidden bg-primary/20">
         <motion.div
           className="absolute top-0 left-0 w-full rounded-full"
           style={{
-            background: 'linear-gradient(180deg, hsl(40 50% 65%), hsl(40 40% 50%))',
+            background: 'hsl(var(--primary))',
             height: `${progress * 100}%`,
           }}
           transition={{ duration: 0.1 }}
@@ -113,13 +112,13 @@ const CollectionScrollNav: React.FC<CollectionScrollNavProps> = ({ collections, 
               animate={{
                 width: i === activeIndex ? 8 : 4,
                 height: i === activeIndex ? 8 : 4,
-                backgroundColor: i === activeIndex ? 'hsl(40 50% 65%)' : 'hsl(0 0% 60% / 0.3)',
-                boxShadow: i === activeIndex ? '0 0 8px hsl(40 50% 65% / 0.5)' : 'none',
+                backgroundColor: i === activeIndex ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.25)',
+                boxShadow: i === activeIndex ? '0 0 8px hsl(var(--primary) / 0.5)' : 'none',
               }}
               transition={{ duration: 0.3 }}
             />
             {/* Tooltip on hover */}
-            <span className="absolute right-5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-body tracking-[0.12em] uppercase text-foreground/70 pointer-events-none pr-2">
+            <span className="absolute left-5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-body tracking-[0.12em] uppercase text-foreground/70 pointer-events-none pl-2">
               {c.title}
             </span>
           </button>
