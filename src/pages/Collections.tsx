@@ -234,19 +234,20 @@ const Collections = () => {
                     </motion.div>
                   </div>
 
-                  {/* Récit + Featured images in magenta card */}
+                  {/* Récit + Featured images — flows from cover */}
                   {(excerpt || (isAdmin && narrative) || featuredImages.length > 0) && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: '-40px' }}
-                      transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
-                      className="mx-4 md:mx-auto md:max-w-5xl mt-6 md:mt-10 relative"
-                    >
-                      <div className="bg-primary/90 backdrop-blur-md rounded-sm px-6 py-8 md:px-12 md:py-12 lg:px-16 lg:py-14">
+                    <div className="mx-4 md:mx-auto md:max-w-6xl relative">
+                      {/* Magenta card that visually continues from the cover */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-40px' }}
+                        transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
+                        className="bg-primary/90 backdrop-blur-md rounded-b-sm px-6 py-10 md:px-12 md:py-14 lg:px-16 lg:py-16"
+                      >
                         {/* Narrative excerpt */}
                         {(excerpt || (isAdmin && narrative)) && (
-                          <div className="max-w-2xl mx-auto text-center mb-8 md:mb-10">
+                          <div className="max-w-2xl mx-auto text-center">
                             {isAdmin ? (
                               <EditableDBField
                                 table="collections"
@@ -265,15 +266,37 @@ const Collections = () => {
                                 </p>
                               </Link>
                             )}
+
+                            {/* Chevron down button */}
+                            <Link
+                              to={`/collections/${c.slug}`}
+                              className="inline-flex items-center justify-center mt-6 w-10 h-10 rounded-full border border-primary-foreground/30 text-primary-foreground/70 hover:text-primary-foreground hover:border-primary-foreground/60 transition-all duration-300 group/chevron"
+                            >
+                              <motion.svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                animate={{ y: [0, 4, 0] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                              >
+                                <polyline points="6 9 12 15 18 9" />
+                              </motion.svg>
+                            </Link>
                           </div>
                         )}
 
-                        {/* Featured images */}
+                        {/* Featured images — tall portrait ratio */}
                         {featuredImages.length > 0 && (
-                          <div className={`grid gap-3 md:gap-4 max-w-3xl mx-auto ${featuredImages.length === 1 ? 'grid-cols-1 max-w-md' : 'grid-cols-2'}`}>
+                          <div className={`mt-10 md:mt-14 grid gap-4 md:gap-6 max-w-4xl mx-auto ${featuredImages.length === 1 ? 'grid-cols-1 max-w-lg' : 'grid-cols-2'}`}>
                             {featuredImages.map((img, i) => (
                               <Link key={i} to={`/collections/${c.slug}`} className="group/thumb block">
-                                <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
+                                <div className="relative aspect-[3/4] overflow-hidden rounded-sm">
                                   <img
                                     src={img}
                                     alt={`${title} – ${i + 1}`}
@@ -285,8 +308,8 @@ const Collections = () => {
                             ))}
                           </div>
                         )}
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    </div>
                   )}
                 </section>
               </React.Fragment>
