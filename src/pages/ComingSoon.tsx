@@ -8,6 +8,7 @@ import { ComingSoonConfig } from '@/hooks/useComingSoon';
 import YouTubePlayer from '@/components/collection/YouTubePlayer';
 import { toast } from 'sonner';
 import logoWhite from '@/assets/logo-white.png';
+import logoLion from '@/assets/logo-lion.png';
 
 interface Props {
   config: ComingSoonConfig;
@@ -99,14 +100,22 @@ const ComingSoon = ({ config }: Props) => {
       {/* Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Logo */}
-        <header className="flex justify-center pt-10 md:pt-16">
+        <header className="flex flex-col items-center pt-10 md:pt-16 gap-4">
+          <motion.img
+            src={logoLion}
+            alt="Emblème"
+            className="h-20 md:h-28 drop-shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+          />
           <motion.img
             src={logoWhite}
             alt="Logo"
-            className="h-10 md:h-14"
+            className="h-8 md:h-12"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
           />
         </header>
 
