@@ -388,11 +388,13 @@ const ProductDetail = () => {
 
       {/* Scrollytelling editorial section */}
       {editorialBlocks.length > 0 && (
-        <Scrollytelling
-          images={product.images}
-          blocks={editorialBlocks}
-          lang={language}
-        />
+        <div className="-mt-8 md:-mt-12">
+          <Scrollytelling
+            images={product.images}
+            blocks={editorialBlocks}
+            lang={language}
+          />
+        </div>
       )}
 
       {/* Fly-to-cart animation */}
