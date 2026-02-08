@@ -47,10 +47,15 @@ function resolveFeaturedImages(
 }
 
 function focalToObjectPosition(focal: string): string {
+  if (!focal) return '50% 50%';
+  // Handle "X% Y%" format
+  const match = focal.match(/(\d+)%?\s+(\d+)%?/);
+  if (match) return `${match[1]}% ${match[2]}%`;
+  // Legacy keywords
   switch (focal) {
-    case 'top': return 'center top';
-    case 'bottom': return 'center bottom';
-    default: return 'center center';
+    case 'top': return '50% 0%';
+    case 'bottom': return '50% 100%';
+    default: return '50% 50%';
   }
 }
 
@@ -139,6 +144,7 @@ const Collections = () => {
                       viewport={{ once: true, margin: '-80px' }}
                       transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as const }}
                       className="relative aspect-[16/9] md:aspect-[16/7] lg:aspect-[16/6] overflow-hidden mx-4 md:mx-auto md:max-w-6xl rounded-sm"
+                      data-focal-active={c.id}
                     >
                       {/* Cover image */}
                       {c.cover_image ? (
@@ -215,6 +221,7 @@ const Collections = () => {
                         <CoverFocalPicker
                           collectionId={c.id}
                           currentFocal={c.cover_focal_point}
+                          coverImage={c.cover_image || ''}
                           onChanged={(fp) => updateCollection(c.id, { cover_focal_point: fp })}
                         />
                       )}
