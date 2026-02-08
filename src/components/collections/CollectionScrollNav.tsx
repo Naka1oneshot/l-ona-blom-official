@@ -59,7 +59,7 @@ const CollectionScrollNav: React.FC<CollectionScrollNavProps> = ({ collections, 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
-        className="fixed left-0 top-0 bottom-0 z-40 hidden lg:flex flex-col items-center justify-center w-12 cursor-pointer"
+        className="fixed left-0 top-0 bottom-0 z-40 hidden md:flex flex-col items-center justify-center w-12 cursor-pointer"
         onMouseEnter={() => setOverlayOpen(true)}
         aria-label="Collection navigation"
       >
