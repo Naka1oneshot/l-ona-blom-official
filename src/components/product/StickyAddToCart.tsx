@@ -22,7 +22,7 @@ const StickyAddToCart: React.FC<Props> = ({
   productName,
 }) => {
   const [ctaHidden, setCtaHidden] = useState(false);
-  const [footerVisible, setFooterVisible] = useState(false);
+  const [footerOffset, setFooterOffset] = useState(0);
 
   useEffect(() => {
     const el = ctaRef.current;
@@ -35,19 +35,27 @@ const StickyAddToCart: React.FC<Props> = ({
     return () => observer.disconnect();
   }, [ctaRef]);
 
-  // Hide when footer is visible
+  // Push bar up when footer is visible
   useEffect(() => {
     const footer = document.querySelector('footer');
     if (!footer) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setFooterVisible(entry.isIntersecting),
-      { threshold: 0 }
-    );
-    observer.observe(footer);
-    return () => observer.disconnect();
+
+    const update = () => {
+      const footerRect = footer.getBoundingClientRect();
+      const overlap = window.innerHeight - footerRect.top;
+      setFooterOffset(overlap > 0 ? overlap : 0);
+    };
+
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
   }, []);
 
-  const visible = ctaHidden && !footerVisible;
+  const visible = ctaHidden;
 
   const handleClick = () => {
     if (isReady) {
@@ -66,7 +74,8 @@ const StickyAddToCart: React.FC<Props> = ({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-0 left-0 right-0 z-50"
+          className="fixed left-0 right-0 z-50 transition-[bottom] duration-200"
+          style={{ bottom: footerOffset }}
         >
           {/* Gradient fade above */}
           <div className="h-6 bg-gradient-to-t from-background to-transparent" />
