@@ -185,7 +185,19 @@ const ImageUploadField = ({ label, value, folder, onChange }: { label: string; v
   return (
     <div>
       <span className="text-[10px] tracking-[0.15em] uppercase font-body text-foreground/50 block mb-1.5">{label}</span>
-      {value && <img src={value} alt={label} className="w-full h-32 object-cover mb-2 border border-foreground/10" />}
+      {value && (
+        <div className="relative mb-2">
+          <img src={value} alt={label} className="w-full h-32 object-cover border border-foreground/10" />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-destructive/90 text-destructive-foreground rounded-full hover:bg-destructive transition-colors"
+            title="Supprimer l'image"
+          >
+            <Trash2 size={12} />
+          </button>
+        </div>
+      )}
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
