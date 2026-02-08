@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useSaveContactPage, type ContactPageData, type ContactSocial } from '@/hooks/useContactPage';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, Plus, Trash2, Camera } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Props {
   open: boolean;
@@ -59,8 +61,12 @@ const ContactEditDrawer = ({ open, onOpenChange, data }: Props) => {
 
         {/* HERO */}
         <Section title="Hero">
-          <label className={labelCls}>Image URL</label>
-          <input value={draft.hero.image_url} onChange={e => set('hero', { ...draft.hero, image_url: e.target.value })} className={inputCls} placeholder="https://..." />
+          <ImageUploadField
+            label="Image hero"
+            value={draft.hero.image_url}
+            folder="contact"
+            onChange={url => set('hero', { ...draft.hero, image_url: url })}
+          />
           <label className={labelCls}>Titre ({lang.toUpperCase()})</label>
           <input value={lang === 'fr' ? draft.hero.title_fr : draft.hero.title_en} onChange={e => set('hero', { ...draft.hero, [lang === 'fr' ? 'title_fr' : 'title_en']: e.target.value })} className={inputCls} />
           <label className={labelCls}>Sous-titre ({lang.toUpperCase()})</label>
@@ -122,8 +128,12 @@ const ContactEditDrawer = ({ open, onOpenChange, data }: Props) => {
 
         {/* ATELIER */}
         <Section title="Bloc Atelier">
-          <label className={labelCls}>Image URL</label>
-          <input value={draft.atelier.image_url} onChange={e => set('atelier', { ...draft.atelier, image_url: e.target.value })} className={inputCls} />
+          <ImageUploadField
+            label="Image atelier"
+            value={draft.atelier.image_url}
+            folder="contact"
+            onChange={url => set('atelier', { ...draft.atelier, image_url: url })}
+          />
           <label className={labelCls}>Titre ({lang.toUpperCase()})</label>
           <input value={lang === 'fr' ? draft.atelier.title_fr : draft.atelier.title_en} onChange={e => set('atelier', { ...draft.atelier, [lang === 'fr' ? 'title_fr' : 'title_en']: e.target.value })} className={inputCls} />
           <label className={labelCls}>Texte ({lang.toUpperCase()})</label>
@@ -152,5 +162,42 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
     <Separator className="bg-border/30 mt-5" />
   </div>
 );
+
+/** Inline image upload field for the drawer */
+const ImageUploadField = ({ label, value, folder, onChange }: { label: string; value: string; folder: string; onChange: (url: string) => void }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage.from('images').upload(path, file, { cacheControl: '3600', upsert: false });
+    if (error) { toast.error(error.message); setUploading(false); return; }
+    const { data } = supabase.storage.from('images').getPublicUrl(path);
+    onChange(data.publicUrl);
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div>
+      <span className="text-[10px] tracking-[0.15em] uppercase font-body text-foreground/50 block mb-1.5">{label}</span>
+      {value && <img src={value} alt={label} className="w-full h-32 object-cover mb-2 border border-foreground/10" />}
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-body tracking-wider border border-foreground/20 hover:bg-muted transition-colors disabled:opacity-50"
+      >
+        {uploading ? <Loader2 size={12} className="animate-spin" /> : <Camera size={12} />}
+        {uploading ? 'Envoi…' : value ? 'Changer' : 'Importer'}
+      </button>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+    </div>
+  );
+};
 
 export default ContactEditDrawer;

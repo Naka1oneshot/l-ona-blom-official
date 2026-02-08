@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import Header from '@/components/layout/Header';
-import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard, FolderTree, FileUp, Clock } from 'lucide-react';
+import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard, FolderTree, FileUp, Clock, Mail } from 'lucide-react';
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/admin/collections', icon: Layers, label: 'Collections' },
   { to: '/admin/commandes', icon: ShoppingCart, label: 'Commandes' },
   { to: '/admin/articles', icon: FileText, label: 'Articles' },
+  { to: '/admin/messages', icon: Mail, label: 'Messages' },
   { to: '/admin/clients', icon: Users, label: 'Clients' },
   { to: '/admin/promos', icon: Tag, label: 'Promos' },
   { to: '/admin/import', icon: FileUp, label: 'Import' },

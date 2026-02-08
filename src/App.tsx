@@ -37,6 +37,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminImport from "./pages/admin/AdminImport";
 import AdminComingSoon from "./pages/admin/AdminComingSoon";
+import AdminMessages from "./pages/admin/AdminMessages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ const App = () => (
                     <Route path="categories" element={<AdminCategories />} />
                     <Route path="import" element={<AdminImport />} />
                     <Route path="reglages" element={<AdminSettings />} />
+                    <Route path="messages" element={<AdminMessages />} />
                     <Route path="coming-soon" element={<AdminComingSoon />} />
                   </Route>
 
