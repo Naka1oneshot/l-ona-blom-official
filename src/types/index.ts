@@ -39,6 +39,7 @@ export interface Product {
   materials: string[];
   braiding_options: string[];
   braiding_colors: string[];
+  color_hex_map: Record<string, string>;
   stock_qty: number | null;
   editorial_blocks_json: any[] | null;
 }

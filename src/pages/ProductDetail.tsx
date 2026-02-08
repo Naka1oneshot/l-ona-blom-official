@@ -296,19 +296,28 @@ const ProductDetail = () => {
               <div className="mb-6">
                 <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-3">{t('product.select_color')}</label>
                 <div className="flex flex-wrap gap-2">
-                  {product.colors.map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
-                        selectedColor === color
-                          ? 'border-foreground bg-foreground text-background'
-                          : 'border-foreground/20 hover:border-foreground/60'
-                      }`}
-                    >
-                      {color}
-                    </button>
-                  ))}
+                  {product.colors.map(color => {
+                    const hex = product.color_hex_map?.[color];
+                    return (
+                      <button
+                        key={color}
+                        onClick={() => setSelectedColor(color)}
+                        className={`flex items-center gap-2 px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
+                          selectedColor === color
+                            ? 'border-foreground bg-foreground text-background'
+                            : 'border-foreground/20 hover:border-foreground/60'
+                        }`}
+                      >
+                        {hex && (
+                          <span
+                            className="w-4 h-4 rounded-full border border-foreground/20 flex-shrink-0"
+                            style={{ backgroundColor: hex }}
+                          />
+                        )}
+                        {color}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

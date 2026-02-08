@@ -406,6 +406,7 @@ export type Database = {
           care_fr: string | null
           category: string
           category_id: string | null
+          color_hex_map: Json
           colors: string[] | null
           created_at: string
           description_en: string | null
@@ -443,6 +444,7 @@ export type Database = {
           care_fr?: string | null
           category: string
           category_id?: string | null
+          color_hex_map?: Json
           colors?: string[] | null
           created_at?: string
           description_en?: string | null
@@ -480,6 +482,7 @@ export type Database = {
           care_fr?: string | null
           category?: string
           category_id?: string | null
+          color_hex_map?: Json
           colors?: string[] | null
           created_at?: string
           description_en?: string | null
