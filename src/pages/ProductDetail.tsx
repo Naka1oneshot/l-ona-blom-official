@@ -45,11 +45,13 @@ const ProductDetail = () => {
     }
   }, [slug]);
 
-  // Auto-select TU if only size
+  // Auto-select first option for all selectors
   useEffect(() => {
-    if (product && product.sizes.length === 1 && product.sizes[0] === 'TU') {
-      setSelectedSize('TU');
-    }
+    if (!product) return;
+    if (product.sizes.length > 0) setSelectedSize(product.sizes[0]);
+    if (product.colors.length > 0) setSelectedColor(product.colors[0]);
+    if (product.braiding_options.length > 0) setSelectedBraiding(product.braiding_options[0]);
+    if (product.braiding_colors?.length > 0) setSelectedBraidingColor(product.braiding_colors[0]);
   }, [product]);
 
   // Editorial blocks: use stored blocks or generate fallback
@@ -274,11 +276,6 @@ const ProductDetail = () => {
                         }`}
                       >
                         {size}
-                        {showPrice && (
-                          <span className="ml-1 opacity-60">
-                            ({formatPrice(sizePrice)})
-                          </span>
-                        )}
                       </button>
                     );
                   })}
