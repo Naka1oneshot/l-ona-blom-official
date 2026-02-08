@@ -101,14 +101,57 @@ const ComingSoon = ({ config }: Props) => {
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Logo */}
         <header className="flex flex-col items-center pt-10 md:pt-16 gap-4">
-          <motion.img
-            src={logoLion}
-            alt="Emblème"
-            className="h-20 md:h-28 drop-shadow-[0_0_30px_rgba(255,255,255,0.15)]"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1 }}
-          />
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, scale: 0.6, rotate: -15 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Continuous glow rings */}
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, hsl(var(--primary) / 0.4) 0%, transparent 70%)',
+                filter: 'blur(25px)',
+              }}
+              animate={{
+                scale: [1, 1.5, 1],
+                opacity: [0.5, 0.8, 0.5],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute inset-[-20px] rounded-full"
+              style={{
+                background: 'radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, transparent 60%)',
+                filter: 'blur(40px)',
+              }}
+              animate={{
+                scale: [1.2, 1.6, 1.2],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+            />
+            {/* Shimmer sweep */}
+            <motion.div
+              className="absolute inset-0 overflow-hidden rounded-full"
+              style={{ mixBlendMode: 'screen' }}
+            >
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%)',
+                }}
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2 }}
+              />
+            </motion.div>
+            <img
+              src={logoLion}
+              alt="Emblème"
+              className="relative z-10 h-20 md:h-28"
+            />
+          </motion.div>
           <motion.img
             src={logoWhite}
             alt="Logo"
