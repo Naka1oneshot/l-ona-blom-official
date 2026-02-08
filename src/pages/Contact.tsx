@@ -1,113 +1,77 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { siteConfig } from '@/lib/siteConfig';
-import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { useContactPage } from '@/hooks/useContactPage';
 import SEOHead from '@/components/SEOHead';
+import ContactHero from '@/components/contact/ContactHero';
+import ContactInfo from '@/components/contact/ContactInfo';
+import ContactForm from '@/components/contact/ContactForm';
+import ContactAtelier from '@/components/contact/ContactAtelier';
+import ContactEditDrawer from '@/components/contact/ContactEditDrawer';
+import { Separator } from '@/components/ui/separator';
+import { Settings2 } from 'lucide-react';
+
+const l = (fr: string, en: string, lang: string) => (lang === 'en' && en ? en : fr);
 
 const Contact = () => {
-  const { language, t } = useLanguage();
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [honeypot, setHoneypot] = useState('');
-  const [sending, setSending] = useState(false);
+  const { language } = useLanguage();
+  const { isAdmin } = useAuth();
+  const { data, isLoading } = useContactPage();
+  const [editOpen, setEditOpen] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (honeypot) return;
-    setSending(true);
-    // For now, toast-only. Edge function for real sending to be added with Resend integration.
-    await new Promise(r => setTimeout(r, 600));
-    toast.success(t('contact.success'));
-    setForm({ name: '', email: '', subject: '', message: '' });
-    setSending(false);
-  };
+  if (isLoading || !data) {
+    return (
+      <div className="pt-20 min-h-screen flex items-center justify-center">
+        <div className="w-6 h-6 border border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const title = l(data.hero.title_fr, data.hero.title_en, language);
+  const subtitle = l(data.hero.subtitle_fr, data.hero.subtitle_en, language);
 
   return (
-    <div className="pt-20 md:pt-24">
+    <div className="min-h-screen">
       <SEOHead
-        title={t('contact.title')}
-        description={language === 'fr' ? 'Contactez la maison LÉONA BLOM.' : 'Contact LÉONA BLOM.'}
+        title={title}
+        description={subtitle || (language === 'fr' ? 'Contactez la maison LÉONA BLOM.' : 'Contact LÉONA BLOM.')}
         path="/contact"
       />
-      <section className="luxury-container luxury-section max-w-2xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+
+      {/* Admin edit button */}
+      {isAdmin && (
+        <button
+          onClick={() => setEditOpen(true)}
+          className="fixed top-24 right-4 z-50 flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-full shadow-lg hover:bg-accent/80 transition-colors text-xs font-body tracking-wider"
         >
-          <h1 className="text-display text-4xl md:text-5xl text-center mb-4">{t('contact.title')}</h1>
-          <p className="text-center text-sm font-body text-muted-foreground mb-12">{siteConfig.contactEmail}</p>
+          <Settings2 size={14} />
+          Modifier
+        </button>
+      )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Honeypot */}
-            <input
-              type="text"
-              name="website"
-              value={honeypot}
-              onChange={e => setHoneypot(e.target.value)}
-              className="hidden"
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden="true"
-            />
+      {/* HERO */}
+      <ContactHero imageUrl={data.hero.image_url} title={title} subtitle={subtitle} />
 
-            <div>
-              <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2">{t('contact.name')}</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                className="w-full border border-foreground/20 bg-transparent px-4 py-3 text-sm font-body tracking-wider focus:outline-none focus:border-primary transition-colors"
-                required
-                maxLength={100}
-              />
+      {/* MAIN CONTENT */}
+      <section className="luxury-container py-16 md:py-24">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+          <ContactInfo data={data} language={language} />
+          <div>
+            <div className="lg:hidden mb-10">
+              <Separator className="bg-border/30" />
             </div>
-
-            <div>
-              <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2">{t('contact.email')}</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                className="w-full border border-foreground/20 bg-transparent px-4 py-3 text-sm font-body tracking-wider focus:outline-none focus:border-primary transition-colors"
-                required
-                maxLength={255}
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2">{t('contact.subject')}</label>
-              <input
-                type="text"
-                value={form.subject}
-                onChange={e => setForm(p => ({ ...p, subject: e.target.value }))}
-                className="w-full border border-foreground/20 bg-transparent px-4 py-3 text-sm font-body tracking-wider focus:outline-none focus:border-primary transition-colors"
-                required
-                maxLength={200}
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2">{t('contact.message')}</label>
-              <textarea
-                value={form.message}
-                onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
-                className="w-full border border-foreground/20 bg-transparent px-4 py-3 text-sm font-body tracking-wider focus:outline-none focus:border-primary transition-colors min-h-[150px] resize-none"
-                required
-                maxLength={1000}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={sending}
-              className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-colors duration-300 disabled:opacity-50"
-            >
-              {sending ? '...' : t('contact.send')}
-            </button>
-          </form>
-        </motion.div>
+            <ContactForm data={data} language={language} />
+          </div>
+        </div>
       </section>
+
+      {/* ATELIER */}
+      <ContactAtelier data={data} language={language} />
+
+      {/* Admin Drawer */}
+      {isAdmin && (
+        <ContactEditDrawer open={editOpen} onOpenChange={setEditOpen} data={data} />
+      )}
     </div>
   );
 };
