@@ -55,8 +55,8 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
   // Mobile: alternating image + text blocks
   if (isMobile) {
     return (
-      <section className="luxury-container py-16">
-        <div className="w-12 h-px bg-primary/30 mx-auto mb-12" />
+      <section className="luxury-container py-8">
+        <div className="w-12 h-px bg-primary/30 mx-auto mb-8" />
         <div className="space-y-12">
           {blocks.map((block, i) => {
             const img = getImageForBlock(block);
@@ -88,8 +88,8 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
 
   // Desktop: sticky image left + scrolling blocks right
   return (
-    <section className="luxury-container py-20 md:py-32">
-      <div className="w-16 h-px bg-primary/30 mx-auto mb-20" />
+    <section className="luxury-container py-10 md:py-16">
+      <div className="w-16 h-px bg-primary/30 mx-auto mb-10" />
       <div className="grid grid-cols-12 gap-8 lg:gap-16">
         {/* Sticky image column */}
         <div className="col-span-5">
