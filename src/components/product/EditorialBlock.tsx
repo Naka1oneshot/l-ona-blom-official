@@ -13,6 +13,15 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
     const title = (lang === 'en' && block.title_en) ? block.title_en : block.title_fr;
     const body = (lang === 'en' && block.body_en) ? block.body_en : block.body_fr;
 
+    const fontSizeMap: Record<string, string> = {
+      sm: 'text-sm',
+      base: 'text-base',
+      lg: 'text-lg md:text-xl',
+      xl: 'text-xl md:text-2xl',
+      '2xl': 'text-2xl md:text-3xl',
+    };
+    const fontSize = fontSizeMap[block.font_size || 'base'] || fontSizeMap.base;
+
     const baseClasses = 'py-16 md:py-24 transition-opacity duration-700';
     const activeClasses = isActive ? 'opacity-100' : 'opacity-40';
 
@@ -26,7 +35,7 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             transition={{ duration: 0.8 }}
             className="border-l-2 border-primary pl-8 md:pl-12"
           >
-            <div className="text-display text-2xl md:text-3xl lg:text-4xl italic leading-relaxed text-foreground/90"
+            <div className={`text-display ${block.font_size === '2xl' ? 'text-3xl md:text-4xl lg:text-5xl' : block.font_size === 'xl' ? 'text-2xl md:text-3xl lg:text-4xl' : 'text-2xl md:text-3xl lg:text-4xl'} italic leading-relaxed text-foreground/90`}
               dangerouslySetInnerHTML={{ __html: `"${body}"` }} />
             {title && (
               <p className="mt-6 text-xs tracking-[0.2em] uppercase font-body text-muted-foreground">
@@ -49,7 +58,7 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             className="bg-secondary/50 border border-border/50 rounded-2xl p-8 md:p-12"
           >
             <h3 className="text-display text-xl md:text-2xl mb-4">{title}</h3>
-            <div className="text-sm md:text-base font-body text-muted-foreground leading-relaxed text-justify prose prose-sm max-w-none"
+            <div className={`${fontSize} font-body text-muted-foreground leading-relaxed text-justify prose prose-sm max-w-none`}
               dangerouslySetInnerHTML={{ __html: body }} />
           </motion.div>
         </div>
@@ -80,7 +89,7 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             </p>
           </div>
           <div className="w-8 h-px bg-primary/40 mb-8" />
-          <div className="text-base md:text-lg font-body text-foreground/80 leading-[1.9] text-justify prose max-w-none"
+          <div className={`${fontSize} font-body text-foreground/80 leading-[1.9] text-justify prose max-w-none`}
             dangerouslySetInnerHTML={{ __html: body }} />
         </motion.div>
       </div>
