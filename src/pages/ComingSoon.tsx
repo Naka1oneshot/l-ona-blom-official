@@ -152,14 +152,31 @@ const ComingSoon = ({ config }: Props) => {
               className="relative z-10 h-20 md:h-28"
             />
           </motion.div>
-          <motion.img
-            src={logoWhite}
-            alt="Logo"
-            className="h-8 md:h-12"
+          <motion.div
+            className="relative"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-          />
+          >
+            <motion.div
+              className="absolute inset-0 overflow-hidden"
+              style={{ mixBlendMode: 'screen' }}
+            >
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%)',
+                }}
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2, delay: 1 }}
+              />
+            </motion.div>
+            <img
+              src={logoWhite}
+              alt="Logo"
+              className="relative z-10 h-8 md:h-12"
+            />
+          </motion.div>
         </header>
 
         <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 gap-10 md:gap-14">
