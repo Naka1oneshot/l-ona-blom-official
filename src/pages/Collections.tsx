@@ -140,38 +140,32 @@ const Collections = () => {
                       transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as const }}
                       className="relative aspect-[16/9] md:aspect-[16/7] lg:aspect-[16/6] overflow-hidden mx-4 md:mx-auto md:max-w-6xl rounded-sm"
                     >
-                      {/* Image or admin upload */}
-                      {isAdmin ? (
+                      {/* Cover image */}
+                      {c.cover_image ? (
+                        <img
+                          src={c.cover_image}
+                          alt={title}
+                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                          style={{ objectPosition }}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted" />
+                      )}
+
+                      {/* Admin: change cover button */}
+                      {isAdmin && (
                         <EditableDBImage
                           table="collections"
                           id={c.id}
                           field="cover_image"
-                          value={c.cover_image}
+                          value={null}
                           alt={title}
-                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                          className="hidden"
                           onSaved={(url) => updateCollection(c.id, { cover_image: url })}
                         />
-                      ) : (
-                        c.cover_image ? (
-                          <img
-                            src={c.cover_image}
-                            alt={title}
-                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                            style={{ objectPosition }}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-muted" />
-                        )
                       )}
 
-                      {/* Apply focal point style to admin image too */}
-                      {isAdmin && c.cover_image && (
-                        <style>{`
-                          [data-cover-id="${c.id}"] img { object-position: ${objectPosition} !important; }
-                        `}</style>
-                      )}
-                      <div data-cover-id={c.id} className="absolute inset-0" style={{ pointerEvents: 'none' }} />
 
                       {/* Dark overlay for text readability */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:from-black/70 transition-colors duration-500" />
