@@ -261,7 +261,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
 
         {/* SIZE SET + PRICING */}
         <div className="border border-border rounded-lg p-5 space-y-4">
-          <label className={labelClass}>Tailles & Prix (centimes EUR)</label>
+          <label className={labelClass}>Tailles & Prix (EUR)</label>
           <div className="flex gap-4">
             <label className="flex items-center gap-2 text-sm font-body cursor-pointer">
               <input
@@ -288,13 +288,17 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           <div className={`grid gap-3 ${sizeSet === 'TU' ? 'grid-cols-1 max-w-xs' : 'grid-cols-2 md:grid-cols-3'}`}>
             {sizesToShow.map(size => (
               <div key={size}>
-                <label className={labelClass}>Prix {size} (centimes)</label>
+                <label className={labelClass}>Prix {size} (€)</label>
                 <input
                   type="number"
-                  value={sizePrices[size] || ''}
-                  onChange={e => setSizePrices(p => ({ ...p, [size]: Number(e.target.value) || 0 }))}
+                  step="0.01"
+                  value={sizePrices[size] ? (sizePrices[size] / 100).toFixed(2) : ''}
+                  onChange={e => {
+                    const euros = parseFloat(e.target.value);
+                    setSizePrices(p => ({ ...p, [size]: isNaN(euros) ? 0 : Math.round(euros * 100) }));
+                  }}
                   className={inputClass}
-                  placeholder="0"
+                  placeholder="0.00"
                 />
               </div>
             ))}
