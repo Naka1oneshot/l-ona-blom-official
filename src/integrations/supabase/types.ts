@@ -171,6 +171,7 @@ export type Database = {
           cover_image: string | null
           cover_video: string | null
           created_at: string
+          featured_image_indexes: number[]
           gallery_images: string[] | null
           id: string
           narrative_en: string | null
@@ -189,6 +190,7 @@ export type Database = {
           cover_image?: string | null
           cover_video?: string | null
           created_at?: string
+          featured_image_indexes?: number[]
           gallery_images?: string[] | null
           id?: string
           narrative_en?: string | null
@@ -207,6 +209,7 @@ export type Database = {
           cover_image?: string | null
           cover_video?: string | null
           created_at?: string
+          featured_image_indexes?: number[]
           gallery_images?: string[] | null
           id?: string
           narrative_en?: string | null

@@ -25,6 +25,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
     cover_image: collection?.cover_image || '',
     cover_video: collection?.cover_video || '',
     gallery_images: collection?.gallery_images || [],
+    featured_image_indexes: collection?.featured_image_indexes || [0, 1],
     tags: (collection?.tags || []).join(', '),
     published_at: collection?.published_at ? new Date(collection.published_at).toISOString().slice(0, 10) : '',
   });
@@ -45,6 +46,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
       cover_image: form.cover_image,
       cover_video: form.cover_video,
       gallery_images: form.gallery_images,
+      featured_image_indexes: form.featured_image_indexes,
       tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
       published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
     };
@@ -135,6 +137,46 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
         </div>
 
         <div><label className={labelClass}>Tags (séparés par virgule)</label><input value={form.tags} onChange={e => set('tags', e.target.value)} className={inputClass} /></div>
+
+        {/* Featured images picker */}
+        {form.gallery_images.length > 0 && (
+          <div className="border border-border rounded-lg p-4 space-y-3">
+            <label className={labelClass}>Photos mises en avant sur /collections (sélectionnez {Math.min(2, form.gallery_images.length)})</label>
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+              {form.gallery_images.map((img: string, idx: number) => {
+                const isSelected = form.featured_image_indexes.includes(idx);
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      const maxPick = Math.min(2, form.gallery_images.length);
+                      let next: number[];
+                      if (isSelected) {
+                        next = form.featured_image_indexes.filter((i: number) => i !== idx);
+                      } else {
+                        next = [...form.featured_image_indexes, idx];
+                        if (next.length > maxPick) next = next.slice(-maxPick);
+                      }
+                      set('featured_image_indexes', next);
+                    }}
+                    className={`relative aspect-square overflow-hidden rounded border-2 transition-all ${isSelected ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-foreground/20'}`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    {isSelected && (
+                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                        <span className="bg-primary text-primary-foreground w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-body font-semibold">
+                          {form.featured_image_indexes.indexOf(idx) + 1}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-muted-foreground font-body">Ces images apparaîtront comme miniatures sous la description sur la page Collections.</p>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-4">
           <button type="submit" disabled={submitting} className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors disabled:opacity-50">
