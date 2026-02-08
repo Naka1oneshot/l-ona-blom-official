@@ -56,6 +56,18 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     editorial_blocks_json: (product?.editorial_blocks_json || []) as EditorialBlock[],
   });
 
+  const [customStyles, setCustomStyles] = useState<{ value: string; label: string }[]>(
+    product?.editorial_blocks_json
+      ? (() => {
+          const styles = new Set<string>();
+          (product.editorial_blocks_json as EditorialBlock[]).forEach((b: EditorialBlock) => {
+            if (b.style?.startsWith('custom-')) styles.add(b.style);
+          });
+          return Array.from(styles).map(v => ({ value: v, label: v.replace('custom-', '').replace(/-/g, ' ') }));
+        })()
+      : []
+  );
+
   const [sizeSet, setSizeSet] = useState<'TU' | 'standard'>(existingSizeSet);
   const [sizePrices, setSizePrices] = useState<Record<string, number>>(() => {
     const prices: Record<string, number> = {};
@@ -392,6 +404,8 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
             blocks={form.editorial_blocks_json}
             onChange={(blocks) => set('editorial_blocks_json', blocks)}
             imageCount={form.images.length}
+            customStyles={customStyles}
+            onCustomStylesChange={setCustomStyles}
           />
         </div>
 
