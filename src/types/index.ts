@@ -36,6 +36,7 @@ export interface Product {
   colors: string[];
   materials: string[];
   braiding_options: string[];
+  braiding_colors: string[];
   stock_qty: number | null;
   editorial_blocks_json: any[] | null;
 }
@@ -84,5 +85,6 @@ export interface CartItem {
   size?: string;
   color?: string;
   braiding?: string;
+  braiding_color?: string;
   measurements?: MeasurementData;
 }

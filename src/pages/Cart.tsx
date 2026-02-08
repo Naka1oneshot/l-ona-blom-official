@@ -55,6 +55,7 @@ const Cart = () => {
                             {item.size && <span>{item.size}</span>}
                             {item.color && <span>{item.color}</span>}
                             {item.braiding && <span>{item.braiding}</span>}
+                            {item.braiding_color && <span>{language === 'fr' ? 'Tressage' : 'Braiding'}: {item.braiding_color}</span>}
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-4">

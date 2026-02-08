@@ -31,6 +31,7 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedBraiding, setSelectedBraiding] = useState('');
+  const [selectedBraidingColor, setSelectedBraidingColor] = useState('');
   const [activeImage, setActiveImage] = useState(0);
   const [measurements, setMeasurements] = useState<MeasurementData>(emptyMeasurements);
   const { isAdmin } = useAuth();
@@ -58,12 +59,13 @@ const ProductDetail = () => {
     if (product.sizes.length > 0 && !selectedSize) return false;
     if (product.colors.length > 0 && !selectedColor) return false;
     if (product.braiding_options.length > 0 && !selectedBraiding) return false;
+    if (product.braiding_colors?.length > 0 && !selectedBraidingColor) return false;
     if (product.made_to_measure) {
       const required = ['bust', 'waist', 'hips'] as const;
       if (required.some(k => !measurements[k])) return false;
     }
     return true;
-  }, [product, selectedSize, selectedColor, selectedBraiding, measurements]);
+  }, [product, selectedSize, selectedColor, selectedBraiding, selectedBraidingColor, measurements]);
 
   if (loading) {
     return (
@@ -100,6 +102,7 @@ const ProductDetail = () => {
       size: selectedSize,
       color: selectedColor,
       braiding: selectedBraiding,
+      braiding_color: selectedBraidingColor || undefined,
       measurements: product.made_to_measure ? measurements : undefined,
     });
     toast.success(language === 'fr' ? 'Ajouté au panier' : 'Added to cart');
@@ -285,6 +288,30 @@ const ProductDetail = () => {
                       }`}
                     >
                       {b}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Braiding Color */}
+            {product.braiding_colors?.length > 0 && (
+              <div className="mb-6">
+                <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-3">
+                  {language === 'fr' ? 'Sélectionnez une couleur de tressage' : 'Select a braiding color'}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {product.braiding_colors.map(bc => (
+                    <button
+                      key={bc}
+                      onClick={() => setSelectedBraidingColor(bc)}
+                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
+                        selectedBraidingColor === bc
+                          ? 'border-foreground bg-foreground text-background'
+                          : 'border-foreground/20 hover:border-foreground/60'
+                      }`}
+                    >
+                      {bc}
                     </button>
                   ))}
                 </div>

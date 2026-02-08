@@ -31,6 +31,7 @@ export function mapProduct(row: any): Product {
     colors: row.colors || [],
     materials: row.materials || [],
     braiding_options: row.braiding_options || [],
+    braiding_colors: row.braiding_colors || [],
     stock_qty: row.stock_qty,
     editorial_blocks_json: row.editorial_blocks_json as any[] | null,
   };

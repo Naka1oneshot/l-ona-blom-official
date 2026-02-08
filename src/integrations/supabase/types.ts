@@ -400,6 +400,7 @@ export type Database = {
       products: {
         Row: {
           base_price_eur: number
+          braiding_colors: string[]
           braiding_options: string[] | null
           care_en: string | null
           care_fr: string | null
@@ -435,6 +436,7 @@ export type Database = {
         }
         Insert: {
           base_price_eur?: number
+          braiding_colors?: string[]
           braiding_options?: string[] | null
           care_en?: string | null
           care_fr?: string | null
@@ -470,6 +472,7 @@ export type Database = {
         }
         Update: {
           base_price_eur?: number
+          braiding_colors?: string[]
           braiding_options?: string[] | null
           care_en?: string | null
           care_fr?: string | null
