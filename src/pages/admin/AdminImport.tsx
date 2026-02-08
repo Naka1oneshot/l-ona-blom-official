@@ -140,6 +140,7 @@ function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; she
   const [done, setDone] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number; label: string } | null>(null);
   const [importWarnings, setImportWarnings] = useState<RowMessage[]>([]);
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
 
   const handleFile = useCallback(async (f: File) => {
     setFile(f);
@@ -167,6 +168,12 @@ function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; she
         ? await previewProductImport(rows)
         : await previewCollectionImport(rows);
       setReport(r);
+      // Auto-select actionable rows (CREATE or UPDATE)
+      const actionable = new Set<number>();
+      r.rows.forEach((row, i) => {
+        if (row.status === 'CREATE' || row.status === 'UPDATE') actionable.add(i);
+      });
+      setSelectedRows(actionable);
     } catch (err: any) {
       toast.error(err.message || 'Erreur de lecture du fichier');
     } finally {
@@ -190,11 +197,14 @@ function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; she
         setProgress({ current, total, label });
       };
 
+      // Filter only selected rows
+      const rowsToImport = report.rows.filter((_, i) => selectedRows.has(i));
+
       let warnings: RowMessage[] = [];
       if (type === 'products') {
-        warnings = await executeProductImport(report.rows, onProgress);
+        warnings = await executeProductImport(rowsToImport, onProgress);
       } else {
-        warnings = await executeCollectionImport(report.rows, onProgress);
+        warnings = await executeCollectionImport(rowsToImport, onProgress);
       }
 
       setImportWarnings(warnings);
@@ -237,10 +247,32 @@ function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; she
     URL.revokeObjectURL(url);
   };
 
-  const reset = () => { setFile(null); setReport(null); setDone(false); setImportWarnings([]); };
+  const reset = () => { setFile(null); setReport(null); setDone(false); setImportWarnings([]); setSelectedRows(new Set()); };
 
   const hasErrors = report && report.stats.errors > 0;
-  const hasActions = report && (report.stats.created > 0 || report.stats.updated > 0);
+  const selectedActionCount = report ? report.rows.filter((r, i) => selectedRows.has(i) && (r.status === 'CREATE' || r.status === 'UPDATE')).length : 0;
+  const hasActions = selectedActionCount > 0;
+  const actionableCount = report ? report.rows.filter(r => r.status === 'CREATE' || r.status === 'UPDATE').length : 0;
+
+  const toggleRow = (i: number) => {
+    setSelectedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (!report) return;
+    const actionableIndices = report.rows.map((r, i) => (r.status === 'CREATE' || r.status === 'UPDATE') ? i : -1).filter(i => i >= 0);
+    const allSelected = actionableIndices.every(i => selectedRows.has(i));
+    if (allSelected) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(actionableIndices));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -303,8 +335,16 @@ function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; she
           {/* Preview table */}
           <div className="border border-border overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="w-full text-sm font-body">
-              <thead className="sticky top-0 bg-background border-b border-border">
+              <thead className="sticky top-0 bg-background border-b border-border z-10">
                 <tr>
+                  <th className="px-3 py-2 text-center w-10">
+                    <input
+                      type="checkbox"
+                      checked={actionableCount > 0 && selectedRows.size >= actionableCount}
+                      onChange={toggleAll}
+                      className="accent-primary"
+                    />
+                  </th>
                   <th className="px-3 py-2 text-left text-[10px] tracking-wider uppercase text-muted-foreground">Ligne</th>
                   <th className="px-3 py-2 text-left text-[10px] tracking-wider uppercase text-muted-foreground">Réf</th>
                   <th className="px-3 py-2 text-left text-[10px] tracking-wider uppercase text-muted-foreground">Slug</th>
@@ -317,8 +357,22 @@ function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; she
                 {report.rows.map((row, i) => {
                   const cfg = STATUS_CONFIG[row.status];
                   const Icon = cfg.icon;
+                  const isActionable = row.status === 'CREATE' || row.status === 'UPDATE';
+                  const isChecked = selectedRows.has(i);
                   return (
-                    <tr key={i} className="hover:bg-muted/20">
+                    <tr key={i} className={`hover:bg-muted/20 ${!isChecked && isActionable ? 'opacity-40' : ''}`}>
+                      <td className="px-3 py-2 text-center">
+                        {isActionable ? (
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleRow(i)}
+                            className="accent-primary"
+                          />
+                        ) : (
+                          <span className="text-muted-foreground/30">—</span>
+                        )}
+                      </td>
                       <td className="px-3 py-2 text-muted-foreground">{row.rowIndex}</td>
                       <td className="px-3 py-2 font-mono text-xs">{row.referenceCode}</td>
                       <td className="px-3 py-2 text-xs">{row.slug}</td>
@@ -374,7 +428,7 @@ function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; she
                   disabled={importing || !!hasErrors || !hasActions}
                   className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors disabled:opacity-50"
                 >
-                  {importing ? 'Import & traduction en cours…' : `Lancer l'import (${(report.stats.created + report.stats.updated)} actions)`}
+                  {importing ? 'Import & traduction en cours…' : `Lancer l'import (${selectedActionCount} / ${actionableCount} sélectionnés)`}
                 </button>
                 <button onClick={reset} className="border border-foreground/20 px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:border-foreground transition-colors">
                   Annuler
