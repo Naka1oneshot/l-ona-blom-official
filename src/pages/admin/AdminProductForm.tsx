@@ -25,6 +25,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
   const existingPrices = product?.price_by_size_eur || {};
 
   const [form, setForm] = useState({
+    reference_code: product?.reference_code || '',
     slug: product?.slug || '',
     status: product?.status || 'draft',
     category: product?.category || '',
@@ -108,6 +109,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     const { sizes, price_by_size_eur, base_price_eur } = buildPriceBySizePayload(sizeSet, sizePrices);
 
     const payload = {
+      reference_code: form.reference_code || null,
       slug: form.slug,
       status: form.status,
       category: form.category,
@@ -173,6 +175,20 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           label="Photos du produit"
           folder="products"
         />
+
+        {/* Reference code */}
+        <div className="border border-border rounded-lg p-4 space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className={labelClass}>Référence Produit</label>
+              <input value={form.reference_code} onChange={e => set('reference_code', e.target.value)} className={inputClass} placeholder="PRO001" />
+            </div>
+          </div>
+          <p className="flex items-start gap-1.5 text-[10px] text-amber-500/90 font-body leading-relaxed">
+            <AlertTriangle size={12} className="shrink-0 mt-0.5" />
+            <span>Cette référence est utilisée comme identifiant unique lors de l'import Excel. La modifier dissociera ce produit des futures lignes du fichier utilisant l'ancienne référence.</span>
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div><label className={labelClass}>Slug</label><input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required /></div>

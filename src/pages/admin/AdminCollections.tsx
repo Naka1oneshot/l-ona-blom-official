@@ -57,7 +57,10 @@ const AdminCollections = () => {
         {collections.map(c => (
           <div key={c.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-body font-medium truncate">{c.title_fr}</p>
+              <p className="text-sm font-body font-medium truncate">
+                {c.reference_code && <span className="text-muted-foreground font-normal mr-1.5">{c.reference_code}</span>}
+                {c.title_fr}
+              </p>
               <p className="text-xs text-muted-foreground font-body">{c.subtitle_fr}</p>
             </div>
             <div className="flex items-center gap-2 ml-4">

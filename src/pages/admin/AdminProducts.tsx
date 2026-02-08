@@ -63,7 +63,10 @@ const AdminProducts = () => {
         {products.map(p => (
           <div key={p.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-body font-medium truncate">{p.name_fr}</p>
+              <p className="text-sm font-body font-medium truncate">
+                {p.reference_code && <span className="text-muted-foreground font-normal mr-1.5">{p.reference_code}</span>}
+                {p.name_fr}
+              </p>
               <p className="text-xs text-muted-foreground font-body">
                 {p.category} · {p.status} · €{(p.base_price_eur / 100).toFixed(2)}
               </p>

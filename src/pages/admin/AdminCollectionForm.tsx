@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { ImageUpload, VideoUpload, MultiImageUpload } from '@/components/admin/ImageUpload';
 import TranslateButton from '@/components/admin/TranslateButton';
 
@@ -14,6 +14,7 @@ interface Props {
 const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
   const isNew = !collection;
   const [form, setForm] = useState({
+    reference_code: collection?.reference_code || '',
     slug: collection?.slug || '',
     title_fr: collection?.title_fr || '',
     title_en: collection?.title_en || '',
@@ -33,6 +34,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
     e.preventDefault();
     setSubmitting(true);
     const payload = {
+      reference_code: form.reference_code || null,
       slug: form.slug,
       title_fr: form.title_fr,
       title_en: form.title_en,
@@ -90,6 +92,18 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
           label="Galerie d'images"
           folder="collections"
         />
+
+        {/* Reference code */}
+        <div className="border border-border rounded-lg p-4 space-y-2">
+          <div>
+            <label className={labelClass}>Référence Collection</label>
+            <input value={form.reference_code} onChange={e => set('reference_code', e.target.value)} className={`${inputClass} max-w-xs`} placeholder="COL001" />
+          </div>
+          <p className="flex items-start gap-1.5 text-[10px] text-amber-500/90 font-body leading-relaxed">
+            <AlertTriangle size={12} className="shrink-0 mt-0.5" />
+            <span>Cette référence est utilisée comme identifiant unique lors de l'import Excel. La modifier dissociera cette collection des futures lignes du fichier utilisant l'ancienne référence.</span>
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Slug</label><input value={form.slug} onChange={e => set('slug', e.target.value)} className={inputClass} required /></div>
