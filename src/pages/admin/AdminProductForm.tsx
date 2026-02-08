@@ -231,7 +231,18 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
             materials_fr: form.materials_fr,
             care_fr: form.care_fr,
           }}
+          editorialBlocks={form.editorial_blocks_json}
           onTranslated={(t) => setForm(p => ({ ...p, ...t }))}
+          onEditorialTranslated={(ebT) => {
+            setForm(p => ({
+              ...p,
+              editorial_blocks_json: p.editorial_blocks_json.map(block => {
+                const tr = ebT[block.id];
+                if (!tr) return block;
+                return { ...block, title_en: tr.title_en || block.title_en, body_en: tr.body_en || block.body_en };
+              }),
+            }));
+          }}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
