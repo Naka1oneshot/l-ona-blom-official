@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import CollectionScrollNav from '@/components/collections/CollectionScrollNav';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,6 +67,7 @@ const Collections = () => {
   const [loading, setLoading] = useState(true);
   const [focalActiveId, setFocalActiveId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
 
   const fetchCollections = useCallback(() => {
     supabase
@@ -111,6 +113,13 @@ const Collections = () => {
         </p>
       ) : (
         <div>
+          <CollectionScrollNav
+            collections={collections.map(c => ({
+              id: c.id,
+              title: (language === 'en' && c.title_en) ? c.title_en : c.title_fr,
+            }))}
+            sectionRefs={sectionRefs}
+          />
           {collections.map((c, idx) => {
             const title = (language === 'en' && c.title_en) ? c.title_en : c.title_fr;
             const titleField = (language === 'en' && c.title_en) ? 'title_en' : 'title_fr';
@@ -137,7 +146,10 @@ const Collections = () => {
                   </motion.div>
                 )}
 
-                <section className="py-10 md:py-16 lg:py-20">
+                <section
+                  ref={(el) => { if (sectionRefs.current) sectionRefs.current[idx] = el; }}
+                  className="py-10 md:py-16 lg:py-20"
+                >
                   {/* Cover with title overlay */}
                   <div
                     className="group block cursor-pointer"
