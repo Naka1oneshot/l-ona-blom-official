@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN color_hex_map jsonb NOT NULL DEFAULT '{}'::jsonb;

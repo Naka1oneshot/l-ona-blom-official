@@ -50,6 +50,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     materials: (product?.materials || []).join(', '),
     braiding_options: (product?.braiding_options || []).join(', '),
     braiding_colors: (product?.braiding_colors || []).join(', '),
+    color_hex_map: (product?.color_hex_map || {}) as Record<string, string>,
     stock_qty: product?.stock_qty ?? '',
     images: product?.images || [],
     editorial_blocks_json: (product?.editorial_blocks_json || []) as EditorialBlock[],
@@ -137,9 +138,8 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       materials: form.materials.split(',').map(s => s.trim()).filter(Boolean),
       braiding_options: form.braiding_options.split(',').map(s => s.trim()).filter(Boolean),
       braiding_colors: form.braiding_colors.split(',').map(s => s.trim()).filter(Boolean),
+      color_hex_map: form.color_hex_map,
       stock_qty: form.stock_qty === '' ? null : Number(form.stock_qty),
-      images: form.images,
-      editorial_blocks_json: form.editorial_blocks_json.length > 0 ? JSON.parse(JSON.stringify(form.editorial_blocks_json)) : null,
     };
 
     let error;
@@ -351,6 +351,33 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           <div><label className={labelClass}>Couleurs (séparées par virgule)</label><input value={form.colors} onChange={e => set('colors', e.target.value)} className={inputClass} placeholder="Noir, Ivoire" /></div>
           <div><label className={labelClass}>Matériaux (séparés par virgule)</label><input value={form.materials} onChange={e => set('materials', e.target.value)} className={inputClass} /></div>
         </div>
+
+        {/* Color hex map */}
+        {form.colors.split(',').map(s => s.trim()).filter(Boolean).length > 0 && (
+          <div className="border border-border rounded-lg p-4 space-y-3">
+            <label className={labelClass}>Aperçu couleur (code hex par coloris)</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {form.colors.split(',').map(s => s.trim()).filter(Boolean).map(colorName => (
+                <div key={colorName} className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={form.color_hex_map[colorName] || '#000000'}
+                    onChange={e => setForm(p => ({
+                      ...p,
+                      color_hex_map: { ...p.color_hex_map, [colorName]: e.target.value },
+                    }))}
+                    className="w-8 h-8 rounded-full border border-border cursor-pointer p-0 overflow-hidden"
+                    style={{ WebkitAppearance: 'none' }}
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-body">{colorName}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{form.color_hex_map[colorName] || '#000000'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Options de tressage (séparées par virgule)</label><input value={form.braiding_options} onChange={e => set('braiding_options', e.target.value)} className={inputClass} /></div>
