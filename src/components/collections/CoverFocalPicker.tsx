@@ -8,13 +8,10 @@ interface CoverFocalPickerProps {
   currentFocal: string;
   coverImage: string;
   onChanged: (focal: string) => void;
+  onActiveChange?: (active: boolean) => void;
 }
 
-/**
- * Visual focal-point picker: the admin drags the image inside the cover frame
- * to choose which part is visible. Stores as "X% Y%" in cover_focal_point.
- */
-const CoverFocalPicker = ({ collectionId, currentFocal, coverImage, onChanged }: CoverFocalPickerProps) => {
+const CoverFocalPicker = ({ collectionId, currentFocal, coverImage, onChanged, onActiveChange }: CoverFocalPickerProps) => {
   const [active, setActive] = useState(false);
   const [saving, setSaving] = useState(false);
   const [position, setPosition] = useState<{ x: number; y: number }>(() => parseFocal(currentFocal));
@@ -73,6 +70,7 @@ const CoverFocalPicker = ({ collectionId, currentFocal, coverImage, onChanged }:
     } else {
       onChanged(value);
       setActive(false);
+      onActiveChange?.(false);
       toast.success('Cadrage mis à jour');
     }
   };
@@ -82,12 +80,14 @@ const CoverFocalPicker = ({ collectionId, currentFocal, coverImage, onChanged }:
     e.stopPropagation();
     setPosition(parseFocal(currentFocal));
     setActive(false);
+    onActiveChange?.(false);
   };
 
   const handleActivate = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setActive(true);
+    onActiveChange?.(true);
   };
 
   if (!active) {

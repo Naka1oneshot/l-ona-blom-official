@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,6 +64,8 @@ const Collections = () => {
   const { isAdmin } = useAuth();
   const [collections, setCollections] = useState<CollectionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [focalActiveId, setFocalActiveId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const fetchCollections = useCallback(() => {
     supabase
@@ -137,7 +139,10 @@ const Collections = () => {
 
                 <section className="py-10 md:py-16 lg:py-20">
                   {/* Cover with title overlay */}
-                  <Link to={`/collections/${c.slug}`} className="group block">
+                  <div
+                    className="group block cursor-pointer"
+                    onClick={() => { if (!focalActiveId) navigate(`/collections/${c.slug}`); }}
+                  >
                     <motion.div
                       initial={{ opacity: 0, scale: 1.04 }}
                       whileInView={{ opacity: 1, scale: 1 }}
@@ -223,10 +228,11 @@ const Collections = () => {
                           currentFocal={c.cover_focal_point}
                           coverImage={c.cover_image || ''}
                           onChanged={(fp) => updateCollection(c.id, { cover_focal_point: fp })}
+                          onActiveChange={(active) => setFocalActiveId(active ? c.id : null)}
                         />
                       )}
                     </motion.div>
-                  </Link>
+                  </div>
 
                   {/* Récit + Featured images in magenta card */}
                   {(excerpt || (isAdmin && narrative) || featuredImages.length > 0) && (
@@ -235,7 +241,7 @@ const Collections = () => {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: '-40px' }}
                       transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
-                      className="mx-4 md:mx-auto md:max-w-5xl -mt-10 md:-mt-14 relative z-10"
+                      className="mx-4 md:mx-auto md:max-w-5xl mt-6 md:mt-10 relative"
                     >
                       <div className="bg-primary/90 backdrop-blur-md rounded-sm px-6 py-8 md:px-12 md:py-12 lg:px-16 lg:py-14">
                         {/* Narrative excerpt */}
