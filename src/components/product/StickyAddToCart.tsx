@@ -21,23 +21,33 @@ const StickyAddToCart: React.FC<Props> = ({
   price,
   productName,
 }) => {
-  const [visible, setVisible] = useState(false);
+  const [ctaHidden, setCtaHidden] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
 
   useEffect(() => {
     const el = ctaRef.current;
     if (!el) return;
-
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Show sticky bar when original CTA is NOT visible
-        setVisible(!entry.isIntersecting);
-      },
+      ([entry]) => setCtaHidden(!entry.isIntersecting),
       { threshold: 0 }
     );
-
     observer.observe(el);
     return () => observer.disconnect();
   }, [ctaRef]);
+
+  // Hide when footer is visible
+  useEffect(() => {
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
+
+  const visible = ctaHidden && !footerVisible;
 
   const handleClick = () => {
     if (isReady) {
