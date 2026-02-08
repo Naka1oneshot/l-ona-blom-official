@@ -259,7 +259,7 @@ const ProductDetail = () => {
               value={description}
               onSaved={(v) => setProduct(p => p ? { ...p, [descField]: v } : p)}
               as="p"
-              className="text-sm font-body text-muted-foreground leading-relaxed mb-10"
+              className="text-sm font-body text-muted-foreground leading-relaxed mb-10 text-justify"
               multiline
             />
 
