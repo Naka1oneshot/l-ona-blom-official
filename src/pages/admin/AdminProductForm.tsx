@@ -140,6 +140,8 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       braiding_colors: form.braiding_colors.split(',').map(s => s.trim()).filter(Boolean),
       color_hex_map: form.color_hex_map,
       stock_qty: form.stock_qty === '' ? null : Number(form.stock_qty),
+      images: form.images,
+      editorial_blocks_json: form.editorial_blocks_json.length > 0 ? JSON.parse(JSON.stringify(form.editorial_blocks_json)) : null,
     };
 
     let error;
