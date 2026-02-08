@@ -26,9 +26,8 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             transition={{ duration: 0.8 }}
             className="border-l-2 border-primary pl-8 md:pl-12"
           >
-            <p className="text-display text-2xl md:text-3xl lg:text-4xl italic leading-relaxed text-foreground/90">
-              "{body}"
-            </p>
+            <div className="text-display text-2xl md:text-3xl lg:text-4xl italic leading-relaxed text-foreground/90"
+              dangerouslySetInnerHTML={{ __html: `"${body}"` }} />
             {title && (
               <p className="mt-6 text-xs tracking-[0.2em] uppercase font-body text-muted-foreground">
                 — {title}
@@ -50,9 +49,8 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             className="bg-secondary/50 border border-border/50 rounded-2xl p-8 md:p-12"
           >
             <h3 className="text-display text-xl md:text-2xl mb-4">{title}</h3>
-            <p className="text-sm md:text-base font-body text-muted-foreground leading-relaxed whitespace-pre-line text-justify">
-              {body}
-            </p>
+            <div className="text-sm md:text-base font-body text-muted-foreground leading-relaxed text-justify prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: body }} />
           </motion.div>
         </div>
       );
@@ -82,9 +80,8 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             </p>
           </div>
           <div className="w-8 h-px bg-primary/40 mb-8" />
-          <p className="text-base md:text-lg font-body text-foreground/80 leading-[1.9] whitespace-pre-line text-justify">
-            {body}
-          </p>
+          <div className="text-base md:text-lg font-body text-foreground/80 leading-[1.9] text-justify prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: body }} />
         </motion.div>
       </div>
     );
