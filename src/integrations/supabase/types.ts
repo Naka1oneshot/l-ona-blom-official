@@ -229,6 +229,42 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_messages: {
+        Row: {
+          consent: boolean
+          created_at: string
+          email: string
+          id: string
+          locale: string | null
+          message: string
+          name: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          consent?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          locale?: string | null
+          message: string
+          name: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          consent?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          locale?: string | null
+          message?: string
+          name?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       import_runs: {
         Row: {
           created_at: string
