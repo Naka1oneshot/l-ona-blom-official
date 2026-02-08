@@ -27,7 +27,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <img
             src={product.images[0]}
             alt={name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="w-full h-full object-cover"
+            style={{ imageRendering: 'auto' }}
             loading="lazy"
           />
           {product.made_to_order && (
