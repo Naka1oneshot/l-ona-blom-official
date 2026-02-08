@@ -228,57 +228,58 @@ const Collections = () => {
                     </motion.div>
                   </Link>
 
-                  {/* Narrative excerpt */}
-                  {(excerpt || (isAdmin && narrative)) && (
+                  {/* Récit + Featured images in magenta card */}
+                  {(excerpt || (isAdmin && narrative) || featuredImages.length > 0) && (
                     <motion.div
-                      initial={{ opacity: 0, y: 14 }}
+                      initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: '-40px' }}
-                      transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] as const }}
-                      className="max-w-3xl mx-auto px-6 mt-6 md:mt-10 text-center"
+                      transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
+                      className="mx-4 md:mx-auto md:max-w-5xl -mt-10 md:-mt-14 relative z-10"
                     >
-                      {isAdmin ? (
-                        <EditableDBField
-                          table="collections"
-                          id={c.id}
-                          field={narrativeField}
-                          value={narrative || ''}
-                          as="p"
-                          multiline
-                          className="text-sm md:text-base font-body text-muted-foreground leading-relaxed"
-                          onSaved={(v) => updateCollection(c.id, { [narrativeField]: v } as any)}
-                        />
-                      ) : (
-                        <Link to={`/collections/${c.slug}`} className="block group/text">
-                          <p className="text-sm md:text-base font-body text-muted-foreground leading-relaxed line-clamp-4">
-                            {excerpt}
-                          </p>
-                        </Link>
-                      )}
-                    </motion.div>
-                  )}
-
-                  {/* Featured images */}
-                  {featuredImages.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: '-40px' }}
-                      transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] as const }}
-                      className={`mt-8 md:mt-12 mx-auto px-6 grid gap-3 md:gap-4 max-w-4xl ${featuredImages.length === 1 ? 'grid-cols-1 max-w-md' : 'grid-cols-2'}`}
-                    >
-                      {featuredImages.map((img, i) => (
-                        <Link key={i} to={`/collections/${c.slug}`} className="group/thumb block">
-                          <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
-                            <img
-                              src={img}
-                              alt={`${title} – ${i + 1}`}
-                              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover/thumb:scale-[1.03]"
-                              loading="lazy"
-                            />
+                      <div className="bg-primary/90 backdrop-blur-md rounded-sm px-6 py-8 md:px-12 md:py-12 lg:px-16 lg:py-14">
+                        {/* Narrative excerpt */}
+                        {(excerpt || (isAdmin && narrative)) && (
+                          <div className="max-w-2xl mx-auto text-center mb-8 md:mb-10">
+                            {isAdmin ? (
+                              <EditableDBField
+                                table="collections"
+                                id={c.id}
+                                field={narrativeField}
+                                value={narrative || ''}
+                                as="p"
+                                multiline
+                                className="text-sm md:text-base font-body text-primary-foreground/90 leading-relaxed"
+                                onSaved={(v) => updateCollection(c.id, { [narrativeField]: v } as any)}
+                              />
+                            ) : (
+                              <Link to={`/collections/${c.slug}`} className="block">
+                                <p className="text-sm md:text-base font-body text-primary-foreground/90 leading-relaxed line-clamp-4">
+                                  {excerpt}
+                                </p>
+                              </Link>
+                            )}
                           </div>
-                        </Link>
-                      ))}
+                        )}
+
+                        {/* Featured images */}
+                        {featuredImages.length > 0 && (
+                          <div className={`grid gap-3 md:gap-4 max-w-3xl mx-auto ${featuredImages.length === 1 ? 'grid-cols-1 max-w-md' : 'grid-cols-2'}`}>
+                            {featuredImages.map((img, i) => (
+                              <Link key={i} to={`/collections/${c.slug}`} className="group/thumb block">
+                                <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
+                                  <img
+                                    src={img}
+                                    alt={`${title} – ${i + 1}`}
+                                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover/thumb:scale-[1.03]"
+                                    loading="lazy"
+                                  />
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                 </section>
