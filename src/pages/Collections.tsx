@@ -236,7 +236,7 @@ const Collections = () => {
                         <Link
                           to={`/collections/${c.slug}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="mt-4 md:mt-6 inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/40 text-white/70 hover:text-white hover:border-white/70 transition-all duration-300"
+                          className="mt-4 md:mt-6 hidden md:inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/40 text-white/70 hover:text-white hover:border-white/70 transition-all duration-300"
                         >
                           <motion.svg
                             xmlns="http://www.w3.org/2000/svg"
