@@ -65,7 +65,7 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-foreground/90 text-background backdrop-blur-md transition-colors duration-500">
       <div className="luxury-container">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center justify-between h-16 md:h-20 flex-nowrap">
           {/* Mobile menu */}
           <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 -ml-2" aria-label="Menu">
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -77,14 +77,14 @@ const Header = () => {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-4 lg:gap-8">
+          <nav className="hidden md:flex items-center gap-3 lg:gap-7 flex-nowrap whitespace-nowrap">
             {primaryLinks.map(link => {
               const isActive = link.to === '/boutique'
                 ? location.pathname === '/boutique'
                 : link.to === '/collections'
                   ? location.pathname.startsWith('/collections')
                   : location.pathname === link.to;
-              const base = "luxury-link text-xs tracking-[0.15em] uppercase font-body";
+              const base = "luxury-link text-[10px] md:text-[10px] lg:text-xs tracking-[0.12em] lg:tracking-[0.15em] uppercase font-body whitespace-nowrap";
               const activeClass = isActive ? 'opacity-100 underline underline-offset-4 decoration-current' : '';
               
               if (link.to === '/boutique') return (
@@ -101,7 +101,7 @@ const Header = () => {
             {/* Secondary links — visible on lg+, hidden on md (in "more" dropdown) */}
             {secondaryLinks.map(link => {
               const isActive = location.pathname === link.to;
-              const base = "luxury-link text-xs tracking-[0.15em] uppercase font-body";
+              const base = "luxury-link text-[10px] lg:text-xs tracking-[0.12em] lg:tracking-[0.15em] uppercase font-body whitespace-nowrap";
               const activeClass = isActive ? 'opacity-100 underline underline-offset-4 decoration-current' : '';
               return (
                 <Link key={link.to} to={link.to} className={`${base} ${activeClass} hidden lg:inline-block`}>{link.label}</Link>
@@ -112,7 +112,7 @@ const Header = () => {
             <div ref={moreRef} className="relative lg:hidden">
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
-                className="luxury-link text-xs tracking-[0.15em] uppercase font-body flex items-center gap-1"
+                className="luxury-link text-[10px] lg:text-xs tracking-[0.12em] uppercase font-body flex items-center gap-1"
               >
                 <MoreHorizontal size={16} />
               </button>
@@ -123,18 +123,46 @@ const Header = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 top-full mt-3 min-w-[160px] bg-foreground border border-background/10 py-3 z-50 shadow-lg"
+                    className="absolute right-0 top-full mt-3 min-w-[180px] bg-foreground border border-background/10 py-3 z-50 shadow-lg"
                   >
                     {secondaryLinks.map(link => (
                       <Link
                         key={link.to}
                         to={link.to}
                         onClick={() => setMoreOpen(false)}
-                        className="block px-5 py-2 text-xs tracking-[0.12em] uppercase font-body text-background/80 hover:text-background hover:bg-background/5 transition-colors"
+                        className="block px-5 py-2 text-[11px] tracking-[0.12em] uppercase font-body text-background/80 hover:text-background hover:bg-background/5 transition-colors"
                       >
                         {link.label}
                       </Link>
                     ))}
+
+                    {/* Language/Currency in dropdown */}
+                    <div className="border-t border-background/10 mt-2 pt-2 px-5">
+                      <p className="text-[9px] tracking-[0.2em] uppercase text-background/40 mb-2">{t('general.language')}</p>
+                      <div className="flex gap-2 mb-3">
+                        {(['fr', 'en'] as Language[]).map(l => (
+                          <button
+                            key={l}
+                            onClick={() => { setLanguage(l); setMoreOpen(false); }}
+                            className={`text-[11px] tracking-wider uppercase px-2 py-0.5 border transition-colors ${language === l ? 'border-primary text-primary' : 'border-transparent text-background/50 hover:text-background/80'}`}
+                          >
+                            {l.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[9px] tracking-[0.2em] uppercase text-background/40 mb-2">{t('general.currency')}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(['EUR', 'USD', 'GBP', 'CAD'] as Currency[]).map(c => (
+                          <button
+                            key={c}
+                            onClick={() => { setCurrency(c); setMoreOpen(false); }}
+                            className={`text-[11px] tracking-wider px-2 py-0.5 border transition-colors ${currency === c ? 'border-primary text-primary' : 'border-transparent text-background/50 hover:text-background/80'}`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -142,10 +170,10 @@ const Header = () => {
           </nav>
 
           {/* Right actions */}
-          <div className="flex items-center gap-4">
-            {/* Language/Currency selector */}
-            <div className="relative">
-              <button onClick={() => setSettingsOpen(!settingsOpen)} className="flex items-center gap-1 text-xs tracking-wider uppercase font-body">
+          <div className="flex items-center gap-3 flex-nowrap">
+            {/* Language/Currency selector — hidden on md (available in "more" dropdown), visible lg+ */}
+            <div className="relative hidden lg:block">
+              <button onClick={() => setSettingsOpen(!settingsOpen)} className="flex items-center gap-1 text-[11px] tracking-wider uppercase font-body whitespace-nowrap">
                 <Globe size={14} />
                 <span className="hidden sm:inline">{language.toUpperCase()} / {currency}</span>
                 <ChevronDown size={12} />
