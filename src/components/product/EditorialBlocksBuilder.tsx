@@ -144,7 +144,7 @@ const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount,
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
               <label className={labelClass}>Style</label>
               <select value={block.style} onChange={e => updateBlock(index, 'style', e.target.value)}
@@ -152,6 +152,17 @@ const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount,
                 {allStyles.map(s => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Taille police</label>
+              <select value={block.font_size || 'base'} onChange={e => updateBlock(index, 'font_size', e.target.value)}
+                className={inputClass}>
+                <option value="sm">Petit</option>
+                <option value="base">Normal</option>
+                <option value="lg">Grand</option>
+                <option value="xl">Très grand</option>
+                <option value="2xl">Extra grand</option>
               </select>
             </div>
             <div>

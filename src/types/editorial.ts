@@ -7,6 +7,7 @@ export interface EditorialBlock {
   image_index: number | null;
   style: 'default' | 'quote' | 'callout' | 'materials' | 'care';
   alignment?: 'left' | 'right';
+  font_size?: 'sm' | 'base' | 'lg' | 'xl' | '2xl';
 }
 
 export const EDITORIAL_STYLES = [
