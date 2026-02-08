@@ -16,6 +16,7 @@ import Scrollytelling from '@/components/product/Scrollytelling';
 import StickyAddToCart from '@/components/product/StickyAddToCart';
 import { Product, MeasurementData } from '@/types';
 import { generateFallbackBlocks, EditorialBlock } from '@/types/editorial';
+import FlyToCartAnimation from '@/components/FlyToCartAnimation';
 
 const emptyMeasurements: MeasurementData = {
   bust: '', waist: '', hips: '', shoulder_width: '', arm_length: '', total_length: '', notes: '',
@@ -38,6 +39,7 @@ const ProductDetail = () => {
   const { isAdmin } = useAuth();
   const ctaRef = useRef<HTMLButtonElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
+  const [flyAnim, setFlyAnim] = useState<{ imageUrl: string; rect: DOMRect } | null>(null);
 
   useEffect(() => {
     if (slug) {
@@ -122,6 +124,12 @@ const ProductDetail = () => {
         return;
       }
     }
+    // Trigger fly animation from the main product image
+    const imgEl = document.querySelector('.product-hero-image');
+    if (imgEl) {
+      setFlyAnim({ imageUrl: product.images[activeImage], rect: imgEl.getBoundingClientRect() });
+    }
+
     addItem(product, {
       size: selectedSize || (isTU ? 'TU' : undefined),
       color: selectedColor,
@@ -163,7 +171,7 @@ const ProductDetail = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="relative aspect-[3/4] bg-secondary overflow-hidden rounded-2xl mb-4">
-              <img src={product.images[activeImage]} alt={name} className="w-full h-full object-cover" loading="lazy" />
+              <img src={product.images[activeImage]} alt={name} className="product-hero-image w-full h-full object-cover" loading="lazy" />
               <div className="absolute top-3 right-3 z-30 flex gap-2">
                 <AdminEditButton to={`/admin/produits?edit=${product.id}`} />
               </div>
@@ -375,6 +383,15 @@ const ProductDetail = () => {
           images={product.images}
           blocks={editorialBlocks}
           lang={language}
+        />
+      )}
+
+      {/* Fly-to-cart animation */}
+      {flyAnim && (
+        <FlyToCartAnimation
+          imageUrl={flyAnim.imageUrl}
+          startRect={flyAnim.rect}
+          onComplete={() => setFlyAnim(null)}
         />
       )}
 

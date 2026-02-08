@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCategories } from '@/hooks/useCategories';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -121,11 +122,20 @@ const Header = () => {
             {/* Cart */}
             <Link to="/panier" className="relative p-2 -mr-2">
               <ShoppingBag size={18} />
-              {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-background text-foreground text-[9px] flex items-center justify-center">
-                  {totalItems}
-                </span>
-              )}
+              <AnimatePresence mode="popLayout">
+                {totalItems > 0 && (
+                  <motion.span
+                    key={totalItems}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-background text-foreground text-[9px] flex items-center justify-center rounded-full"
+                  >
+                    {totalItems}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </Link>
           </div>
         </div>
