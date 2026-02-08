@@ -50,7 +50,7 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             className="bg-secondary/50 border border-border/50 rounded-2xl p-8 md:p-12"
           >
             <h3 className="text-display text-xl md:text-2xl mb-4">{title}</h3>
-            <p className="text-sm md:text-base font-body text-muted-foreground leading-relaxed whitespace-pre-line">
+            <p className="text-sm md:text-base font-body text-muted-foreground leading-relaxed whitespace-pre-line text-justify">
               {body}
             </p>
           </motion.div>
@@ -82,7 +82,7 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             </p>
           </div>
           <div className="w-8 h-px bg-primary/40 mb-8" />
-          <p className="text-base md:text-lg font-body text-foreground/80 leading-[1.9] whitespace-pre-line">
+          <p className="text-base md:text-lg font-body text-foreground/80 leading-[1.9] whitespace-pre-line text-justify">
             {body}
           </p>
         </motion.div>
