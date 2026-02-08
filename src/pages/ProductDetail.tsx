@@ -389,9 +389,9 @@ const ProductDetail = () => {
 
       {/* Scrollytelling editorial section */}
       {editorialBlocks.length > 0 && (
-        <div className="-mt-8 md:-mt-12">
+        <div className="-mt-16 md:-mt-24">
           {/* Brand logo + scroll indicator */}
-          <div className="flex flex-col items-center gap-4 py-8 md:py-12">
+          <div className="flex flex-col items-center gap-3 py-4 md:py-6">
             <img src={brandLogoText} alt="LÉONA BLOM" className="h-8 md:h-12 object-contain opacity-80" />
             <motion.div
               animate={{ y: [0, 8, 0] }}
