@@ -212,3 +212,11 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--luxury-magenta));
 }
+
+/* Editorial quote: inline curly quotes attached to text */
+.editorial-quote > p:first-child::before {
+  content: '\201C\2009';
+}
+.editorial-quote > p:last-child::after {
+  content: '\2009\201D';
+}
