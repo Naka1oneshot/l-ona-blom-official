@@ -168,6 +168,7 @@ export type Database = {
       }
       collections: {
         Row: {
+          cover_focal_point: string
           cover_image: string | null
           cover_video: string | null
           created_at: string
@@ -187,6 +188,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_focal_point?: string
           cover_image?: string | null
           cover_video?: string | null
           created_at?: string
@@ -206,6 +208,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_focal_point?: string
           cover_image?: string | null
           cover_video?: string | null
           created_at?: string
