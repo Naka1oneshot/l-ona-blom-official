@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
+import EditableDBField from '@/components/EditableDBField';
+import EditableDBImage from '@/components/EditableDBImage';
+import CoverFocalPicker from '@/components/collections/CoverFocalPicker';
 
 interface CollectionRow {
   id: string;
@@ -15,15 +19,15 @@ interface CollectionRow {
   narrative_fr: string | null;
   narrative_en: string | null;
   cover_image: string | null;
+  cover_focal_point: string;
   gallery_images: string[] | null;
   featured_image_indexes: number[] | null;
   published_at: string | null;
 }
 
-function smartExcerpt(narrative: string | null | undefined, subtitle: string | null | undefined, max = 300): string {
-  const source = narrative || subtitle || '';
-  if (!source) return '';
-  const stripped = source.replace(/<[^>]*>/g, '').trim();
+function smartExcerpt(narrative: string | null | undefined, max = 300): string {
+  if (!narrative) return '';
+  const stripped = narrative.replace(/<[^>]*>/g, '').trim();
   if (stripped.length <= max) return stripped;
   const cut = stripped.slice(0, max);
   const lastSpace = cut.lastIndexOf(' ');
@@ -42,21 +46,25 @@ function resolveFeaturedImages(
     .map((i) => gallery[i]);
 }
 
-const separatorVariants = {
-  hidden: { scaleX: 0 },
-  visible: { scaleX: 1, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const } },
-};
+function focalToObjectPosition(focal: string): string {
+  switch (focal) {
+    case 'top': return 'center top';
+    case 'bottom': return 'center bottom';
+    default: return 'center center';
+  }
+}
 
 const Collections = () => {
   const { language, t } = useLanguage();
+  const { isAdmin } = useAuth();
   const [collections, setCollections] = useState<CollectionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchCollections = useCallback(() => {
     supabase
       .from('collections')
       .select(
-        'id, slug, title_fr, title_en, subtitle_fr, subtitle_en, narrative_fr, narrative_en, cover_image, gallery_images, featured_image_indexes, published_at',
+        'id, slug, title_fr, title_en, subtitle_fr, subtitle_en, narrative_fr, narrative_en, cover_image, cover_focal_point, gallery_images, featured_image_indexes, published_at',
       )
       .order('created_at', { ascending: false })
       .then(({ data }) => {
@@ -65,6 +73,12 @@ const Collections = () => {
       });
   }, []);
 
+  useEffect(() => { fetchCollections(); }, [fetchCollections]);
+
+  const updateCollection = (id: string, partial: Partial<CollectionRow>) => {
+    setCollections(prev => prev.map(c => c.id === id ? { ...c, ...partial } : c));
+  };
+
   return (
     <div className="pt-20 md:pt-24">
       {/* Header */}
@@ -72,7 +86,7 @@ const Collections = () => {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-10 md:mb-16 px-6"
+        className="text-center mb-6 md:mb-10 px-6"
       >
         <h1 className="text-display text-4xl md:text-5xl tracking-[0.12em] uppercase">
           {t('collections.title')}
@@ -89,98 +103,184 @@ const Collections = () => {
           {language === 'fr' ? 'Aucune collection pour le moment.' : 'No collections yet.'}
         </p>
       ) : (
-        <div className="lg:snap-y lg:snap-mandatory">
+        <div>
           {collections.map((c, idx) => {
             const title = (language === 'en' && c.title_en) ? c.title_en : c.title_fr;
+            const titleField = (language === 'en' && c.title_en) ? 'title_en' : 'title_fr';
             const subtitle = (language === 'en' && c.subtitle_en) ? c.subtitle_en : (c.subtitle_fr || undefined);
+            const subtitleField = (language === 'en' && c.subtitle_en) ? 'subtitle_en' : 'subtitle_fr';
             const narrative = (language === 'en' && c.narrative_en) ? c.narrative_en : (c.narrative_fr || undefined);
-            const excerpt = smartExcerpt(narrative, subtitle || null);
+            const narrativeField = (language === 'en' && c.narrative_en) ? 'narrative_en' : 'narrative_fr';
+            const excerpt = smartExcerpt(narrative);
             const featuredImages = resolveFeaturedImages(c.gallery_images, c.featured_image_indexes);
+            const objectPosition = focalToObjectPosition(c.cover_focal_point);
 
             return (
               <React.Fragment key={c.id}>
+                {/* Animated separator between sections */}
                 {idx > 0 && (
                   <motion.div
-                    variants={separatorVariants}
-                    initial="hidden"
-                    whileInView="visible"
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
                     viewport={{ once: true, margin: '-40px' }}
-                    className="origin-left"
+                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }}
+                    className="origin-left max-w-5xl mx-auto px-6"
                   >
-                    <Separator className="mx-auto w-full max-w-4xl bg-foreground/10 my-0" />
+                    <Separator className="bg-foreground/10" />
                   </motion.div>
                 )}
 
-                <Link
-                  to={`/collections/${c.slug}`}
-                  className="group block lg:snap-start"
-                >
-                  <section className="lg:min-h-[85vh] flex flex-col justify-center py-10 md:py-16 lg:py-20">
-                    {/* Cover */}
-                    {c.cover_image && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 1.04 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true, margin: '-80px' }}
-                        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                        className="relative aspect-[16/9] md:aspect-[16/7] overflow-hidden mx-4 md:mx-auto md:max-w-6xl rounded-sm"
-                      >
-                        <img
-                          src={c.cover_image}
+                <section className="py-10 md:py-16 lg:py-20">
+                  {/* Cover with title overlay */}
+                  <Link to={`/collections/${c.slug}`} className="group block">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 1.04 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true, margin: '-80px' }}
+                      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as const }}
+                      className="relative aspect-[16/9] md:aspect-[16/7] lg:aspect-[16/6] overflow-hidden mx-4 md:mx-auto md:max-w-6xl rounded-sm"
+                    >
+                      {/* Image or admin upload */}
+                      {isAdmin ? (
+                        <EditableDBImage
+                          table="collections"
+                          id={c.id}
+                          field="cover_image"
+                          value={c.cover_image}
                           alt={title}
                           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                          loading="lazy"
+                          onSaved={(url) => updateCollection(c.id, { cover_image: url })}
                         />
-                        <div className="absolute inset-0 bg-foreground/5 group-hover:bg-foreground/10 transition-colors duration-500" />
-                      </motion.div>
-                    )}
+                      ) : (
+                        c.cover_image ? (
+                          <img
+                            src={c.cover_image}
+                            alt={title}
+                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                            style={{ objectPosition }}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted" />
+                        )
+                      )}
 
-                    {/* Text */}
+                      {/* Apply focal point style to admin image too */}
+                      {isAdmin && c.cover_image && (
+                        <style>{`
+                          [data-cover-id="${c.id}"] img { object-position: ${objectPosition} !important; }
+                        `}</style>
+                      )}
+                      <div data-cover-id={c.id} className="absolute inset-0" style={{ pointerEvents: 'none' }} />
+
+                      {/* Dark overlay for text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:from-black/70 transition-colors duration-500" />
+
+                      {/* Title overlay */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 lg:pb-16 px-6 text-center">
+                        {isAdmin ? (
+                          <div onClick={(e) => e.preventDefault()}>
+                            <EditableDBField
+                              table="collections"
+                              id={c.id}
+                              field={titleField}
+                              value={title}
+                              as="h2"
+                              className="text-display text-2xl md:text-4xl lg:text-5xl tracking-[0.1em] uppercase text-white drop-shadow-lg"
+                              onSaved={(v) => updateCollection(c.id, { [titleField]: v } as any)}
+                            />
+                          </div>
+                        ) : (
+                          <h2 className="text-display text-2xl md:text-4xl lg:text-5xl tracking-[0.1em] uppercase text-white drop-shadow-lg">
+                            {title}
+                          </h2>
+                        )}
+
+                        {subtitle && !isAdmin && (
+                          <p className="mt-2 text-xs md:text-sm tracking-[0.14em] uppercase text-white/80 font-body drop-shadow">
+                            {subtitle}
+                          </p>
+                        )}
+                        {subtitle && isAdmin && (
+                          <div className="mt-2" onClick={(e) => e.preventDefault()}>
+                            <EditableDBField
+                              table="collections"
+                              id={c.id}
+                              field={subtitleField}
+                              value={subtitle}
+                              as="p"
+                              className="text-xs md:text-sm tracking-[0.14em] uppercase text-white/80 font-body drop-shadow"
+                              onSaved={(v) => updateCollection(c.id, { [subtitleField]: v } as any)}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Admin focal point picker */}
+                      {isAdmin && (
+                        <CoverFocalPicker
+                          collectionId={c.id}
+                          currentFocal={c.cover_focal_point}
+                          onChanged={(fp) => updateCollection(c.id, { cover_focal_point: fp })}
+                        />
+                      )}
+                    </motion.div>
+                  </Link>
+
+                  {/* Narrative excerpt */}
+                  {(excerpt || (isAdmin && narrative)) && (
                     <motion.div
                       initial={{ opacity: 0, y: 14 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: '-40px' }}
-                      transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                      className="max-w-3xl mx-auto px-6 mt-6 md:mt-10 space-y-2 text-center"
+                      transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] as const }}
+                      className="max-w-3xl mx-auto px-6 mt-6 md:mt-10 text-center"
                     >
-                      <h2 className="text-display text-xl md:text-2xl lg:text-3xl tracking-[0.08em] uppercase group-hover:underline underline-offset-4 decoration-1 transition-all duration-300">
-                        {title}
-                      </h2>
-                      {subtitle && (
-                        <p className="text-xs tracking-[0.12em] uppercase text-muted-foreground font-body">
-                          {subtitle}
-                        </p>
-                      )}
-                      {excerpt && (
-                        <p className="text-sm md:text-base font-body text-muted-foreground leading-relaxed line-clamp-4 pt-1 max-w-2xl mx-auto">
-                          {excerpt}
-                        </p>
+                      {isAdmin ? (
+                        <EditableDBField
+                          table="collections"
+                          id={c.id}
+                          field={narrativeField}
+                          value={narrative || ''}
+                          as="p"
+                          multiline
+                          className="text-sm md:text-base font-body text-muted-foreground leading-relaxed"
+                          onSaved={(v) => updateCollection(c.id, { [narrativeField]: v } as any)}
+                        />
+                      ) : (
+                        <Link to={`/collections/${c.slug}`} className="block group/text">
+                          <p className="text-sm md:text-base font-body text-muted-foreground leading-relaxed line-clamp-4">
+                            {excerpt}
+                          </p>
+                        </Link>
                       )}
                     </motion.div>
+                  )}
 
-                    {/* Featured images */}
-                    {featuredImages.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: '-40px' }}
-                        transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                        className={`mt-8 md:mt-12 mx-auto px-6 grid gap-3 md:gap-4 max-w-4xl ${featuredImages.length === 1 ? 'grid-cols-1 max-w-md' : 'grid-cols-2'}`}
-                      >
-                        {featuredImages.map((img, i) => (
-                          <div key={i} className="relative aspect-[4/3] overflow-hidden rounded-sm">
+                  {/* Featured images */}
+                  {featuredImages.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-40px' }}
+                      transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] as const }}
+                      className={`mt-8 md:mt-12 mx-auto px-6 grid gap-3 md:gap-4 max-w-4xl ${featuredImages.length === 1 ? 'grid-cols-1 max-w-md' : 'grid-cols-2'}`}
+                    >
+                      {featuredImages.map((img, i) => (
+                        <Link key={i} to={`/collections/${c.slug}`} className="group/thumb block">
+                          <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
                             <img
                               src={img}
                               alt={`${title} – ${i + 1}`}
-                              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover/thumb:scale-[1.03]"
                               loading="lazy"
                             />
                           </div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </section>
-                </Link>
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </section>
               </React.Fragment>
             );
           })}
