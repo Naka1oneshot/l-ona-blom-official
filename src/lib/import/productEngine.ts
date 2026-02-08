@@ -120,6 +120,7 @@ function parseRow(
     colors: normList(col(raw, 'Couleurs (séparées par |)', 'Couleurs separees par', 'colors')),
     materials: normList(col(raw, 'Matières - tags (séparées par |)', 'Matieres tags separees par', 'materials_list', 'materials')),
     braiding_options: normList(col(raw, 'Tressages (séparées par |)', 'Tressages separees par', 'braiding_options')),
+    braiding_colors: normList(col(raw, 'Couleurs de tressage (séparées par |)', 'Couleurs de tressage separees par', 'braiding_colors')),
     _editorial_blocks_fr: editorialBlocks,
   };
 }
@@ -155,7 +156,7 @@ function compareFields(parsed: any, existing: any): string[] {
     changes.push('preorder_ship_date_estimate');
   }
 
-  const listFields = ['sizes', 'colors', 'materials', 'braiding_options'];
+  const listFields = ['sizes', 'colors', 'materials', 'braiding_options', 'braiding_colors'];
   for (const f of listFields) {
     const a = [...(parsed[f] || [])].sort();
     const b = [...(existing[f] || [])].sort();
