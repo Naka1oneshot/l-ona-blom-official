@@ -77,11 +77,8 @@ const StickyAddToCart: React.FC<Props> = ({
           className="fixed left-0 right-0 z-50 transition-[bottom] duration-200"
           style={{ bottom: footerOffset }}
         >
-          {/* Gradient fade above */}
-          <div className="h-6 bg-gradient-to-t from-background to-transparent" />
-          
-          <div className="bg-background/95 backdrop-blur-xl border-t border-foreground/5 shadow-[0_-8px_30px_-10px_rgba(0,0,0,0.12)]">
-            <div className="luxury-container py-3 md:py-4 flex items-center gap-4">
+          <div className="bg-background border-t border-foreground/10 shadow-[0_-4px_20px_-6px_rgba(0,0,0,0.1)]">
+            <div className="luxury-container py-2.5 md:py-4 flex items-center gap-4">
               {/* Product info - hidden on mobile for more CTA space */}
               <div className="hidden md:flex flex-col flex-1 min-w-0">
                 <p className="text-sm font-body truncate text-foreground/80">{productName}</p>
