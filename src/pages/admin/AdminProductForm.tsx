@@ -7,6 +7,8 @@ import TranslateButton from '@/components/admin/TranslateButton';
 import { useCategories } from '@/hooks/useCategories';
 import EditorialBlocksBuilder from '@/components/product/EditorialBlocksBuilder';
 import type { EditorialBlock } from '@/types/editorial';
+import { STANDARD_SIZES, detectSizeSet, buildPriceBySizePayload } from '@/lib/pricing';
+import type { SizeCode } from '@/types';
 
 interface Props {
   product?: any;
@@ -17,6 +19,11 @@ interface Props {
 const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
   const isNew = !product;
   const { groups } = useCategories();
+
+  // Detect size set from existing product
+  const existingSizeSet = product ? detectSizeSet(product.sizes || []) : 'standard';
+  const existingPrices = product?.price_by_size_eur || {};
+
   const [form, setForm] = useState({
     slug: product?.slug || '',
     status: product?.status || 'draft',
@@ -32,14 +39,12 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     materials_en: product?.materials_en || '',
     care_fr: product?.care_fr || '',
     care_en: product?.care_en || '',
-    base_price_eur: product?.base_price_eur || 0,
     made_to_order: product?.made_to_order || false,
     made_to_order_min_days: product?.made_to_order_min_days || null,
     made_to_order_max_days: product?.made_to_order_max_days || null,
     made_to_measure: product?.made_to_measure || false,
     preorder: product?.preorder || false,
     preorder_ship_date_estimate: product?.preorder_ship_date_estimate || '',
-    sizes: (product?.sizes || []).join(', '),
     colors: (product?.colors || []).join(', '),
     materials: (product?.materials || []).join(', '),
     braiding_options: (product?.braiding_options || []).join(', '),
@@ -48,7 +53,36 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     images: product?.images || [],
     editorial_blocks_json: (product?.editorial_blocks_json || []) as EditorialBlock[],
   });
+
+  const [sizeSet, setSizeSet] = useState<'TU' | 'standard'>(existingSizeSet);
+  const [sizePrices, setSizePrices] = useState<Record<string, number>>(() => {
+    const prices: Record<string, number> = {};
+    if (existingSizeSet === 'TU') {
+      prices['TU'] = existingPrices['TU'] || product?.base_price_eur || 0;
+    } else {
+      for (const s of STANDARD_SIZES) {
+        prices[s] = existingPrices[s] || product?.base_price_eur || 0;
+      }
+    }
+    return prices;
+  });
+
   const [submitting, setSubmitting] = useState(false);
+
+  const handleSizeSetChange = (newSet: 'TU' | 'standard') => {
+    setSizeSet(newSet);
+    if (newSet === 'TU') {
+      const currentMin = Math.min(...Object.values(sizePrices).filter(v => v > 0), sizePrices['TU'] || 0);
+      setSizePrices({ TU: currentMin || 0 });
+    } else {
+      const currentTU = sizePrices['TU'] || 0;
+      const prices: Record<string, number> = {};
+      for (const s of STANDARD_SIZES) {
+        prices[s] = sizePrices[s] || currentTU || 0;
+      }
+      setSizePrices(prices);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +95,17 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       }
     }
 
+    // Validate prices
+    const activeSizes = sizeSet === 'TU' ? ['TU'] : STANDARD_SIZES;
+    const hasAnyPrice = activeSizes.some(s => (sizePrices[s] || 0) > 0);
+    if (!hasAnyPrice) {
+      toast.error('Au moins un prix doit être renseigné.');
+      return;
+    }
+
     setSubmitting(true);
+
+    const { sizes, price_by_size_eur, base_price_eur } = buildPriceBySizePayload(sizeSet, sizePrices);
 
     const payload = {
       slug: form.slug,
@@ -78,14 +122,15 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       materials_en: form.materials_en,
       care_fr: form.care_fr,
       care_en: form.care_en,
-      base_price_eur: Number(form.base_price_eur),
+      base_price_eur,
+      price_by_size_eur,
+      sizes,
       made_to_order: form.made_to_order,
       made_to_order_min_days: form.made_to_order_min_days ? Number(form.made_to_order_min_days) : null,
       made_to_order_max_days: form.made_to_order_max_days ? Number(form.made_to_order_max_days) : null,
       made_to_measure: form.made_to_measure,
       preorder: form.preorder,
       preorder_ship_date_estimate: form.preorder_ship_date_estimate || null,
-      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
       colors: form.colors.split(',').map(s => s.trim()).filter(Boolean),
       materials: form.materials.split(',').map(s => s.trim()).filter(Boolean),
       braiding_options: form.braiding_options.split(',').map(s => s.trim()).filter(Boolean),
@@ -110,6 +155,8 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
   const inputClass = "w-full border border-border bg-transparent px-3 py-2 text-sm font-body focus:outline-none focus:border-primary transition-colors";
   const labelClass = "text-[10px] tracking-[0.2em] uppercase font-body block mb-1.5 text-muted-foreground";
   const set = (key: string, value: any) => setForm(p => ({ ...p, [key]: value }));
+
+  const sizesToShow = sizeSet === 'TU' ? ['TU' as SizeCode] : STANDARD_SIZES;
 
   return (
     <div>
@@ -153,7 +200,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
               ))}
             </select>
             {!form.category_id && (
-              <p className="flex items-center gap-1 mt-1 text-[10px] text-orange-500 font-body">
+              <p className="flex items-center gap-1 mt-1 text-[10px] text-amber-500 font-body">
                 <AlertTriangle size={10} /> Aucune catégorie assignée
               </p>
             )}
@@ -196,9 +243,51 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           <div><label className={labelClass}>Entretien EN</label><input value={form.care_en} onChange={e => set('care_en', e.target.value)} className={inputClass} /></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div><label className={labelClass}>Prix EUR (centimes)</label><input type="number" value={form.base_price_eur} onChange={e => set('base_price_eur', e.target.value)} className={inputClass} required /></div>
-          <div><label className={labelClass}>Stock (vide = illimité)</label><input type="number" value={form.stock_qty} onChange={e => set('stock_qty', e.target.value)} className={inputClass} /></div>
+        {/* SIZE SET + PRICING */}
+        <div className="border border-border rounded-lg p-5 space-y-4">
+          <label className={labelClass}>Tailles & Prix (centimes EUR)</label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm font-body cursor-pointer">
+              <input
+                type="radio"
+                name="sizeSet"
+                checked={sizeSet === 'TU'}
+                onChange={() => handleSizeSetChange('TU')}
+                className="accent-primary"
+              />
+              Taille unique (TU)
+            </label>
+            <label className="flex items-center gap-2 text-sm font-body cursor-pointer">
+              <input
+                type="radio"
+                name="sizeSet"
+                checked={sizeSet === 'standard'}
+                onChange={() => handleSizeSetChange('standard')}
+                className="accent-primary"
+              />
+              Tailles standard (S → 3XL)
+            </label>
+          </div>
+
+          <div className={`grid gap-3 ${sizeSet === 'TU' ? 'grid-cols-1 max-w-xs' : 'grid-cols-2 md:grid-cols-3'}`}>
+            {sizesToShow.map(size => (
+              <div key={size}>
+                <label className={labelClass}>Prix {size} (centimes)</label>
+                <input
+                  type="number"
+                  value={sizePrices[size] || ''}
+                  onChange={e => setSizePrices(p => ({ ...p, [size]: Number(e.target.value) || 0 }))}
+                  className={inputClass}
+                  placeholder="0"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className={labelClass}>Stock (vide = illimité)</label>
+          <input type="number" value={form.stock_qty} onChange={e => set('stock_qty', e.target.value)} className={`${inputClass} max-w-xs`} />
         </div>
 
         <div className="flex flex-wrap gap-6">
@@ -228,16 +317,12 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label className={labelClass}>Tailles (séparées par virgule)</label><input value={form.sizes} onChange={e => set('sizes', e.target.value)} className={inputClass} placeholder="34, 36, 38, 40" /></div>
           <div><label className={labelClass}>Couleurs (séparées par virgule)</label><input value={form.colors} onChange={e => set('colors', e.target.value)} className={inputClass} placeholder="Noir, Ivoire" /></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Matériaux (séparés par virgule)</label><input value={form.materials} onChange={e => set('materials', e.target.value)} className={inputClass} /></div>
-          <div><label className={labelClass}>Options de tressage (séparées par virgule)</label><input value={form.braiding_options} onChange={e => set('braiding_options', e.target.value)} className={inputClass} /></div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label className={labelClass}>Options de tressage (séparées par virgule)</label><input value={form.braiding_options} onChange={e => set('braiding_options', e.target.value)} className={inputClass} /></div>
           <div><label className={labelClass}>Couleurs de tressage (séparées par virgule)</label><input value={form.braiding_colors} onChange={e => set('braiding_colors', e.target.value)} className={inputClass} placeholder="Magenta, Noir, Blanc" /></div>
         </div>
 

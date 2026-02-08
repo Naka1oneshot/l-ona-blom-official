@@ -424,6 +424,7 @@ export type Database = {
           name_fr: string
           preorder: boolean | null
           preorder_ship_date_estimate: string | null
+          price_by_size_eur: Json
           price_overrides: Json | null
           reference_code: string | null
           sizes: string[] | null
@@ -460,6 +461,7 @@ export type Database = {
           name_fr: string
           preorder?: boolean | null
           preorder_ship_date_estimate?: string | null
+          price_by_size_eur?: Json
           price_overrides?: Json | null
           reference_code?: string | null
           sizes?: string[] | null
@@ -496,6 +498,7 @@ export type Database = {
           name_fr?: string
           preorder?: boolean | null
           preorder_ship_date_estimate?: string | null
+          price_by_size_eur?: Json
           price_overrides?: Json | null
           reference_code?: string | null
           sizes?: string[] | null

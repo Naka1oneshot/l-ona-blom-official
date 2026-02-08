@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { Product } from '@/types';
+import { getPriceRange } from '@/lib/pricing';
 import AdminEditButton from '@/components/AdminEditButton';
 
 interface ProductCardProps {
@@ -42,7 +43,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
         <h3 className="text-display text-sm sm:text-lg mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
         <p className="text-xs sm:text-sm font-body text-muted-foreground">
-          {formatPrice(product.base_price_eur, product.price_overrides)}
+          {(() => {
+            const range = getPriceRange(product);
+            if (range.hasRange) {
+              return `${language === 'fr' ? 'À partir de ' : 'From '}${formatPrice(range.min, product.price_overrides)}`;
+            }
+            return formatPrice(range.min, product.price_overrides);
+          })()}
         </p>
       </Link>
     </div>

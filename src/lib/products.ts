@@ -19,6 +19,7 @@ export function mapProduct(row: any): Product {
     care_fr: row.care_fr || '',
     care_en: row.care_en || '',
     base_price_eur: row.base_price_eur,
+    price_by_size_eur: (row.price_by_size_eur as any) || {},
     price_overrides: (row.price_overrides as any) || {},
     made_to_order: row.made_to_order || false,
     made_to_order_min_days: row.made_to_order_min_days ?? undefined,

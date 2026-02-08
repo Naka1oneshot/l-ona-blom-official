@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { normText, normBool, normPriceToCents, normList, normDate, normInt, arraysEqual, colFuzzy } from './normalize';
 import { parseEditorialBlocks, normalizeEditorialBlocksForDiff } from './editorialParser';
+import { normalizeSizesFromSet, STANDARD_SIZES } from '@/lib/pricing';
 import type { PreviewRow, ImportReport, ImportStats, RowMessage } from './types';
 
 /* ── column resolver shortcut ── */
@@ -38,9 +39,7 @@ function resolveCategory(
 ): CategoryInfo | null {
   const v = normText(raw);
   if (!v) return null;
-  // Try slug first
   if (bySlug.has(v)) return bySlug.get(v)!;
-  // Try normalized name_fr
   const norm = v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   if (byNameNorm.has(norm)) return byNameNorm.get(norm)!;
   return null;
@@ -70,7 +69,6 @@ async function translateTexts(texts: Record<string, string>): Promise<Record<str
 async function translateEditorialBlocks(blocks: any[]): Promise<any[]> {
   if (!blocks || blocks.length === 0) return [];
 
-  // Build translation keys from block text fields
   const texts: Record<string, string> = {};
   blocks.forEach((b, i) => {
     if (b.title_fr) texts[`block${i}_title_fr`] = b.title_fr;
@@ -88,6 +86,54 @@ async function translateEditorialBlocks(blocks: any[]): Promise<any[]> {
   }));
 }
 
+/* ── Parse size_set and build price_by_size_eur ── */
+function parseSizePricing(raw: Record<string, any>): {
+  sizes: string[];
+  price_by_size_eur: Record<string, number>;
+  base_price_eur: number;
+} {
+  const sizeSetRaw = normText(col(raw, 'Grille de tailles', 'size_set', 'Tailles'));
+  const fallbackPrice = normPriceToCents(col(raw, 'Prix (EUR)', 'Prix EUR', 'price_eur'));
+
+  // Read individual size prices
+  const priceTU = normPriceToCents(col(raw, 'Prix TU (EUR)', 'Prix TU EUR', 'price_tu_eur'));
+  const priceS = normPriceToCents(col(raw, 'Prix S (EUR)', 'Prix S EUR', 'price_s_eur'));
+  const priceM = normPriceToCents(col(raw, 'Prix M (EUR)', 'Prix M EUR', 'price_m_eur'));
+  const priceL = normPriceToCents(col(raw, 'Prix L (EUR)', 'Prix L EUR', 'price_l_eur'));
+  const priceXL = normPriceToCents(col(raw, 'Prix XL (EUR)', 'Prix XL EUR', 'price_xl_eur'));
+  const price2XL = normPriceToCents(col(raw, 'Prix 2XL (EUR)', 'Prix 2XL EUR', 'price_2xl_eur'));
+  const price3XL = normPriceToCents(col(raw, 'Prix 3XL (EUR)', 'Prix 3XL EUR', 'price_3xl_eur'));
+
+  const sizePriceMap: Record<string, number> = {
+    TU: priceTU, S: priceS, M: priceM, L: priceL, XL: priceXL, '2XL': price2XL, '3XL': price3XL,
+  };
+
+  // Determine size set
+  let sizeSet: 'TU' | 'standard' = 'standard';
+  const upper = sizeSetRaw.toUpperCase().trim();
+  if (upper === 'TU' || upper === 'TAILLE UNIQUE') {
+    sizeSet = 'TU';
+  } else if (!sizeSetRaw) {
+    // Auto-detect: if TU price set and no standard prices, assume TU
+    if (priceTU > 0 && priceS === 0 && priceM === 0 && priceL === 0) {
+      sizeSet = 'TU';
+    }
+  }
+
+  const sizes = sizeSet === 'TU' ? ['TU'] : [...STANDARD_SIZES];
+  const price_by_size_eur: Record<string, number> = {};
+
+  for (const s of sizes) {
+    const specific = sizePriceMap[s] || 0;
+    price_by_size_eur[s] = specific > 0 ? specific : fallbackPrice;
+  }
+
+  const values = Object.values(price_by_size_eur).filter(v => v > 0);
+  const base_price_eur = values.length > 0 ? Math.min(...values) : fallbackPrice;
+
+  return { sizes, price_by_size_eur, base_price_eur };
+}
+
 /* ── Parse a single row ── */
 function parseRow(
   raw: Record<string, any>,
@@ -95,6 +141,7 @@ function parseRow(
 ) {
   const editorialRaw = col(raw, 'Encarts narratifs (FR - Scrollytelling)', 'editorial_blocks_fr');
   const editorialBlocks = parseEditorialBlocks(editorialRaw);
+  const { sizes, price_by_size_eur, base_price_eur } = parseSizePricing(raw);
 
   return {
     reference_code: normText(col(raw, 'Référence Produit', 'reference_code')),
@@ -107,7 +154,9 @@ function parseRow(
     story_fr: normText(col(raw, 'Histoire (FR)', 'Histoire FR', 'story_fr')),
     materials_fr: normText(col(raw, 'Matières (FR - texte)', 'Matières FR texte', 'Matieres FR', 'materials_fr')),
     care_fr: normText(col(raw, 'Entretien (FR)', 'Entretien FR', 'care_fr')),
-    base_price_eur: normPriceToCents(col(raw, 'Prix (EUR)', 'Prix EUR', 'price_eur')),
+    base_price_eur,
+    price_by_size_eur,
+    sizes,
     price_overrides: {},
     made_to_order: normBool(col(raw, 'Sur commande', 'made_to_order')),
     made_to_order_min_days: normInt(col(raw, 'Délai min (jours)', 'Délai min jours', 'made_to_order_min_days', 'min_days')),
@@ -116,13 +165,20 @@ function parseRow(
     preorder: normBool(col(raw, 'Précommande', 'preorder')),
     preorder_ship_date_estimate: normDate(col(raw, 'Date expédition estimée (YYYY-MM-DD)', 'Date expédition estimee', 'preorder_ship_date_estimate')),
     stock_qty: normInt(col(raw, 'Stock (quantité)', 'Stock quantite', 'stock_qty')),
-    sizes: normList(col(raw, 'Tailles (séparées par |)', 'Tailles separees par', 'sizes')),
     colors: normList(col(raw, 'Couleurs (séparées par |)', 'Couleurs separees par', 'colors')),
     materials: normList(col(raw, 'Matières - tags (séparées par |)', 'Matieres tags separees par', 'materials_list', 'materials')),
     braiding_options: normList(col(raw, 'Tressages (séparées par |)', 'Tressages separees par', 'braiding_options')),
     braiding_colors: normList(col(raw, 'Couleurs de tressage (séparées par |)', 'Couleurs de tressage separees par', 'braiding_colors')),
     _editorial_blocks_fr: editorialBlocks,
   };
+}
+
+/* ── Compare price_by_size_eur ── */
+function comparePriceBySizeEur(a: Record<string, number>, b: Record<string, number>): boolean {
+  const keysA = Object.keys(a).sort();
+  const keysB = Object.keys(b).sort();
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every((k, i) => k === keysB[i] && a[k] === b[k]);
 }
 
 /* ── Compare (FR-only, no EN comparison) ── */
@@ -141,6 +197,12 @@ function compareFields(parsed: any, existing: any): string[] {
   }
 
   if (parsed.base_price_eur !== (existing.base_price_eur ?? 0)) changes.push('base_price_eur');
+
+  // price_by_size_eur
+  const existingPBS = (existing.price_by_size_eur as Record<string, number>) || {};
+  if (!comparePriceBySizeEur(parsed.price_by_size_eur || {}, existingPBS)) {
+    changes.push('price_by_size_eur');
+  }
 
   const boolFields = ['made_to_order', 'made_to_measure', 'preorder'];
   for (const f of boolFields) {
@@ -229,6 +291,12 @@ export async function previewProductImport(rows: Record<string, any>[]): Promise
     const status = mapStatus(statusRaw);
     if (statusRaw && !status) {
       messages.push({ severity: 'error', message: `Statut invalide: "${statusRaw}" (attendu: Actif/Brouillon)` });
+    }
+
+    // Validate pricing: at least one price must be set
+    const { base_price_eur: parsedPrice } = parseSizePricing(raw);
+    if (parsedPrice <= 0) {
+      messages.push({ severity: 'error', message: 'Aucun prix renseigné (Prix EUR ou prix par taille requis)' });
     }
 
     // Validate made_to_order days
@@ -331,7 +399,6 @@ export async function executeProductImport(
       translations = await translateTexts(textsToTranslate);
       if (Object.keys(translations).length === 0) {
         warnings.push({ severity: 'warning', message: `${r.referenceCode}: Traduction échouée, fallback FR→EN appliqué` });
-        // Fallback: copy FR to EN
         for (const [k, v] of Object.entries(textsToTranslate)) {
           translations[k.replace('_fr', '_en')] = v;
         }
