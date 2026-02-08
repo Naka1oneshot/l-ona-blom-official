@@ -158,6 +158,7 @@ const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount,
               <label className={labelClass}>Taille police</label>
               <select value={block.font_size || 'base'} onChange={e => updateBlock(index, 'font_size', e.target.value)}
                 className={inputClass}>
+                <option value="xs">Très petit</option>
                 <option value="sm">Petit</option>
                 <option value="base">Normal</option>
                 <option value="lg">Grand</option>
