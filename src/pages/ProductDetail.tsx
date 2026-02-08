@@ -17,6 +17,7 @@ import StickyAddToCart from '@/components/product/StickyAddToCart';
 import { Product, MeasurementData } from '@/types';
 import { generateFallbackBlocks, EditorialBlock } from '@/types/editorial';
 import FlyToCartAnimation from '@/components/FlyToCartAnimation';
+import brandLogoText from '@/assets/logo-text-brand.png';
 
 const emptyMeasurements: MeasurementData = {
   bust: '', waist: '', hips: '', shoulder_width: '', arm_length: '', total_length: '', notes: '',
@@ -389,6 +390,19 @@ const ProductDetail = () => {
       {/* Scrollytelling editorial section */}
       {editorialBlocks.length > 0 && (
         <div className="-mt-8 md:-mt-12">
+          {/* Brand logo + scroll indicator */}
+          <div className="flex flex-col items-center gap-4 py-8 md:py-12">
+            <img src={brandLogoText} alt="LÉONA BLOM" className="h-8 md:h-12 object-contain opacity-80" />
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              className="text-foreground/30"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </motion.div>
+          </div>
           <Scrollytelling
             images={product.images}
             blocks={editorialBlocks}
