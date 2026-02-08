@@ -1,18 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import type { EditorialBlock } from '@/types/editorial';
 import { EDITORIAL_STYLES } from '@/types/editorial';
+import MiniRichEditor from '@/components/admin/MiniRichEditor';
 
 interface Props {
   blocks: EditorialBlock[];
   onChange: (blocks: EditorialBlock[]) => void;
   imageCount: number;
+  customStyles?: { value: string; label: string }[];
+  onCustomStylesChange?: (styles: { value: string; label: string }[]) => void;
 }
 
 const inputClass = "w-full border border-border bg-transparent px-3 py-2 text-sm font-body focus:outline-none focus:border-primary transition-colors";
 const labelClass = "text-[10px] tracking-[0.2em] uppercase font-body block mb-1.5 text-muted-foreground";
 
-const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount }) => {
+const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount, customStyles = [], onCustomStylesChange }) => {
+  const [newStyleLabel, setNewStyleLabel] = useState('');
+
+  const allStyles = [
+    ...EDITORIAL_STYLES,
+    ...customStyles,
+  ];
+
   const addBlock = () => {
     const newBlock: EditorialBlock = {
       id: `blk-${Date.now()}`,
@@ -43,6 +53,19 @@ const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount 
     const updated = [...blocks];
     [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
     onChange(updated);
+  };
+
+  const addCustomStyle = () => {
+    const label = newStyleLabel.trim();
+    if (!label) return;
+    const value = `custom-${label.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+    if (allStyles.some(s => s.value === value)) return;
+    onCustomStylesChange?.([...customStyles, { value, label }]);
+    setNewStyleLabel('');
+  };
+
+  const removeCustomStyle = (value: string) => {
+    onCustomStylesChange?.(customStyles.filter(s => s.value !== value));
   };
 
   return (
@@ -105,13 +128,19 @@ const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Texte FR *</label>
-              <textarea value={block.body_fr} onChange={e => updateBlock(index, 'body_fr', e.target.value)}
-                className={`${inputClass} min-h-[100px] resize-y`} placeholder="Contenu narratif..." />
+              <MiniRichEditor
+                value={block.body_fr}
+                onChange={(html) => updateBlock(index, 'body_fr', html)}
+                placeholder="Contenu narratif..."
+              />
             </div>
             <div>
               <label className={labelClass}>Texte EN</label>
-              <textarea value={block.body_en} onChange={e => updateBlock(index, 'body_en', e.target.value)}
-                className={`${inputClass} min-h-[100px] resize-y`} placeholder="Narrative content (optional)..." />
+              <MiniRichEditor
+                value={block.body_en}
+                onChange={(html) => updateBlock(index, 'body_en', html)}
+                placeholder="Narrative content (optional)..."
+              />
             </div>
           </div>
 
@@ -120,7 +149,7 @@ const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount 
               <label className={labelClass}>Style</label>
               <select value={block.style} onChange={e => updateBlock(index, 'style', e.target.value)}
                 className={inputClass}>
-                {EDITORIAL_STYLES.map(s => (
+                {allStyles.map(s => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
@@ -141,6 +170,38 @@ const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount 
           </div>
         </div>
       ))}
+
+      {/* Custom styles management */}
+      {onCustomStylesChange && (
+        <div className="border border-dashed border-border rounded-lg p-4 space-y-3">
+          <label className={labelClass}>Styles personnalisés</label>
+          <div className="flex gap-2">
+            <input
+              value={newStyleLabel}
+              onChange={e => setNewStyleLabel(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomStyle())}
+              className={`${inputClass} flex-1`}
+              placeholder="Nom du nouveau style…"
+            />
+            <button type="button" onClick={addCustomStyle}
+              className="px-3 py-1.5 text-xs tracking-wider uppercase font-body border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
+              Créer
+            </button>
+          </div>
+          {customStyles.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {customStyles.map(s => (
+                <span key={s.value} className="inline-flex items-center gap-1.5 text-xs font-body bg-secondary px-2.5 py-1 rounded-full">
+                  {s.label}
+                  <button type="button" onClick={() => removeCustomStyle(s.value)} className="text-destructive/60 hover:text-destructive">
+                    <Trash2 size={10} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
