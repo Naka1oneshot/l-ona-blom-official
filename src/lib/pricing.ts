@@ -1,6 +1,6 @@
 import type { Product, SizeCode } from '@/types';
 
-export const STANDARD_SIZES: SizeCode[] = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+export const STANDARD_SIZES: SizeCode[] = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 export const ALL_SIZE_CODES: SizeCode[] = ['TU', ...STANDARD_SIZES];
 
 /** Determine sizes from a size_set string */

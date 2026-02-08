@@ -281,7 +281,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
                 onChange={() => handleSizeSetChange('standard')}
                 className="accent-primary"
               />
-              Tailles standard (S → 3XL)
+              Tailles standard (XS → 3XL)
             </label>
           </div>
 

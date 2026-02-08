@@ -97,6 +97,7 @@ function parseSizePricing(raw: Record<string, any>): {
 
   // Read individual size prices
   const priceTU = normPriceToCents(col(raw, 'Prix TU (EUR)', 'Prix TU EUR', 'price_tu_eur'));
+  const priceXS = normPriceToCents(col(raw, 'Prix XS (EUR)', 'Prix XS EUR', 'price_xs_eur'));
   const priceS = normPriceToCents(col(raw, 'Prix S (EUR)', 'Prix S EUR', 'price_s_eur'));
   const priceM = normPriceToCents(col(raw, 'Prix M (EUR)', 'Prix M EUR', 'price_m_eur'));
   const priceL = normPriceToCents(col(raw, 'Prix L (EUR)', 'Prix L EUR', 'price_l_eur'));
@@ -105,7 +106,7 @@ function parseSizePricing(raw: Record<string, any>): {
   const price3XL = normPriceToCents(col(raw, 'Prix 3XL (EUR)', 'Prix 3XL EUR', 'price_3xl_eur'));
 
   const sizePriceMap: Record<string, number> = {
-    TU: priceTU, S: priceS, M: priceM, L: priceL, XL: priceXL, '2XL': price2XL, '3XL': price3XL,
+    TU: priceTU, XS: priceXS, S: priceS, M: priceM, L: priceL, XL: priceXL, '2XL': price2XL, '3XL': price3XL,
   };
 
   // Determine size set
@@ -115,7 +116,7 @@ function parseSizePricing(raw: Record<string, any>): {
     sizeSet = 'TU';
   } else if (!sizeSetRaw) {
     // Auto-detect: if TU price set and no standard prices, assume TU
-    if (priceTU > 0 && priceS === 0 && priceM === 0 && priceL === 0) {
+    if (priceTU > 0 && priceXS === 0 && priceS === 0 && priceM === 0 && priceL === 0) {
       sizeSet = 'TU';
     }
   }

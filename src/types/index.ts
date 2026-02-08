@@ -1,6 +1,6 @@
 export type Language = 'fr' | 'en';
 export type Currency = 'EUR' | 'USD' | 'GBP' | 'CAD';
-export type SizeCode = 'TU' | 'S' | 'M' | 'L' | 'XL' | '2XL' | '3XL';
+export type SizeCode = 'TU' | 'XS' | 'S' | 'M' | 'L' | 'XL' | '2XL' | '3XL';
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   EUR: '€',
