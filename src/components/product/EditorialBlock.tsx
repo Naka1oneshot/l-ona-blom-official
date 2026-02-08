@@ -36,8 +36,8 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             transition={{ duration: 0.8 }}
             className="border-l-2 border-primary pl-8 md:pl-12"
           >
-            <div className={`text-display ${block.font_size === '2xl' ? 'text-3xl md:text-4xl lg:text-5xl' : block.font_size === 'xl' ? 'text-2xl md:text-3xl lg:text-4xl' : 'text-2xl md:text-3xl lg:text-4xl'} italic leading-relaxed text-foreground/90`}
-              dangerouslySetInnerHTML={{ __html: `\u201C\u202F${body}\u202F\u201D` }} />
+            <div className={`text-display ${block.font_size === '2xl' ? 'text-3xl md:text-4xl lg:text-5xl' : block.font_size === 'xl' ? 'text-2xl md:text-3xl lg:text-4xl' : 'text-2xl md:text-3xl lg:text-4xl'} italic leading-relaxed text-foreground/90 editorial-quote`}
+              dangerouslySetInnerHTML={{ __html: body }} />
             {title && (
               <p className="mt-6 text-xs tracking-[0.2em] uppercase font-body text-muted-foreground">
                 — {title}
