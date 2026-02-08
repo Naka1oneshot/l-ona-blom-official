@@ -181,8 +181,8 @@ const Collections = () => {
                       {/* Dark overlay for text readability */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:from-black/70 transition-colors duration-500" />
 
-                      {/* Title overlay */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 lg:pb-16 px-6 text-center">
+                      {/* Title overlay + chevron */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 md:pb-10 lg:pb-12 px-6 text-center">
                         {isAdmin ? (
                           <div onClick={(e) => e.preventDefault()}>
                             <EditableDBField
@@ -219,6 +219,29 @@ const Collections = () => {
                             />
                           </div>
                         )}
+
+                        {/* Chevron down on cover */}
+                        <Link
+                          to={`/collections/${c.slug}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-4 md:mt-6 inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/40 text-white/70 hover:text-white hover:border-white/70 transition-all duration-300"
+                        >
+                          <motion.svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            animate={{ y: [0, 4, 0] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </motion.svg>
+                        </Link>
                       </div>
 
                       {/* Admin focal point picker */}
@@ -243,7 +266,7 @@ const Collections = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: '-40px' }}
                         transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
-                        className="bg-primary/90 backdrop-blur-md rounded-b-sm px-6 py-10 md:px-12 md:py-14 lg:px-16 lg:py-16"
+                        className="bg-gradient-to-b from-primary/95 via-primary/85 to-primary/75 backdrop-blur-md rounded-b-sm px-6 py-10 md:px-12 md:py-14 lg:px-16 lg:py-16"
                       >
                         {/* Narrative excerpt */}
                         {(excerpt || (isAdmin && narrative)) && (
@@ -266,28 +289,6 @@ const Collections = () => {
                                 </p>
                               </Link>
                             )}
-
-                            {/* Chevron down button */}
-                            <Link
-                              to={`/collections/${c.slug}`}
-                              className="inline-flex items-center justify-center mt-6 w-10 h-10 rounded-full border border-primary-foreground/30 text-primary-foreground/70 hover:text-primary-foreground hover:border-primary-foreground/60 transition-all duration-300 group/chevron"
-                            >
-                              <motion.svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                animate={{ y: [0, 4, 0] }}
-                                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                              >
-                                <polyline points="6 9 12 15 18 9" />
-                              </motion.svg>
-                            </Link>
                           </div>
                         )}
 
