@@ -96,25 +96,33 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {language === 'fr' ? 'Découvrir' : 'Discover'}
           </span>
           {/* Product type badges */}
-          {(product.made_to_order || product.preorder || product.made_to_measure) && (
-            <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-              {product.made_to_order && (
-                <span className="text-[9px] tracking-[0.15em] uppercase bg-foreground text-background px-2.5 py-1 font-body">
-                  {t('shop.made_to_order')}
-                </span>
-              )}
-              {product.preorder && (
-                <span className="text-[9px] tracking-[0.15em] uppercase bg-primary text-primary-foreground px-2.5 py-1 font-body">
-                  {t('shop.preorder')}
-                </span>
-              )}
-              {product.made_to_measure && (
-                <span className="text-[9px] tracking-[0.15em] uppercase bg-accent text-accent-foreground px-2.5 py-1 font-body">
-                  {language === 'fr' ? 'Sur mesure' : 'Bespoke'}
-                </span>
-              )}
-            </div>
-          )}
+          {(() => {
+            const isInStock = !product.made_to_order && !product.preorder && !product.made_to_measure && (product.stock_qty === null || product.stock_qty > 0);
+            return (product.made_to_order || product.preorder || product.made_to_measure || isInStock) ? (
+              <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                {isInStock && (
+                  <span className="text-[9px] tracking-[0.15em] uppercase bg-green-800 text-white px-2.5 py-1 font-body">
+                    {language === 'fr' ? 'En stock' : 'In stock'}
+                  </span>
+                )}
+                {product.made_to_order && (
+                  <span className="text-[9px] tracking-[0.15em] uppercase bg-foreground text-background px-2.5 py-1 font-body">
+                    {t('shop.made_to_order')}
+                  </span>
+                )}
+                {product.preorder && (
+                  <span className="text-[9px] tracking-[0.15em] uppercase bg-primary text-primary-foreground px-2.5 py-1 font-body">
+                    {t('shop.preorder')}
+                  </span>
+                )}
+                {product.made_to_measure && (
+                  <span className="text-[9px] tracking-[0.15em] uppercase bg-accent text-accent-foreground px-2.5 py-1 font-body">
+                    {language === 'fr' ? 'Sur mesure' : 'Bespoke'}
+                  </span>
+                )}
+              </div>
+            ) : null;
+          })()}
         </div>
         <h3 className="text-display text-sm sm:text-lg mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
         <div className="flex items-center justify-between gap-2">
