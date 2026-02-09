@@ -103,7 +103,7 @@ const App = () => (
                     {/* Public & customer routes — wrapped in ComingSoonGate */}
                     <Route path="/" element={<ComingSoonGate><Layout><Index /></Layout></ComingSoonGate>} />
                     <Route path="/boutique" element={<ComingSoonGate><Layout><Shop /></Layout></ComingSoonGate>} />
-                    <Route path="/boutique/:slug" element={<ComingSoonGate><Layout><ProductDetail /></Layout></ComingSoonGate>} />
+                    <Route path="/boutique/:slug" element={<ComingSoonGate><Layout hideFooter><ProductDetail /></Layout></ComingSoonGate>} />
                     <Route path="/collections" element={<ComingSoonGate><Layout><Collections /></Layout></ComingSoonGate>} />
                     <Route path="/collections/:slug" element={<ComingSoonGate><Layout><CollectionDetail /></Layout></ComingSoonGate>} />
                     <Route path="/a-propos" element={<ComingSoonGate><Layout><About /></Layout></ComingSoonGate>} />

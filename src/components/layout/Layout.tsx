@@ -7,9 +7,10 @@ import ThemeHintOverlay from '@/components/admin/ThemeHintOverlay';
 
 interface LayoutProps {
   children: React.ReactNode;
+  hideFooter?: boolean;
 }
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children, hideFooter }: LayoutProps) => {
   return (
     <HelmetProvider>
       <div className="min-h-screen flex flex-col">
@@ -17,7 +18,7 @@ const Layout = ({ children }: LayoutProps) => {
         <main className="flex-1 bg-background">
           {children}
         </main>
-        <Footer />
+        {!hideFooter && <Footer />}
         <FloatingThemeEditor />
         <ThemeHintOverlay />
       </div>
