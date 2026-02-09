@@ -120,6 +120,7 @@ const FloatingThemeEditor = () => {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 360, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            data-theme-editor
             className="fixed top-0 right-0 bottom-0 z-[9999] w-[320px] bg-background text-foreground border-l border-border shadow-2xl flex flex-col"
           >
             {/* Header */}
