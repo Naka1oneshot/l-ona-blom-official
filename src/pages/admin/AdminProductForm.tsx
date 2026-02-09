@@ -436,12 +436,21 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
                               type="color"
                               value={hex}
                               onChange={e => setColorAt(colorName, idx, e.target.value)}
-                              className="w-8 h-8 rounded-full border border-border cursor-pointer p-0 overflow-hidden"
+                              className="w-10 h-10 sm:w-8 sm:h-8 rounded-full border border-border cursor-pointer p-0 overflow-hidden shrink-0"
                               style={{ WebkitAppearance: 'none' }}
                             />
-                            <span className="text-[10px] text-muted-foreground font-mono">{hex}</span>
+                            <input
+                              type="text"
+                              value={hex}
+                              onChange={e => {
+                                const v = e.target.value;
+                                if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setColorAt(colorName, idx, v);
+                              }}
+                              className="w-20 text-[11px] font-mono border border-border bg-transparent px-2 py-1 rounded focus:outline-none focus:border-primary"
+                              maxLength={7}
+                            />
                             {hexArr.length > 1 && (
-                              <button type="button" onClick={() => removeColor(colorName, idx)} className="text-[10px] text-destructive hover:underline">×</button>
+                              <button type="button" onClick={() => removeColor(colorName, idx)} className="text-sm text-destructive hover:underline px-1">×</button>
                             )}
                           </div>
                         ))}
