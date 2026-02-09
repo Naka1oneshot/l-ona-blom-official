@@ -78,15 +78,19 @@ const ProductCard = ({ product }: ProductCardProps) => {
             style={{ imageRendering: 'auto' }}
             loading="lazy"
           />
-          {product.images[1] && (
-            <img
-              src={cardImage(product.images[1])}
-              alt={name}
-              className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
-              style={{ imageRendering: 'auto' }}
-              loading="lazy"
-            />
-          )}
+          {(() => {
+            const hoverIdx = product.hover_image_index ?? 1;
+            const hoverImg = product.images[hoverIdx] || product.images[1];
+            return hoverImg ? (
+              <img
+                src={cardImage(hoverImg)}
+                alt={name}
+                className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
+                style={{ imageRendering: 'auto' }}
+                loading="lazy"
+              />
+            ) : null;
+          })()}
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-500" />
           <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] tracking-[0.2em] uppercase font-body bg-background/90 text-foreground px-5 py-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400 pointer-events-none backdrop-blur-sm">
             {language === 'fr' ? 'Découvrir' : 'Discover'}

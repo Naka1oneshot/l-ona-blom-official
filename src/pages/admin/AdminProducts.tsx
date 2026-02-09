@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminProductForm from './AdminProductForm';
 
@@ -23,7 +23,7 @@ const AdminProducts = () => {
   }, [products, searchParams]);
 
   async function load() {
-    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase.from('products').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: false });
     setProducts(data || []);
   }
 
@@ -32,6 +32,31 @@ const AdminProducts = () => {
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) toast.error(error.message);
     else { toast.success('Produit supprimé'); load(); }
+  }
+
+  async function moveProduct(index: number, direction: -1 | 1) {
+    const swapIndex = index + direction;
+    if (swapIndex < 0 || swapIndex >= products.length) return;
+
+    const a = products[index];
+    const b = products[swapIndex];
+
+    // Swap sort_order values
+    const aOrder = a.sort_order ?? index;
+    const bOrder = b.sort_order ?? swapIndex;
+
+    const updates = [
+      supabase.from('products').update({ sort_order: bOrder }).eq('id', a.id),
+      supabase.from('products').update({ sort_order: aOrder }).eq('id', b.id),
+    ];
+
+    // Optimistic update
+    const newProducts = [...products];
+    newProducts[index] = { ...b, sort_order: aOrder };
+    newProducts[swapIndex] = { ...a, sort_order: bOrder };
+    setProducts(newProducts);
+
+    await Promise.all(updates);
   }
 
   if (creating || editing) {
@@ -60,8 +85,35 @@ const AdminProducts = () => {
         {products.length === 0 && (
           <p className="p-6 text-sm text-muted-foreground font-body">Aucun produit.</p>
         )}
-        {products.map(p => (
-          <div key={p.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+        {products.map((p, i) => (
+          <div key={p.id} className="flex items-center gap-2 p-4 hover:bg-muted/30 transition-colors">
+            {/* Sort controls */}
+            <div className="flex flex-col gap-0.5 shrink-0">
+              <button
+                onClick={() => moveProduct(i, -1)}
+                disabled={i === 0}
+                className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
+                aria-label="Monter"
+              >
+                <ChevronUp size={14} />
+              </button>
+              <button
+                onClick={() => moveProduct(i, 1)}
+                disabled={i === products.length - 1}
+                className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
+                aria-label="Descendre"
+              >
+                <ChevronDown size={14} />
+              </button>
+            </div>
+
+            {/* Thumbnail */}
+            {p.images?.[0] && (
+              <div className="w-10 h-14 bg-secondary rounded overflow-hidden shrink-0">
+                <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
+              </div>
+            )}
+
             <div className="flex-1 min-w-0">
               <p className="text-sm font-body font-medium truncate">
                 {p.reference_code && <span className="text-muted-foreground font-normal mr-1.5">{p.reference_code}</span>}

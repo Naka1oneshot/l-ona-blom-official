@@ -26,7 +26,7 @@ const Shop = () => {
 
       // Fetch products and categories separately for robustness
       const [{ data: prodData }, { data: catData }, { data: groupData }] = await Promise.all([
-        supabase.from('products').select('*').eq('status', 'active').order('created_at', { ascending: false }),
+        supabase.from('products').select('*').eq('status', 'active').order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
         supabase.from('categories').select('*'),
         supabase.from('category_groups').select('*'),
       ]);
