@@ -37,9 +37,10 @@ const getHexColors = (map: Record<string, any> | undefined, name: string): strin
 
 interface ProductCardProps {
   product: Product;
+  priority?: boolean;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   const { language, t } = useLanguage();
   const { formatPrice } = useCurrency();
 
@@ -76,7 +77,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
             alt={name}
             className="w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
             style={{ imageRendering: 'auto' }}
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            decoding={priority ? 'sync' : 'async'}
+            fetchPriority={priority ? 'high' : 'low'}
           />
           {(() => {
             const hoverIdx = product.hover_image_index ?? 1;
@@ -84,10 +87,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
             return hoverImg ? (
               <img
                 src={cardImage(hoverImg)}
-                alt={name}
+                alt=""
                 className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
                 style={{ imageRendering: 'auto' }}
                 loading="lazy"
+                decoding="async"
+                fetchPriority="low"
               />
             ) : null;
           })()}

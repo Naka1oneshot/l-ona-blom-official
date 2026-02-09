@@ -26,7 +26,7 @@ const Shop = () => {
 
       // Fetch products and categories separately for robustness
       const [{ data: prodData }, { data: catData }, { data: groupData }] = await Promise.all([
-        supabase.from('products').select('*').eq('status', 'active').order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
+        supabase.from('products').select('id,slug,status,category,category_id,name_fr,name_en,base_price_eur,price_by_size_eur,price_overrides,images,sizes,colors,materials,braiding_options,braiding_colors,color_hex_map,stock_qty,made_to_order,made_to_measure,preorder,hover_image_index,sort_order,created_at').eq('status', 'active').order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
         supabase.from('categories').select('*'),
         supabase.from('category_groups').select('*'),
       ]);
@@ -155,7 +155,7 @@ const Shop = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.35, delay: i * 0.06 }}
                     >
-                      <ProductCard product={product} />
+                      <ProductCard product={product} priority={i < 6} />
                     </motion.div>
                   ))}
                 </div>
