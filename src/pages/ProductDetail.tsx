@@ -171,14 +171,23 @@ const ProductDetail = () => {
       setFlyAnim({ imageUrl: product.images[activeImage], rect: imgEl.getBoundingClientRect() });
     }
 
-    addItem(product, {
+    const splitInfo = addItem(product, {
       size: selectedSize || (isTU ? 'TU' : undefined),
       color: selectedColor,
       braiding: selectedBraiding,
       braiding_color: selectedBraidingColor || undefined,
       measurements: product.made_to_measure ? measurements : undefined,
     });
-    toast.success(language === 'fr' ? 'Ajouté au panier' : 'Added to cart');
+    if (splitInfo) {
+      toast.info(
+        language === 'fr'
+          ? `${splitInfo.inStock} en stock · ${splitInfo.madeToOrder} confectionné${splitInfo.madeToOrder > 1 ? 's' : ''} sur commande`
+          : `${splitInfo.inStock} in stock · ${splitInfo.madeToOrder} made to order`,
+        { duration: 5000 }
+      );
+    } else {
+      toast.success(language === 'fr' ? 'Ajouté au panier' : 'Added to cart');
+    }
   };
 
   // Badges
