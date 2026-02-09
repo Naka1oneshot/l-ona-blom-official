@@ -17,7 +17,7 @@ export function optimizeImage(
   if (opts.width) params.set('width', String(opts.width));
   if (opts.height) params.set('height', String(opts.height));
   params.set('quality', String(opts.quality ?? 80));
-  params.set('format', 'origin'); // keep original format to avoid moiré from re-encoding
+  params.set('format', 'webp');
 
   const separator = url.includes('?') ? '&' : '?';
   return `${url}${separator}${params.toString()}`;
