@@ -320,19 +320,49 @@ const ProductDetail = () => {
               <div className="mb-6">
                 <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-3">{t('product.select_size')}</label>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map(size => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
-                        selectedSize === size
-                          ? 'border-foreground bg-foreground text-background'
-                          : 'border-foreground/20 hover:border-foreground/60'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {product.sizes.map(size => {
+                    const sizeStock = product.stock_by_size?.[size];
+                    const hasStockInfo = sizeStock != null;
+                    const inStock = hasStockInfo && sizeStock > 0;
+                    const outOfStock = hasStockInfo && sizeStock === 0;
+                    const showMTO = outOfStock && product.made_to_order;
+                    const isDisabled = outOfStock && !product.made_to_order;
+
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => !isDisabled && setSelectedSize(size)}
+                        disabled={isDisabled}
+                        className={`relative px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
+                          isDisabled
+                            ? 'border-foreground/10 text-muted-foreground/40 cursor-not-allowed line-through'
+                            : selectedSize === size
+                              ? 'border-foreground bg-foreground text-background'
+                              : 'border-foreground/20 hover:border-foreground/60'
+                        }`}
+                      >
+                        <span>{size}</span>
+                        {hasStockInfo && (
+                          <span className={`block text-[8px] tracking-[0.1em] mt-0.5 ${
+                            selectedSize === size
+                              ? 'text-background/70'
+                              : inStock
+                                ? 'text-green-600'
+                                : showMTO
+                                  ? 'text-amber-600'
+                                  : 'text-muted-foreground/50'
+                          }`}>
+                            {inStock
+                              ? (language === 'fr' ? `${sizeStock} en stock` : `${sizeStock} in stock`)
+                              : showMTO
+                                ? (language === 'fr' ? 'Sur commande' : 'Made to order')
+                                : (language === 'fr' ? 'Épuisé' : 'Sold out')
+                            }
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

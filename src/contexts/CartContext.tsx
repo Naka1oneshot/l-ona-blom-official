@@ -29,10 +29,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const existing = prev.find(i => i.product.id === product.id && i.size === options?.size && i.color === options?.color);
       const currentQty = existing ? existing.quantity : 0;
       const newQty = currentQty + 1;
-      const stock = product.stock_qty;
 
-      if (stock != null && newQty > stock) {
-        splitInfo = { inStock: stock, madeToOrder: newQty - stock, total: newQty };
+      // Determine stock for the specific size, fallback to global stock_qty
+      const sizeStock = options?.size && product.stock_by_size?.[options.size] != null
+        ? product.stock_by_size[options.size]
+        : product.stock_qty;
+
+      if (sizeStock != null && newQty > sizeStock) {
+        splitInfo = { inStock: sizeStock, madeToOrder: newQty - sizeStock, total: newQty };
       }
 
       if (existing) {
@@ -60,9 +64,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     let splitInfo: StockSplitInfo | null = null;
     setItems(prev => prev.map(i => {
       if (i.product.id !== productId) return i;
-      const stock = i.product.stock_qty;
-      if (stock != null && qty > stock) {
-        splitInfo = { inStock: stock, madeToOrder: qty - stock, total: qty };
+      // Determine stock for the specific size, fallback to global stock_qty
+      const sizeStock = i.size && i.product.stock_by_size?.[i.size] != null
+        ? i.product.stock_by_size[i.size]
+        : i.product.stock_qty;
+      if (sizeStock != null && qty > sizeStock) {
+        splitInfo = { inStock: sizeStock, madeToOrder: qty - sizeStock, total: qty };
       }
       return { ...i, quantity: qty };
     }));

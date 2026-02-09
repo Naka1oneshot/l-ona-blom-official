@@ -478,6 +478,7 @@ export type Database = {
           slug: string
           sort_order: number
           status: string
+          stock_by_size: Json
           stock_qty: number | null
           story_en: string | null
           story_fr: string | null
@@ -518,6 +519,7 @@ export type Database = {
           slug: string
           sort_order?: number
           status?: string
+          stock_by_size?: Json
           stock_qty?: number | null
           story_en?: string | null
           story_fr?: string | null
@@ -558,6 +560,7 @@ export type Database = {
           slug?: string
           sort_order?: number
           status?: string
+          stock_by_size?: Json
           stock_qty?: number | null
           story_en?: string | null
           story_fr?: string | null

@@ -32,6 +32,7 @@ export const mockProducts: Product[] = [
     braiding_colors: [],
     color_hex_map: {},
     stock_qty: null,
+    stock_by_size: {},
     editorial_blocks_json: null,
   },
   {
@@ -65,6 +66,7 @@ export const mockProducts: Product[] = [
     braiding_colors: [],
     color_hex_map: {},
     stock_qty: null,
+    stock_by_size: {},
     editorial_blocks_json: null,
   },
   {
@@ -97,6 +99,7 @@ export const mockProducts: Product[] = [
     braiding_colors: [],
     color_hex_map: {},
     stock_qty: 12,
+    stock_by_size: {},
     editorial_blocks_json: null,
   },
 ];

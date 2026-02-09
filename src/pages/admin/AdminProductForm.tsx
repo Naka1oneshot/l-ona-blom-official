@@ -52,6 +52,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     braiding_colors: (product?.braiding_colors || []).join(', '),
     color_hex_map: (product?.color_hex_map || {}) as Record<string, string | string[]>,
     stock_qty: product?.stock_qty ?? '',
+    stock_by_size: (product?.stock_by_size || {}) as Record<string, number>,
     images: product?.images || [],
     hover_image_index: product?.hover_image_index ?? null,
     editorial_blocks_json: (product?.editorial_blocks_json || []) as EditorialBlock[],
@@ -153,6 +154,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       braiding_colors: form.braiding_colors.split(',').map(s => s.trim()).filter(Boolean),
       color_hex_map: form.color_hex_map,
       stock_qty: form.stock_qty === '' ? null : Number(form.stock_qty),
+      stock_by_size: form.stock_by_size,
       images: form.images,
       hover_image_index: form.hover_image_index,
       editorial_blocks_json: form.editorial_blocks_json.length > 0 ? JSON.parse(JSON.stringify(form.editorial_blocks_json)) : null,
@@ -359,9 +361,41 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           </div>
         </div>
 
-        <div>
-          <label className={labelClass}>Stock (vide = illimité)</label>
-          <input type="number" value={form.stock_qty} onChange={e => set('stock_qty', e.target.value)} className={`${inputClass} max-w-xs`} />
+        {/* Stock par taille */}
+        <div className="border border-border rounded-lg p-5 space-y-4">
+          <label className={labelClass}>Stock par taille (vide = illimité)</label>
+          <div className={`grid gap-3 ${sizeSet === 'TU' ? 'grid-cols-1 max-w-xs' : 'grid-cols-2 md:grid-cols-4'}`}>
+            {sizesToShow.map(size => (
+              <div key={size}>
+                <label className={labelClass}>Stock {size}</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.stock_by_size[size] != null ? form.stock_by_size[size] : ''}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setForm(p => {
+                      const updated = { ...p.stock_by_size };
+                      if (val === '') {
+                        delete updated[size];
+                      } else {
+                        updated[size] = parseInt(val, 10);
+                      }
+                      // Compute total stock_qty from all sizes
+                      const values = Object.values(updated);
+                      const totalStock = values.length > 0 ? values.reduce((a, b) => a + b, 0) : '';
+                      return { ...p, stock_by_size: updated, stock_qty: totalStock };
+                    });
+                  }}
+                  className={inputClass}
+                  placeholder="∞"
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground font-body">
+            Laissez vide pour un stock illimité sur cette taille. Le stock total est calculé automatiquement.
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-6">
