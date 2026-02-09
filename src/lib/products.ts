@@ -35,6 +35,7 @@ export function mapProduct(row: any): Product {
     braiding_colors: row.braiding_colors || [],
     color_hex_map: (row.color_hex_map as any) || {},
     stock_qty: row.stock_qty,
+    stock_by_size: (row.stock_by_size as any) || {},
     editorial_blocks_json: row.editorial_blocks_json as any[] | null,
     hover_image_index: row.hover_image_index ?? null,
     sort_order: row.sort_order ?? 0,
