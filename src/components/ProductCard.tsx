@@ -95,15 +95,25 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] tracking-[0.2em] uppercase font-body bg-background/90 text-foreground px-5 py-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400 pointer-events-none backdrop-blur-sm">
             {language === 'fr' ? 'Découvrir' : 'Discover'}
           </span>
-          {product.made_to_order && (
-            <span className="absolute top-4 left-4 text-[9px] tracking-[0.2em] uppercase bg-foreground text-background px-3 py-1.5 font-body">
-              {t('shop.made_to_order')}
-            </span>
-          )}
-          {product.preorder && (
-            <span className="absolute top-4 left-4 text-[9px] tracking-[0.2em] uppercase bg-primary text-primary-foreground px-3 py-1.5 font-body">
-              {t('shop.preorder')}
-            </span>
+          {/* Product type badges */}
+          {(product.made_to_order || product.preorder || product.made_to_measure) && (
+            <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+              {product.made_to_order && (
+                <span className="text-[9px] tracking-[0.15em] uppercase bg-foreground text-background px-2.5 py-1 font-body">
+                  {t('shop.made_to_order')}
+                </span>
+              )}
+              {product.preorder && (
+                <span className="text-[9px] tracking-[0.15em] uppercase bg-primary text-primary-foreground px-2.5 py-1 font-body">
+                  {t('shop.preorder')}
+                </span>
+              )}
+              {product.made_to_measure && (
+                <span className="text-[9px] tracking-[0.15em] uppercase bg-accent text-accent-foreground px-2.5 py-1 font-body">
+                  {language === 'fr' ? 'Sur mesure' : 'Bespoke'}
+                </span>
+              )}
+            </div>
           )}
         </div>
         <h3 className="text-display text-sm sm:text-lg mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
