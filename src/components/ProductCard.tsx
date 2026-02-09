@@ -7,12 +7,29 @@ import { getPriceRange } from '@/lib/pricing';
 import AdminEditButton from '@/components/AdminEditButton';
 import ColorSwatch from '@/components/product/ColorSwatch';
 
+const COLOR_NAME_FALLBACKS: Record<string, string> = {
+  noir: '#000000', noire: '#000000', black: '#000000',
+  blanc: '#ffffff', blanche: '#ffffff', white: '#ffffff',
+  rouge: '#cc0000', red: '#cc0000', bleu: '#0055aa', bleue: '#0055aa', blue: '#0055aa',
+  vert: '#228833', verte: '#228833', green: '#228833', jaune: '#ddcc00', yellow: '#ddcc00',
+  rose: '#e8507a', pink: '#e8507a', gris: '#888888', grise: '#888888', grey: '#888888',
+  beige: '#d4b896', ivoire: '#fffff0', marron: '#6b3a2a', brown: '#6b3a2a',
+  orange: '#dd6600', violet: '#6633aa', magenta: '#981d70',
+};
+
 const getHexColors = (map: Record<string, any> | undefined, name: string): string[] => {
-  if (!map) return [];
-  const val = map[name];
-  if (!val) return [];
-  if (Array.isArray(val)) return val.filter(Boolean);
-  if (typeof val === 'string') return [val];
+  if (map) {
+    const val = map[name];
+    if (val) {
+      if (Array.isArray(val)) { const f = val.filter(Boolean); if (f.length) return f; }
+      if (typeof val === 'string' && val) return [val];
+    }
+  }
+  const lower = name.toLowerCase().trim();
+  if (COLOR_NAME_FALLBACKS[lower]) return [COLOR_NAME_FALLBACKS[lower]];
+  for (const word of lower.split(/[\s,]+/)) {
+    if (COLOR_NAME_FALLBACKS[word]) return [COLOR_NAME_FALLBACKS[word]];
+  }
   return [];
 };
 
