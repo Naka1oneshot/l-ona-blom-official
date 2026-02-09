@@ -1,31 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Palette, X, RotateCcw, Save, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useEditMode } from '@/contexts/EditModeContext';
-import { getDefaultThemeValues, themeGroups } from '@/lib/defaultTheme';
+import { getDefaultThemeValues, themeGroups, themeTokens } from '@/lib/defaultTheme';
 import { parseHSL, hslToHex, hexToHSL } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 
-/** Curated quick-access tokens for on-page editing */
-const quickTokens = [
-  { cssVar: 'background', label: 'Fond de page', group: 'page' },
-  { cssVar: 'foreground', label: 'Texte principal', group: 'page' },
-  { cssVar: 'primary', label: 'Couleur principale', group: 'brand' },
-  { cssVar: 'primary-foreground', label: 'Texte sur CTA', group: 'brand' },
-  { cssVar: 'border', label: 'Bordures', group: 'page' },
-  { cssVar: 'muted', label: 'Fond atténué', group: 'page' },
-  { cssVar: 'muted-foreground', label: 'Texte atténué', group: 'page' },
-  { cssVar: 'footer-bg', label: 'Fond footer', group: 'footer' },
-  { cssVar: 'luxury-white', label: 'Blanc (footer/overlay)', group: 'footer' },
-  { cssVar: 'luxury-black', label: 'Noir profond', group: 'page' },
-  { cssVar: 'card', label: 'Fond carte', group: 'page' },
-  { cssVar: 'destructive', label: 'Erreur / supprimer', group: 'status' },
-  { cssVar: 'accent', label: 'Accent', group: 'brand' },
-  { cssVar: 'brand-gradient-dark', label: 'Dégradé sombre', group: 'brand' },
-  { cssVar: 'luxury-magenta-light', label: 'Magenta clair (hover)', group: 'brand' },
-  { cssVar: 'collection-editorial-bg', label: 'Encart éditorial collection', group: 'brand' },
-];
+const groupLabels: Record<string, string> = Object.fromEntries(
+  themeGroups.map(g => [g.key, g.label])
+);
 
 const FloatingThemeEditor = () => {
   const { editMode } = useEditMode();
@@ -34,12 +18,15 @@ const FloatingThemeEditor = () => {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const [showAll, setShowAll] = useState(false);
   const [search, setSearch] = useState('');
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (loaded) setDraft({ ...values });
   }, [loaded, values]);
+
+  const toggleGroup = (key: string) =>
+    setCollapsedGroups(prev => ({ ...prev, [key]: !prev[key] }));
 
   if (!editMode || !loaded) return null;
 
@@ -52,7 +39,6 @@ const FloatingThemeEditor = () => {
     try {
       const hsl = hexToHSL(hex);
       setDraft(prev => ({ ...prev, [cssVar]: hsl }));
-      // Live preview
       document.documentElement.style.setProperty(`--${cssVar}`, hsl);
     } catch {}
   };
@@ -66,46 +52,66 @@ const FloatingThemeEditor = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    try {
-      await save(draft);
-      toast.success('Thème enregistré');
-    } catch {
-      toast.error('Erreur');
-    }
+    try { await save(draft); toast.success('Thème enregistré'); }
+    catch { toast.error('Erreur'); }
     setSaving(false);
   };
 
   const handleReset = async () => {
     setSaving(true);
-    try {
-      await reset();
-      setDraft({ ...defaults });
-      toast.success('Thème réinitialisé');
-    } catch {
-      toast.error('Erreur');
-    }
+    try { await reset(); setDraft({ ...defaults }); toast.success('Thème réinitialisé'); }
+    catch { toast.error('Erreur'); }
     setSaving(false);
   };
 
   const isModified = (cssVar: string) => draft[cssVar] !== defaults[cssVar];
 
-  const allTokens = showAll
-    ? Object.keys(draft).map(cssVar => ({
-        cssVar,
-        label: quickTokens.find(t => t.cssVar === cssVar)?.label || `--${cssVar}`,
-      }))
-    : quickTokens;
+  // Filter tokens then group them
+  const filtered = themeTokens.filter(t =>
+    !search.trim() ||
+    t.label.toLowerCase().includes(search.toLowerCase()) ||
+    t.cssVar.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const tokensToShow = search.trim()
-    ? allTokens.filter(t =>
-        t.label.toLowerCase().includes(search.toLowerCase()) ||
-        t.cssVar.toLowerCase().includes(search.toLowerCase())
-      )
-    : allTokens;
+  const grouped = themeGroups
+    .map(g => ({
+      key: g.key,
+      label: g.label,
+      tokens: filtered.filter(t => t.group === g.key),
+    }))
+    .filter(g => g.tokens.length > 0);
+
+  const TokenRow = ({ cssVar, label }: { cssVar: string; label: string }) => {
+    const currentHsl = draft[cssVar] || defaults[cssVar] || '0 0% 50%';
+    const hex = getHex(currentHsl);
+    const modified = isModified(cssVar);
+    return (
+      <div className="flex items-center gap-2 px-4 py-1.5 hover:bg-muted/30 transition-colors">
+        <input
+          type="color"
+          value={hex}
+          onChange={e => handleHexChange(cssVar, e.target.value)}
+          className="w-6 h-6 border border-border cursor-pointer rounded-sm appearance-none bg-transparent [&::-webkit-color-swatch-wrapper]:p-0.5 [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-0 flex-shrink-0"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-body truncate">{label}</span>
+            {modified && <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />}
+          </div>
+        </div>
+        <input
+          type="text"
+          value={hex.toUpperCase()}
+          onChange={e => handleHexInput(cssVar, e.target.value)}
+          className="w-[72px] border border-border bg-transparent px-1.5 py-0.5 text-[10px] font-mono text-center focus:outline-none focus:border-primary transition-colors rounded-sm"
+          spellCheck={false}
+        />
+      </div>
+    );
+  };
 
   return (
     <>
-      {/* Floating trigger button */}
       <AnimatePresence>
         {!open && (
           <motion.button
@@ -121,7 +127,6 @@ const FloatingThemeEditor = () => {
         )}
       </AnimatePresence>
 
-      {/* Panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -156,51 +161,26 @@ const FloatingThemeEditor = () => {
               />
             </div>
 
-            {/* Token list */}
-            <div className="flex-1 overflow-y-auto py-2">
-              {tokensToShow.map(token => {
-                const currentHsl = draft[token.cssVar] || defaults[token.cssVar] || '0 0% 50%';
-                const hex = getHex(currentHsl);
-                const modified = isModified(token.cssVar);
-
+            {/* Grouped token list */}
+            <div className="flex-1 overflow-y-auto">
+              {grouped.map(group => {
+                const collapsed = collapsedGroups[group.key];
                 return (
-                  <div key={token.cssVar} className="flex items-center gap-2 px-4 py-2 hover:bg-muted/30 transition-colors">
-                    {/* Color swatch */}
-                    <input
-                      type="color"
-                      value={hex}
-                      onChange={e => handleHexChange(token.cssVar, e.target.value)}
-                      className="w-7 h-7 border border-border cursor-pointer rounded-sm appearance-none bg-transparent [&::-webkit-color-swatch-wrapper]:p-0.5 [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-0 flex-shrink-0"
-                    />
-
-                    {/* Label */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] font-body truncate">{token.label}</span>
-                        {modified && <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />}
-                      </div>
-                    </div>
-
-                    {/* HEX input */}
-                    <input
-                      type="text"
-                      value={hex.toUpperCase()}
-                      onChange={e => handleHexInput(token.cssVar, e.target.value)}
-                      className="w-[76px] border border-border bg-transparent px-1.5 py-0.5 text-[10px] font-mono text-center focus:outline-none focus:border-primary transition-colors"
-                      spellCheck={false}
-                    />
+                  <div key={group.key}>
+                    <button
+                      onClick={() => toggleGroup(group.key)}
+                      className="w-full flex items-center gap-1.5 px-4 py-2 text-[10px] tracking-[0.12em] uppercase font-body font-medium text-muted-foreground hover:text-foreground bg-muted/40 border-b border-border transition-colors"
+                    >
+                      {collapsed ? <ChevronRight size={11} /> : <ChevronDown size={11} />}
+                      {group.label}
+                      <span className="ml-auto text-[9px] opacity-60">{group.tokens.length}</span>
+                    </button>
+                    {!collapsed && group.tokens.map(t => (
+                      <TokenRow key={t.cssVar} cssVar={t.cssVar} label={t.label} />
+                    ))}
                   </div>
                 );
               })}
-
-              {/* Toggle show all */}
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className="w-full flex items-center justify-center gap-1 py-3 text-[10px] tracking-[0.12em] uppercase font-body text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showAll ? 'Moins de variables' : 'Toutes les variables'}
-                {showAll ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              </button>
             </div>
 
             {/* Footer actions */}
