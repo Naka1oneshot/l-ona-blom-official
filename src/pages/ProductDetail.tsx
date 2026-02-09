@@ -17,7 +17,19 @@ import StickyAddToCart from '@/components/product/StickyAddToCart';
 import { Product, MeasurementData } from '@/types';
 import { generateFallbackBlocks, EditorialBlock } from '@/types/editorial';
 import FlyToCartAnimation from '@/components/FlyToCartAnimation';
+import ColorSwatch from '@/components/product/ColorSwatch';
+import BraidingSwatch from '@/components/product/BraidingSwatch';
 import brandLogoText from '@/assets/logo-text-brand.png';
+
+/** Resolve hex values for a color name from color_hex_map. Supports string or string[] values. */
+const getHexColors = (map: Record<string, any> | undefined, name: string): string[] => {
+  if (!map) return [];
+  const val = map[name];
+  if (!val) return [];
+  if (Array.isArray(val)) return val.filter(Boolean);
+  if (typeof val === 'string') return [val];
+  return [];
+};
 
 const emptyMeasurements: MeasurementData = {
   bust: '', waist: '', hips: '', shoulder_width: '', arm_length: '', total_length: '', notes: '',
@@ -296,29 +308,32 @@ const ProductDetail = () => {
             {product.colors.length > 0 && (
               <div className="mb-6">
                 <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-3">{t('product.select_color')}</label>
+
+                {/* Large swatch preview for selected color */}
+                {selectedColor && getHexColors(product.color_hex_map, selectedColor).length > 0 && (
+                  <div className="flex items-center gap-3 mb-4">
+                    <ColorSwatch colors={getHexColors(product.color_hex_map, selectedColor)} size={48} />
+                    <span className="text-sm font-body text-foreground/80">{selectedColor}</span>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-2">
-                  {product.colors.map(color => {
-                    const hex = product.color_hex_map?.[color];
-                    return (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={`flex items-center gap-2 px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
-                          selectedColor === color
-                            ? 'border-foreground bg-foreground text-background'
-                            : 'border-foreground/20 hover:border-foreground/60'
-                        }`}
-                      >
-                        {hex && (
-                          <span
-                            className="w-4 h-4 rounded-full border border-foreground/20 flex-shrink-0"
-                            style={{ backgroundColor: hex }}
-                          />
-                        )}
-                        {color}
-                      </button>
-                    );
-                  })}
+                  {product.colors.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`flex items-center gap-2 px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
+                        selectedColor === color
+                          ? 'border-foreground bg-foreground text-background'
+                          : 'border-foreground/20 hover:border-foreground/60'
+                      }`}
+                    >
+                      {getHexColors(product.color_hex_map, color).length > 0 && (
+                        <ColorSwatch colors={getHexColors(product.color_hex_map, color)} size={16} />
+                      )}
+                      {color}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -351,17 +366,29 @@ const ProductDetail = () => {
                 <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-3">
                   {language === 'fr' ? 'Sélectionnez une couleur de tressage' : 'Select a braiding color'}
                 </label>
+
+                {/* Braiding swatch preview */}
+                {selectedBraidingColor && getHexColors(product.color_hex_map, selectedBraidingColor).length > 0 && (
+                  <div className="flex items-center gap-3 mb-4">
+                    <BraidingSwatch colors={getHexColors(product.color_hex_map, selectedBraidingColor)} size={48} />
+                    <span className="text-sm font-body text-foreground/80">{selectedBraidingColor}</span>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-2">
                   {product.braiding_colors.map(bc => (
                     <button
                       key={bc}
                       onClick={() => setSelectedBraidingColor(bc)}
-                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
+                      className={`flex items-center gap-2 px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
                         selectedBraidingColor === bc
                           ? 'border-foreground bg-foreground text-background'
                           : 'border-foreground/20 hover:border-foreground/60'
                       }`}
                     >
+                      {getHexColors(product.color_hex_map, bc).length > 0 && (
+                        <BraidingSwatch colors={getHexColors(product.color_hex_map, bc)} size={16} />
+                      )}
                       {bc}
                     </button>
                   ))}
