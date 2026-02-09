@@ -6,6 +6,7 @@ import { Product } from '@/types';
 import { getPriceRange } from '@/lib/pricing';
 import AdminEditButton from '@/components/AdminEditButton';
 import ColorSwatch from '@/components/product/ColorSwatch';
+import BraidingSwatch from '@/components/product/BraidingSwatch';
 
 const COLOR_NAME_FALLBACKS: Record<string, string> = {
   noir: '#000000', noire: '#000000', black: '#000000',
@@ -44,8 +45,22 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const name = language === 'fr' ? product.name_fr : product.name_en;
 
   const colorsWithHex = product.colors
-    .map(c => ({ name: c, hexes: getHexColors(product.color_hex_map, c) }))
+    .map(c => ({ name: c, hexes: getHexColors(product.color_hex_map, c), type: 'color' as const }))
     .filter(c => c.hexes.length > 0);
+
+  const braidingWithHex = (product.braiding_colors || [])
+    .map(c => ({ name: c, hexes: getHexColors(product.color_hex_map, c), type: 'braiding' as const }))
+    .filter(c => c.hexes.length > 0);
+
+  // Interleave: color, braiding, color, braiding…
+  const interleaved: { name: string; hexes: string[]; type: 'color' | 'braiding' }[] = [];
+  const maxLen = Math.max(colorsWithHex.length, braidingWithHex.length);
+  for (let i = 0; i < maxLen; i++) {
+    if (i < colorsWithHex.length) interleaved.push(colorsWithHex[i]);
+    if (i < braidingWithHex.length) interleaved.push(braidingWithHex[i]);
+  }
+
+  const maxSwatches = 5;
 
   return (
     <div className="relative group">
@@ -84,13 +99,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
               return formatPrice(range.min, product.price_overrides);
             })()}
           </p>
-          {colorsWithHex.length > 0 && (
+          {interleaved.length > 0 && (
             <div className="flex items-center gap-1">
-              {colorsWithHex.slice(0, 5).map(c => (
-                <ColorSwatch key={c.name} colors={c.hexes} size={14} />
-              ))}
-              {colorsWithHex.length > 5 && (
-                <span className="text-[10px] text-muted-foreground font-body ml-0.5">+{colorsWithHex.length - 5}</span>
+              {interleaved.slice(0, maxSwatches).map(c =>
+                c.type === 'braiding' ? (
+                  <BraidingSwatch key={`b-${c.name}`} colors={c.hexes} size={14} />
+                ) : (
+                  <ColorSwatch key={`c-${c.name}`} colors={c.hexes} size={14} />
+                )
+              )}
+              {interleaved.length > maxSwatches && (
+                <span className="text-[10px] text-muted-foreground font-body ml-0.5">+{interleaved.length - maxSwatches}</span>
               )}
             </div>
           )}
