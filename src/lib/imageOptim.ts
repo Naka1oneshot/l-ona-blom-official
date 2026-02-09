@@ -24,7 +24,7 @@ export function optimizeImage(
 }
 
 /** Preset for product card thumbnails */
-export const cardImage = (url: string) => optimizeImage(url, { width: 600 });
+export const cardImage = (url: string) => optimizeImage(url, { width: 400, quality: 70 });
 
 /** Preset for product detail gallery */
 export const detailImage = (url: string) => optimizeImage(url, { width: 1200 });
