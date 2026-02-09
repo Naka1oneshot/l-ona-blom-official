@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Save, Trash2 } from 'lucide-react';
+import AdminMeasurementFields from '@/components/admin/AdminMeasurementFields';
 
 interface Setting {
   id: string;
@@ -76,6 +77,11 @@ const AdminSettings = () => {
   return (
     <div>
       <h1 className="text-display text-3xl mb-8">Réglages</h1>
+
+      {/* Measurement fields management */}
+      <div className="mb-12 border-b border-border pb-10">
+        <AdminMeasurementFields />
+      </div>
 
       {missingDefaults.length > 0 && (
         <div className="mb-8">
