@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ComingSoonGate from "@/components/ComingSoonGate";
 import Layout from "@/components/layout/Layout";
@@ -38,6 +39,7 @@ import AdminCategories from "./pages/admin/AdminCategories";
 import AdminImport from "./pages/admin/AdminImport";
 import AdminComingSoon from "./pages/admin/AdminComingSoon";
 import AdminMessages from "./pages/admin/AdminMessages";
+import AdminTheme from "./pages/admin/AdminTheme";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +47,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <ThemeProvider>
       <LanguageProvider>
         <CurrencyProvider>
           <CartProvider>
@@ -71,6 +74,7 @@ const App = () => (
                     <Route path="reglages" element={<AdminSettings />} />
                     <Route path="messages" element={<AdminMessages />} />
                     <Route path="coming-soon" element={<AdminComingSoon />} />
+                    <Route path="theme" element={<AdminTheme />} />
                   </Route>
 
                   {/* Public & customer routes — wrapped in ComingSoonGate */}
@@ -104,6 +108,7 @@ const App = () => (
           </CartProvider>
         </CurrencyProvider>
       </LanguageProvider>
+      </ThemeProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

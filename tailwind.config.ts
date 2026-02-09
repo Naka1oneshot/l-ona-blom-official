@@ -70,6 +70,8 @@ export default {
           "gray-light": "hsl(var(--luxury-gray-light))",
           cream: "hsl(var(--luxury-cream))",
         },
+        "footer-bg": "hsl(var(--footer-bg))",
+        "brand-gradient-dark": "hsl(var(--brand-gradient-dark))",
       },
       borderRadius: {
         lg: "var(--radius)",

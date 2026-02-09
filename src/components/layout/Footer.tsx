@@ -8,7 +8,7 @@ const Footer = () => {
   const { t } = useLanguage();
 
   return (
-    <footer style={{ background: 'hsl(320, 68%, 28%)' }} className="text-background">
+    <footer className="text-background" style={{ background: 'hsl(var(--footer-bg))' }}>
       <div className="luxury-container py-10 md:py-14">
         {/* Brand + Legal row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">

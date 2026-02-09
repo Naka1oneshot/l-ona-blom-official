@@ -23,7 +23,7 @@ const AboutSection = ({ eyebrow, title, children, variant = 'light', className =
   <section
     id={id}
     className={`${bgMap[variant]} ${className}`}
-    style={variant === 'magenta' ? { background: 'hsl(320, 68%, 35%)' } : undefined}
+    style={variant === 'magenta' ? { background: 'hsl(var(--primary))' } : undefined}
   >
     <div className="max-w-5xl mx-auto px-6 md:px-12 py-16 sm:py-20 md:py-28">
       <motion.div

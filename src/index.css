@@ -52,6 +52,9 @@
     --luxury-gray-light: 0 0% 92%;
     --luxury-cream: 40 20% 96%;
 
+    --footer-bg: 320 68% 28%;
+    --brand-gradient-dark: 320 50% 24%;
+
     --font-display: 'Cormorant Garamond', Georgia, serif;
     --font-body: 'Outfit', system-ui, sans-serif;
   }
