@@ -12,7 +12,7 @@ interface AboutHeroProps {
 
 const AboutHero = ({ quote, author, cta_shop, cta_collections }: AboutHeroProps) => (
   <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center px-4 sm:px-6"
-    style={{ background: 'linear-gradient(160deg, #981D70 0%, #6e1550 40%, #981D70 100%)' }}
+    style={{ background: 'linear-gradient(160deg, hsl(var(--primary)) 0%, hsl(var(--brand-gradient-dark)) 40%, hsl(var(--primary)) 100%)' }}
   >
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div className="absolute top-20 left-10 w-40 h-40 rounded-full bg-white/[0.03] blur-3xl" />

@@ -41,7 +41,7 @@ const Index = () => {
               initial={{ opacity: 0, scale: 0.6, rotate: -15 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="h-16 sm:h-24 md:h-32 lg:h-40 w-auto drop-shadow-[0_0_30px_rgba(152,29,112,0.4)]"
+              className="h-16 sm:h-24 md:h-32 lg:h-40 w-auto drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]"
             />
             <motion.img
               src={logoWhite}
