@@ -8,6 +8,7 @@ import ContactInfo from '@/components/contact/ContactInfo';
 import ContactForm from '@/components/contact/ContactForm';
 import ContactAtelier from '@/components/contact/ContactAtelier';
 import ContactEditDrawer from '@/components/contact/ContactEditDrawer';
+import LogoSpinner from '@/components/LogoSpinner';
 import { Separator } from '@/components/ui/separator';
 import { Settings2 } from 'lucide-react';
 
@@ -22,7 +23,7 @@ const Contact = () => {
   if (isLoading || !data) {
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border border-primary/30 border-t-primary rounded-full animate-spin" />
+        <LogoSpinner />
       </div>
     );
   }

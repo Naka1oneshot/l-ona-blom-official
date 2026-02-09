@@ -7,6 +7,7 @@ import SEOHead from '@/components/SEOHead';
 import AdminEditButton from '@/components/AdminEditButton';
 import ArticleRenderer from '@/components/ArticleRenderer';
 import { ArrowLeft } from 'lucide-react';
+import LogoSpinner from '@/components/LogoSpinner';
 
 interface Post {
   id: string;
@@ -49,7 +50,7 @@ const NewsArticle = () => {
   if (loading) {
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+        <LogoSpinner />
       </div>
     );
   }
