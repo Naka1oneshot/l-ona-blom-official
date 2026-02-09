@@ -184,7 +184,7 @@ const CollectionDetail = () => {
                 transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.06 }}
                 className="aspect-[3/4] bg-secondary overflow-hidden"
               >
-                <img src={cardImage(img)} alt={`Look ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                <img src={cardImage(img)} alt={`Look ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" fetchPriority="low" />
               </motion.div>
             ))}
           </div>
