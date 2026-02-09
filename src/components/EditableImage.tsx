@@ -11,11 +11,12 @@ interface EditableImageProps {
   alt: string;
   className?: string;
   folder?: string;
+  priority?: boolean;
 }
 
 const BUCKET = 'images';
 
-const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 'hero' }: EditableImageProps) => {
+const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 'hero', priority = false }: EditableImageProps) => {
   const { isAdmin } = useAuth();
   const [src, setSrc] = useState<string | null>(null); // null = loading
   const [uploading, setUploading] = useState(false);
@@ -90,6 +91,7 @@ const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 
           src={src}
           alt={alt}
           className={className}
+          {...(priority ? { fetchPriority: 'high', loading: 'eager' as const } : { loading: 'lazy' as const })}
           initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.8, ease: [0.25, 0.1, 0.25, 1] }}
