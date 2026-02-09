@@ -56,7 +56,7 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
   // Mobile: alternating image + text blocks
   if (isMobile) {
     return (
-      <section className="luxury-container pt-8 pb-40">
+      <section className="luxury-container pt-8 pb-8">
         <div className="w-12 h-px bg-primary/30 mx-auto mb-8" />
         <div className="space-y-12">
           {blocks.map((block, i) => {
@@ -89,7 +89,7 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
 
   // Desktop: sticky image left + scrolling blocks right
   return (
-    <section className="luxury-container pt-10 md:pt-16 pb-40 md:pb-52">
+    <section className="luxury-container pt-10 md:pt-16 pb-10 md:pb-16">
       <div className="w-16 h-px bg-primary/30 mx-auto mb-10" />
       <div className="grid grid-cols-12 gap-8 lg:gap-16">
         {/* Sticky image column */}
@@ -112,6 +112,8 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
               </AnimatePresence>
             </div>
           </div>
+          {/* Spacer so sticky image releases before the floating bar */}
+          <div className="h-[180px] md:h-[220px]" aria-hidden="true" />
         </div>
 
         {/* Scrolling editorial blocks column */}
