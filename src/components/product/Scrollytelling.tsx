@@ -112,8 +112,6 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
               </AnimatePresence>
             </div>
           </div>
-          {/* Spacer so sticky image releases before the floating bar */}
-          <div className="h-[180px] md:h-[220px]" aria-hidden="true" />
         </div>
 
         {/* Scrolling editorial blocks column */}
@@ -127,6 +125,8 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
               isActive={i === activeIndex}
             />
           ))}
+          {/* Spacer so the last block + sticky image clear the floating bar */}
+          <div className="h-[280px] md:h-[320px]" aria-hidden="true" />
         </div>
       </div>
     </section>
