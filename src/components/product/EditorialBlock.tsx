@@ -15,11 +15,11 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
 
     const fontSizeMap: Record<string, string> = {
       xs: 'text-xs',
-      sm: 'text-sm',
-      base: 'text-base',
-      lg: 'text-lg md:text-xl',
-      xl: 'text-xl md:text-2xl',
-      '2xl': 'text-2xl md:text-3xl',
+      sm: 'text-base',
+      base: 'text-lg md:text-xl',
+      lg: 'text-xl md:text-2xl',
+      xl: 'text-2xl md:text-3xl',
+      '2xl': 'text-3xl md:text-4xl',
     };
     const fontSize = fontSizeMap[block.font_size || 'base'] || fontSizeMap.base;
 
