@@ -36,6 +36,8 @@ export function mapProduct(row: any): Product {
     color_hex_map: (row.color_hex_map as any) || {},
     stock_qty: row.stock_qty,
     editorial_blocks_json: row.editorial_blocks_json as any[] | null,
+    hover_image_index: row.hover_image_index ?? null,
+    sort_order: row.sort_order ?? 0,
   };
 }
 
@@ -44,6 +46,7 @@ export async function fetchProducts(): Promise<Product[]> {
     .from('products')
     .select('*')
     .eq('status', 'active')
+    .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false });
   return (data || []).map(mapProduct);
 }

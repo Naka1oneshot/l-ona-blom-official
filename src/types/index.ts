@@ -42,6 +42,8 @@ export interface Product {
   color_hex_map: Record<string, string>;
   stock_qty: number | null;
   editorial_blocks_json: any[] | null;
+  hover_image_index?: number | null;
+  sort_order?: number;
 }
 
 export interface Collection {

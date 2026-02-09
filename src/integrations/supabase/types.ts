@@ -180,6 +180,7 @@ export type Database = {
           published_at: string | null
           reference_code: string | null
           slug: string
+          sort_order: number
           subtitle_en: string | null
           subtitle_fr: string | null
           tags: string[] | null
@@ -200,6 +201,7 @@ export type Database = {
           published_at?: string | null
           reference_code?: string | null
           slug: string
+          sort_order?: number
           subtitle_en?: string | null
           subtitle_fr?: string | null
           tags?: string[] | null
@@ -220,6 +222,7 @@ export type Database = {
           published_at?: string | null
           reference_code?: string | null
           slug?: string
+          sort_order?: number
           subtitle_en?: string | null
           subtitle_fr?: string | null
           tags?: string[] | null
@@ -454,6 +457,7 @@ export type Database = {
           description_en: string | null
           description_fr: string | null
           editorial_blocks_json: Json | null
+          hover_image_index: number | null
           id: string
           images: string[] | null
           made_to_measure: boolean | null
@@ -472,6 +476,7 @@ export type Database = {
           reference_code: string | null
           sizes: string[] | null
           slug: string
+          sort_order: number
           status: string
           stock_qty: number | null
           story_en: string | null
@@ -492,6 +497,7 @@ export type Database = {
           description_en?: string | null
           description_fr?: string | null
           editorial_blocks_json?: Json | null
+          hover_image_index?: number | null
           id?: string
           images?: string[] | null
           made_to_measure?: boolean | null
@@ -510,6 +516,7 @@ export type Database = {
           reference_code?: string | null
           sizes?: string[] | null
           slug: string
+          sort_order?: number
           status?: string
           stock_qty?: number | null
           story_en?: string | null
@@ -530,6 +537,7 @@ export type Database = {
           description_en?: string | null
           description_fr?: string | null
           editorial_blocks_json?: Json | null
+          hover_image_index?: number | null
           id?: string
           images?: string[] | null
           made_to_measure?: boolean | null
@@ -548,6 +556,7 @@ export type Database = {
           reference_code?: string | null
           sizes?: string[] | null
           slug?: string
+          sort_order?: number
           status?: string
           stock_qty?: number | null
           story_en?: string | null

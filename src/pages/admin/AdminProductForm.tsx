@@ -53,6 +53,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     color_hex_map: (product?.color_hex_map || {}) as Record<string, string | string[]>,
     stock_qty: product?.stock_qty ?? '',
     images: product?.images || [],
+    hover_image_index: product?.hover_image_index ?? null,
     editorial_blocks_json: (product?.editorial_blocks_json || []) as EditorialBlock[],
   });
 
@@ -153,6 +154,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       color_hex_map: form.color_hex_map,
       stock_qty: form.stock_qty === '' ? null : Number(form.stock_qty),
       images: form.images,
+      hover_image_index: form.hover_image_index,
       editorial_blocks_json: form.editorial_blocks_json.length > 0 ? JSON.parse(JSON.stringify(form.editorial_blocks_json)) : null,
     };
 
@@ -189,6 +191,33 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           label="Photos du produit"
           folder="products"
         />
+
+        {/* Hover image picker */}
+        {form.images.length > 1 && (
+          <div className="border border-border rounded-lg p-4 space-y-3">
+            <label className={labelClass}>Image au survol (boutique)</label>
+            <p className="text-[11px] text-muted-foreground font-body -mt-1">Sélectionnez l'image qui s'affiche au survol de la carte produit en boutique.</p>
+            <div className="flex flex-wrap gap-2">
+              {form.images.map((img: string, idx: number) => {
+                if (idx === 0) return null; // Can't use main image as hover
+                const isSelected = (form.hover_image_index ?? 1) === idx;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => set('hover_image_index', idx)}
+                    className={`relative w-16 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      isSelected ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-foreground/40'
+                    }`}
+                  >
+                    <img src={img} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                    <span className="absolute bottom-0.5 right-0.5 text-[9px] bg-background/80 text-foreground px-1 rounded font-mono">{idx + 1}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Reference code */}
         <div className="border border-border rounded-lg p-4 space-y-2">
