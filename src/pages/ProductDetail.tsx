@@ -20,6 +20,7 @@ import FlyToCartAnimation from '@/components/FlyToCartAnimation';
 import ColorSwatch from '@/components/product/ColorSwatch';
 import BraidingSwatch from '@/components/product/BraidingSwatch';
 import brandLogoText from '@/assets/logo-text-brand.png';
+import LogoSpinner from '@/components/LogoSpinner';
 
 /** Common French color name → fallback hex */
 const COLOR_NAME_FALLBACKS: Record<string, string> = {
@@ -133,7 +134,7 @@ const ProductDetail = () => {
   if (loading) {
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+        <LogoSpinner />
       </div>
     );
   }

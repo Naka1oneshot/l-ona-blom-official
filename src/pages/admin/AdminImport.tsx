@@ -9,6 +9,7 @@ import { previewProductImport, executeProductImport } from '@/lib/import/product
 import { previewCollectionImport, executeCollectionImport } from '@/lib/import/collectionEngine';
 import type { ImportReport, PreviewRow, ImportStats, RowMessage } from '@/lib/import/types';
 import * as XLSX from 'xlsx';
+import LogoSpinner from '@/components/LogoSpinner';
 
 const STATUS_CONFIG = {
   CREATE: { icon: CheckCircle, color: 'text-green-600', label: 'Création' },
@@ -314,7 +315,7 @@ function ImportTab({ type, sheetNames }: { type: 'products' | 'collections'; she
 
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+          <LogoSpinner />
           <span className="ml-3 text-sm font-body text-muted-foreground">Analyse en cours…</span>
         </div>
       )}
