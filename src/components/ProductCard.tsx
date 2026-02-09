@@ -77,6 +77,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
             style={{ imageRendering: 'auto' }}
             loading="lazy"
           />
+          {/* Hover overlay */}
+          <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-500" />
+          <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] tracking-[0.2em] uppercase font-body bg-background/90 text-foreground px-5 py-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400 pointer-events-none backdrop-blur-sm">
+            {language === 'fr' ? 'Découvrir' : 'Discover'}
+          </span>
           {product.made_to_order && (
             <span className="absolute top-4 left-4 text-[9px] tracking-[0.2em] uppercase bg-foreground text-background px-3 py-1.5 font-body">
               {t('shop.made_to_order')}
