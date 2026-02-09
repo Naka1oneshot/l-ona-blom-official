@@ -20,7 +20,7 @@ import { generateFallbackBlocks, EditorialBlock } from '@/types/editorial';
 import FlyToCartAnimation from '@/components/FlyToCartAnimation';
 import ColorSwatch from '@/components/product/ColorSwatch';
 import BraidingSwatch from '@/components/product/BraidingSwatch';
-import brandLogoText from '@/assets/logo-text-brand.png';
+
 import LogoSpinner from '@/components/LogoSpinner';
 
 /** Common French color name → fallback hex */
@@ -442,20 +442,7 @@ const ProductDetail = () => {
 
       {/* Scrollytelling editorial section */}
       {editorialBlocks.length > 0 && (
-        <div className="-mt-4 md:-mt-24">
-          {/* Brand logo + scroll indicator */}
-          <div className="flex flex-col items-center gap-3 py-6 md:py-6">
-            <img src={brandLogoText} alt="LÉONA BLOM" className="h-8 md:h-12 object-contain opacity-80" />
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-              className="text-foreground/30"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </motion.div>
-          </div>
+        <div className="-mt-8 md:-mt-28">
           <Scrollytelling
             images={product.images}
             blocks={editorialBlocks}
