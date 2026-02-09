@@ -203,23 +203,37 @@ const AdminTheme = () => {
                         <p className="text-[10px] tracking-wider text-muted-foreground font-mono">--{token.cssVar}</p>
                       </div>
 
-                      {/* HSL input */}
+                      {/* HEX input */}
                       <input
                         type="text"
-                        value={currentHsl}
-                        onChange={e => handleHslInput(token.cssVar, e.target.value)}
-                        className="w-36 border border-border bg-transparent px-2 py-1 text-xs font-mono focus:outline-none focus:border-primary transition-colors hidden sm:block"
-                        placeholder="H S% L%"
+                        value={hex}
+                        onChange={e => {
+                          const v = e.target.value;
+                          if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+                            handleHexChange(token.cssVar, v);
+                          }
+                          // Allow typing by storing raw value temporarily
+                          e.target.dataset.raw = v;
+                        }}
+                        onBlur={e => {
+                          const v = e.target.value.trim();
+                          let normalized = v.startsWith('#') ? v : `#${v}`;
+                          if (/^#[0-9a-fA-F]{6}$/.test(normalized)) {
+                            handleHexChange(token.cssVar, normalized);
+                          }
+                        }}
+                        className="w-24 border border-border bg-transparent px-2 py-1 text-xs font-mono focus:outline-none focus:border-primary transition-colors hidden sm:block"
+                        placeholder="#000000"
                       />
 
-                      {/* Hex display + copy */}
-                      <button
-                        onClick={() => copyHex(hex)}
-                        className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                        title="Copier hex"
+                      {/* HSL display (secondary info) */}
+                      <span
+                        className="text-[10px] font-mono text-muted-foreground flex-shrink-0 hidden lg:inline cursor-pointer"
+                        title="Copier HSL"
+                        onClick={() => { navigator.clipboard.writeText(currentHsl); toast.success('HSL copié !'); }}
                       >
-                        {hex} <Copy size={10} />
-                      </button>
+                        {currentHsl}
+                      </span>
 
                       {/* Contrast badge */}
                       {contrast && (

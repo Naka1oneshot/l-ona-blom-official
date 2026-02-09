@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useEditMode } from '@/contexts/EditModeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -30,6 +31,8 @@ const EditableText = ({
   multiline = false,
 }: EditableTextProps) => {
   const { isAdmin } = useAuth();
+  const { editMode } = useEditMode();
+  const canEdit = isAdmin && editMode;
   const { language } = useLanguage();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(defaultText);
@@ -102,7 +105,7 @@ const EditableText = ({
   }, [editing, multiline]);
 
   // Non-admin: just render the text
-  if (!isAdmin) {
+  if (!canEdit) {
     return <Tag className={className}>{value}</Tag>;
   }
 

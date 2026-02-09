@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useEditMode } from '@/contexts/EditModeContext';
 import { Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,6 +19,8 @@ const BUCKET = 'images';
 
 const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 'hero', priority = false }: EditableImageProps) => {
   const { isAdmin } = useAuth();
+  const { editMode } = useEditMode();
+  const canEdit = isAdmin && editMode;
   const [src, setSrc] = useState<string | null>(null); // null = loading
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +100,7 @@ const EditableImage = ({ settingsKey, currentSrc, alt, className = '', folder = 
           transition={{ duration: 1.8, ease: [0.25, 0.1, 0.25, 1] }}
         />
       </AnimatePresence>
-      {isAdmin && (
+      {canEdit && (
         <>
           <button
             onClick={() => inputRef.current?.click()}

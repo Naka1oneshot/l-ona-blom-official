@@ -8,6 +8,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { EditModeProvider } from "@/contexts/EditModeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ComingSoonGate from "@/components/ComingSoonGate";
 import Layout from "@/components/layout/Layout";
@@ -68,6 +69,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <ThemeProvider>
+      <EditModeProvider>
       <LanguageProvider>
         <CurrencyProvider>
           <CartProvider>
@@ -130,6 +132,7 @@ const App = () => (
           </CartProvider>
         </CurrencyProvider>
       </LanguageProvider>
+      </EditModeProvider>
       </ThemeProvider>
     </AuthProvider>
   </QueryClientProvider>
