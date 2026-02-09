@@ -8,7 +8,7 @@ import { mapProduct } from '@/lib/products';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { useCategories } from '@/hooks/useCategories';
-import LogoSpinner from '@/components/LogoSpinner';
+import ProductCardSkeleton from '@/components/ProductCardSkeleton';
 
 const Shop = () => {
   const { t, language } = useLanguage();
@@ -127,8 +127,10 @@ const Shop = () => {
           )}
 
           {loading ? (
-            <div className="flex justify-center py-20">
-              <LogoSpinner />
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
+              {[...Array(6)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
             </div>
           ) : (
             <>
