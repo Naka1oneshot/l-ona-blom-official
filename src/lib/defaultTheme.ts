@@ -69,6 +69,9 @@ export const themeTokens: ThemeToken[] = [
 
   // ── Footer ──
   { cssVar: 'footer-bg', label: 'Fond footer', group: 'footer', defaultValue: '320 68% 28%' },
+
+  // ── Editorial ──
+  { cssVar: 'collection-editorial-bg', label: 'Encart éditorial collection', group: 'brand', defaultValue: '320 68% 35%' },
 ];
 
 /** Build a flat object { cssVar: hslValue } from defaults */

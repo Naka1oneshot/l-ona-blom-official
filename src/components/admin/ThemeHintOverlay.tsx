@@ -13,6 +13,11 @@ interface HintZone {
 
 const hintZones: HintZone[] = [
   {
+    match: (el) => !!el.closest('[data-theme-zone="collection-editorial"]'),
+    label: 'Encart éditorial collection',
+    cssVar: 'collection-editorial-bg',
+  },
+  {
     match: (el) => !!el.closest('footer'),
     label: 'Fond footer',
     cssVar: 'footer-bg',

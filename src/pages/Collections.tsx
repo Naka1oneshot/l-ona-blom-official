@@ -280,7 +280,9 @@ const Collections = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: '-40px' }}
                         transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
-                        className="bg-gradient-to-b from-primary/95 via-primary/85 to-primary/75 backdrop-blur-md rounded-b-sm px-6 py-10 md:px-12 md:py-14 lg:px-16 lg:py-16"
+                        className="backdrop-blur-md rounded-b-sm px-6 py-10 md:px-12 md:py-14 lg:px-16 lg:py-16"
+                        data-theme-zone="collection-editorial"
+                        style={{ background: 'linear-gradient(to bottom, hsl(var(--collection-editorial-bg) / 0.95), hsl(var(--collection-editorial-bg) / 0.85), hsl(var(--collection-editorial-bg) / 0.75))' }}
                       >
                         {/* Narrative excerpt */}
                         {(excerpt || (isAdmin && narrative)) && (
