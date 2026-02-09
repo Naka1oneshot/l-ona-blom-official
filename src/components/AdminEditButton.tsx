@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Pencil } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useEditMode } from '@/contexts/EditModeContext';
 
 interface AdminEditButtonProps {
   to: string;
@@ -9,8 +10,9 @@ interface AdminEditButtonProps {
 
 const AdminEditButton = ({ to, className = '' }: AdminEditButtonProps) => {
   const { isAdmin } = useAuth();
+  const { editMode } = useEditMode();
 
-  if (!isAdmin) return null;
+  if (!isAdmin || !editMode) return null;
 
   return (
     <Link

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useEditMode } from '@/contexts/EditModeContext';
 import { Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -25,6 +26,8 @@ const EditableDBImage = ({
   table, id, field, value, onSaved, alt, className = '', folder = 'covers',
 }: EditableDBImageProps) => {
   const { isAdmin } = useAuth();
+  const { editMode } = useEditMode();
+  const canEdit = isAdmin && editMode;
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -73,7 +76,7 @@ const EditableDBImage = ({
       ) : (
         <div className={`bg-muted ${className}`} />
       )}
-      {isAdmin && (
+      {canEdit && (
         <>
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); inputRef.current?.click(); }}

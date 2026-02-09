@@ -7,7 +7,8 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Language, Currency } from '@/types';
-import { ShoppingBag, Menu, X, Globe, ChevronDown, User, MoreHorizontal } from 'lucide-react';
+import { ShoppingBag, Menu, X, Globe, ChevronDown, User, MoreHorizontal, Pencil } from 'lucide-react';
+import { useEditMode } from '@/contexts/EditModeContext';
 import CollectionsDropdown from './CollectionsDropdown';
 import ShopMegaMenu from '@/components/nav/ShopMegaMenu';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,7 @@ const Header = () => {
   const { currency, setCurrency } = useCurrency();
   const { totalItems } = useCart();
   const { user, isAdmin } = useAuth();
+  const { editMode, toggleEditMode } = useEditMode();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -199,6 +201,17 @@ const Header = () => {
                 </div>
               )}
             </div>
+
+            {/* Edit mode toggle — admin only */}
+            {isAdmin && (
+              <button
+                onClick={toggleEditMode}
+                className={`p-2 transition-colors ${editMode ? 'text-primary' : 'opacity-60 hover:opacity-100'}`}
+                title={editMode ? 'Désactiver le mode édition' : 'Activer le mode édition'}
+              >
+                <Pencil size={16} />
+              </button>
+            )}
 
             {/* Account */}
             <Link to={user ? '/compte' : '/connexion'} className="p-2">

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useEditMode } from '@/contexts/EditModeContext';
 import { Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -35,6 +36,8 @@ const EditableDBField = ({
   multiline = false,
 }: EditableDBFieldProps) => {
   const { isAdmin } = useAuth();
+  const { editMode } = useEditMode();
+  const canEdit = isAdmin && editMode;
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(initialValue);
   const [saving, setSaving] = useState(false);
@@ -75,7 +78,7 @@ const EditableDBField = ({
     }
   }, [editing]);
 
-  if (!isAdmin) {
+  if (!canEdit) {
     return <Tag className={className}>{initialValue}</Tag>;
   }
 
