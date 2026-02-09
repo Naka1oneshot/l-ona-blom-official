@@ -14,12 +14,12 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
     const body = (lang === 'en' && block.body_en) ? block.body_en : block.body_fr;
 
     const fontSizeMap: Record<string, string> = {
-      xs: 'text-xs',
-      sm: 'text-base',
-      base: 'text-lg md:text-xl',
-      lg: 'text-xl md:text-2xl',
-      xl: 'text-2xl md:text-3xl',
-      '2xl': 'text-3xl md:text-4xl',
+      xs: 'text-[8pt]',
+      sm: 'text-[10pt]',
+      base: 'text-[12pt]',
+      lg: 'text-[14pt]',
+      xl: 'text-[16pt]',
+      '2xl': 'text-[18pt]',
     };
     const fontSize = fontSizeMap[block.font_size || 'base'] || fontSizeMap.base;
 
