@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import EditorialBlockComponent from './EditorialBlock';
 import type { EditorialBlock } from '@/types/editorial';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { detailImage, cardImage } from '@/lib/imageOptim';
 
 interface Props {
   images: string[];
@@ -65,7 +66,7 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
                 {img && (
                   <div className="aspect-[4/5] overflow-hidden rounded-2xl mb-8">
                     <img
-                      src={img}
+                      src={cardImage(img)}
                       alt=""
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -99,7 +100,7 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
                 {activeImage && (
                   <motion.img
                     key={activeImage}
-                    src={activeImage}
+                    src={detailImage(activeImage)}
                     alt=""
                     className="w-full h-full object-cover"
                     initial={{ opacity: 0 }}
