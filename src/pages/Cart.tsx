@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
 import { getUnitPriceEurCents } from '@/lib/pricing';
-import { Minus, Plus, X } from 'lucide-react';
+import { Minus, Plus, X, Package, Clock } from 'lucide-react';
 
 const Cart = () => {
   const { language, t } = useLanguage();
@@ -71,20 +71,33 @@ const Cart = () => {
                             <span className="px-4 text-sm font-body">{item.quantity}</span>
                             <button
                               onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                              disabled={item.product.stock_qty != null && item.quantity >= item.product.stock_qty}
-                              className="p-2 hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="p-2 hover:bg-secondary transition-colors"
                               aria-label="Increase"
                             >
                               <Plus size={12} />
                             </button>
                           </div>
-                          {item.product.stock_qty != null && item.quantity >= item.product.stock_qty && (
-                            <span className="text-xs text-muted-foreground font-body">{language === 'fr' ? 'Stock max.' : 'Max stock'}</span>
-                          )}
                           <span className="text-sm font-body">
                             {formatPrice((item.unit_price_eur_cents ?? getUnitPriceEurCents(item.product, item.size)) * item.quantity, {})}
                           </span>
                         </div>
+                        {/* Stock vs Made-to-order split */}
+                        {item.product.stock_qty != null && item.quantity > 0 && (
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                            {Math.min(item.quantity, item.product.stock_qty) > 0 && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-body text-green-700">
+                                <Package size={12} />
+                                {Math.min(item.quantity, item.product.stock_qty)} {language === 'fr' ? 'en stock' : 'in stock'}
+                              </span>
+                            )}
+                            {item.quantity > item.product.stock_qty && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-body text-muted-foreground">
+                                <Clock size={12} />
+                                {item.quantity - item.product.stock_qty} {language === 'fr' ? 'sur commande' : 'made to order'}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
