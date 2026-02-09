@@ -24,6 +24,7 @@ const quickTokens = [
   { cssVar: 'accent', label: 'Accent', group: 'brand' },
   { cssVar: 'brand-gradient-dark', label: 'Dégradé sombre', group: 'brand' },
   { cssVar: 'luxury-magenta-light', label: 'Magenta clair (hover)', group: 'brand' },
+  { cssVar: 'collection-editorial-bg', label: 'Encart éditorial collection', group: 'brand' },
 ];
 
 const FloatingThemeEditor = () => {
