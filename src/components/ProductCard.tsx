@@ -106,7 +106,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
             const inStock = stockBased && product.stock_qty !== null && product.stock_qty > 0;
             const showMadeToOrder = stockBased && !inStock && (product.made_to_order || (product.stock_qty !== null && product.stock_qty === 0));
             return (
-              <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+              <div className="absolute bottom-3 left-3 flex flex-col gap-1.5">
                 {inStock && (
                   <span className="text-[9px] tracking-[0.15em] uppercase bg-green-800 text-white px-2.5 py-1 font-body">
                     {language === 'fr' ? 'En stock' : 'In stock'}
