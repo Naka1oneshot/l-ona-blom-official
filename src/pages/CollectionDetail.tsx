@@ -34,7 +34,7 @@ const CollectionDetail = () => {
   useEffect(() => {
     supabase
       .from('collections')
-      .select('*')
+      .select('id,slug,title_fr,title_en,subtitle_fr,subtitle_en,narrative_fr,narrative_en,cover_image,cover_video,gallery_images')
       .eq('slug', slug!)
       .maybeSingle()
       .then(({ data }) => {
@@ -114,7 +114,7 @@ const CollectionDetail = () => {
             transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }}
             className="w-full h-[60vh]"
           >
-            <img src={coverImage(collection.cover_image)} alt={title} className="w-full h-full object-cover" />
+            <img src={coverImage(collection.cover_image)} alt={title} className="w-full h-full object-cover" fetchPriority="high" />
           </motion.div>
         ) : null}
       </section>
@@ -181,7 +181,7 @@ const CollectionDetail = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
+                transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.06 }}
                 className="aspect-[3/4] bg-secondary overflow-hidden"
               >
                 <img src={cardImage(img)} alt={`Look ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />

@@ -172,7 +172,9 @@ const Collections = () => {
                           alt={title}
                           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                           style={{ objectPosition }}
-                          loading="lazy"
+                          loading={idx < 2 ? 'eager' : 'lazy'}
+                          fetchPriority={idx === 0 ? 'high' : 'low'}
+                          decoding={idx < 2 ? 'sync' : 'async'}
                         />
                       ) : (
                         <div className="w-full h-full bg-muted" />

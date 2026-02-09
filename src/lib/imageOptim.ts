@@ -30,4 +30,4 @@ export const cardImage = (url: string) => optimizeImage(url, { width: 400, quali
 export const detailImage = (url: string) => optimizeImage(url, { width: 1200 });
 
 /** Preset for collection covers */
-export const coverImage = (url: string) => optimizeImage(url, { width: 1400 });
+export const coverImage = (url: string) => optimizeImage(url, { width: 1200, quality: 75 });
