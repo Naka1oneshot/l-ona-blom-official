@@ -24,7 +24,7 @@ async function uploadFile(file: File, folder: string): Promise<string | null> {
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: '3600',
+    cacheControl: '31536000',
     upsert: false,
   });
 
