@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Palette, X, RotateCcw, Save, ChevronDown, ChevronRight } from 'lucide-react';
+import { Palette, X, RotateCcw, Save, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useEditMode } from '@/contexts/EditModeContext';
 import { getDefaultThemeValues, themeGroups } from '@/lib/defaultTheme';
@@ -34,6 +34,7 @@ const FloatingThemeEditor = () => {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (loaded) setDraft({ ...values });
@@ -87,12 +88,19 @@ const FloatingThemeEditor = () => {
 
   const isModified = (cssVar: string) => draft[cssVar] !== defaults[cssVar];
 
-  const tokensToShow = showAll
+  const allTokens = showAll
     ? Object.keys(draft).map(cssVar => ({
         cssVar,
         label: quickTokens.find(t => t.cssVar === cssVar)?.label || `--${cssVar}`,
       }))
     : quickTokens;
+
+  const tokensToShow = search.trim()
+    ? allTokens.filter(t =>
+        t.label.toLowerCase().includes(search.toLowerCase()) ||
+        t.cssVar.toLowerCase().includes(search.toLowerCase())
+      )
+    : allTokens;
 
   return (
     <>
@@ -132,6 +140,19 @@ const FloatingThemeEditor = () => {
               <button onClick={() => setOpen(false)} className="p-1 hover:bg-muted rounded transition-colors">
                 <X size={16} />
               </button>
+            </div>
+
+            {/* Search */}
+            <div className="relative px-4 py-2 border-b border-border">
+              <Search size={13} className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher…"
+                className="w-full pl-6 pr-2 py-1.5 text-[11px] font-body bg-transparent border border-border rounded focus:outline-none focus:border-primary transition-colors"
+                spellCheck={false}
+              />
             </div>
 
             {/* Token list */}
