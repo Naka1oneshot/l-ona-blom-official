@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Trash2, GripVertical, ChevronUp, ChevronDown, Save } from 'lucide-react';
 import type { EditorialBlock } from '@/types/editorial';
 import { EDITORIAL_STYLES } from '@/types/editorial';
 import MiniRichEditor from '@/components/admin/MiniRichEditor';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { DEFAULT_FONT_SCALE } from '@/hooks/useEditorialFontScale';
 
 interface Props {
   blocks: EditorialBlock[];
@@ -17,6 +20,38 @@ const labelClass = "text-[10px] tracking-[0.2em] uppercase font-body block mb-1.
 
 const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount, customStyles = [], onCustomStylesChange }) => {
   const [newStyleLabel, setNewStyleLabel] = useState('');
+  const [fontScale, setFontScale] = useState<Record<string, number>>({ ...DEFAULT_FONT_SCALE });
+  const [scaleOpen, setScaleOpen] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'editorial_font_scale')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.value && typeof data.value === 'object') {
+          setFontScale({ ...DEFAULT_FONT_SCALE, ...(data.value as Record<string, number>) });
+        }
+      });
+  }, []);
+
+  const saveFontScale = async () => {
+    const { data: existing } = await supabase
+      .from('site_settings')
+      .select('id')
+      .eq('key', 'editorial_font_scale')
+      .maybeSingle();
+
+    let error;
+    if (existing) {
+      ({ error } = await supabase.from('site_settings').update({ value: fontScale as any }).eq('id', existing.id));
+    } else {
+      ({ error } = await supabase.from('site_settings').insert({ key: 'editorial_font_scale', value: fontScale as any }));
+    }
+    if (error) toast.error(error.message);
+    else toast.success('Échelle de tailles enregistrée');
+  };
 
   const allStyles = [
     ...EDITORIAL_STYLES,
@@ -79,6 +114,44 @@ const EditorialBlocksBuilder: React.FC<Props> = ({ blocks, onChange, imageCount,
         >
           <Plus size={14} /> Ajouter un bloc
         </button>
+      </div>
+
+      {/* Font scale editor */}
+      <div className="border border-dashed border-border rounded-lg p-3">
+        <button type="button" onClick={() => setScaleOpen(!scaleOpen)}
+          className="text-[10px] tracking-[0.15em] uppercase font-body text-muted-foreground hover:text-foreground transition-colors w-full text-left flex items-center justify-between">
+          Échelle des tailles de police
+          <ChevronDown size={12} className={`transition-transform ${scaleOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {scaleOpen && (
+          <div className="mt-3 space-y-2">
+            {([
+              ['xs', 'Très petit'],
+              ['sm', 'Petit'],
+              ['base', 'Normal'],
+              ['lg', 'Grand'],
+              ['xl', 'Très grand'],
+              ['2xl', 'Extra grand'],
+            ] as const).map(([key, label]) => (
+              <div key={key} className="flex items-center gap-3">
+                <span className="text-xs font-body text-muted-foreground w-24">{label}</span>
+                <input
+                  type="number"
+                  min={4}
+                  max={72}
+                  value={fontScale[key] || DEFAULT_FONT_SCALE[key]}
+                  onChange={e => setFontScale(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                  className="w-16 border border-border bg-transparent px-2 py-1 text-xs font-body text-center focus:outline-none focus:border-primary transition-colors"
+                />
+                <span className="text-[10px] font-body text-muted-foreground">pt</span>
+              </div>
+            ))}
+            <button type="button" onClick={saveFontScale}
+              className="flex items-center gap-1.5 mt-2 px-3 py-1.5 text-[10px] tracking-wider uppercase font-body border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
+              <Save size={12} /> Enregistrer l'échelle
+            </button>
+          </div>
+        )}
       </div>
 
       {blocks.length === 0 && (

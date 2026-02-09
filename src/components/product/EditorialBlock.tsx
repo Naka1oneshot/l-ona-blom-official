@@ -1,27 +1,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { EditorialBlock as EditorialBlockType } from '@/types/editorial';
+import { DEFAULT_FONT_SCALE } from '@/hooks/useEditorialFontScale';
 
 interface Props {
   block: EditorialBlockType;
   lang: 'fr' | 'en';
   isActive: boolean;
+  fontScale?: Record<string, number>;
 }
 
 const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
-  ({ block, lang, isActive }, ref) => {
+  ({ block, lang, isActive, fontScale }, ref) => {
     const title = (lang === 'en' && block.title_en) ? block.title_en : block.title_fr;
     const body = (lang === 'en' && block.body_en) ? block.body_en : block.body_fr;
 
-    const fontSizeMap: Record<string, string> = {
-      xs: 'text-[8pt]',
-      sm: 'text-[10pt]',
-      base: 'text-[12pt]',
-      lg: 'text-[14pt]',
-      xl: 'text-[16pt]',
-      '2xl': 'text-[18pt]',
-    };
-    const fontSize = fontSizeMap[block.font_size || 'base'] || fontSizeMap.base;
+    const sc = fontScale || DEFAULT_FONT_SCALE;
+    const ptSize = sc[block.font_size || 'base'] || sc.base;
+    const fontSizeStyle = { fontSize: `${ptSize}pt` };
 
     const baseClasses = 'py-16 md:py-24 transition-opacity duration-700';
     const activeClasses = isActive ? 'opacity-100' : 'opacity-40';
@@ -36,8 +32,8 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             transition={{ duration: 0.8 }}
             className="border-l-2 border-primary pl-8 md:pl-12"
           >
-            <div className={`text-display ${block.font_size === '2xl' ? 'text-3xl md:text-4xl lg:text-5xl' : block.font_size === 'xl' ? 'text-2xl md:text-3xl lg:text-4xl' : 'text-2xl md:text-3xl lg:text-4xl'} italic leading-relaxed text-foreground/90 editorial-quote`}
-              dangerouslySetInnerHTML={{ __html: body }} />
+            <div className="text-display italic leading-relaxed text-foreground/90 editorial-quote"
+              style={fontSizeStyle} dangerouslySetInnerHTML={{ __html: body }} />
             {title && (
               <p className="mt-6 text-xs tracking-[0.2em] uppercase font-body text-muted-foreground">
                 — {title}
@@ -59,8 +55,8 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             className="bg-secondary/50 border border-border/50 rounded-2xl p-8 md:p-12"
           >
             <h3 className="text-display text-xl md:text-2xl mb-4">{title}</h3>
-            <div className={`${fontSize} font-body text-muted-foreground leading-relaxed text-justify prose prose-sm max-w-none`}
-              dangerouslySetInnerHTML={{ __html: body }} />
+            <div className="font-body text-muted-foreground leading-relaxed text-justify prose prose-sm max-w-none"
+              style={fontSizeStyle} dangerouslySetInnerHTML={{ __html: body }} />
           </motion.div>
         </div>
       );
@@ -90,8 +86,8 @@ const EditorialBlockComponent = React.forwardRef<HTMLDivElement, Props>(
             </p>
           </div>
           <div className="w-8 h-px bg-primary/40 mb-8" />
-          <div className={`${fontSize} font-body text-foreground/80 leading-[1.9] text-justify prose max-w-none`}
-            dangerouslySetInnerHTML={{ __html: body }} />
+          <div className="font-body text-foreground/80 leading-[1.9] text-justify prose max-w-none"
+            style={fontSizeStyle} dangerouslySetInnerHTML={{ __html: body }} />
         </motion.div>
       </div>
     );

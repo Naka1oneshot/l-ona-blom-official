@@ -4,6 +4,7 @@ import EditorialBlockComponent from './EditorialBlock';
 import type { EditorialBlock } from '@/types/editorial';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { detailImage, cardImage } from '@/lib/imageOptim';
+import { useEditorialFontScale } from '@/hooks/useEditorialFontScale';
 
 interface Props {
   images: string[];
@@ -13,6 +14,7 @@ interface Props {
 
 const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const fontScale = useEditorialFontScale();
   const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
   const isMobile = useIsMobile();
 
@@ -78,6 +80,7 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
                   block={block}
                   lang={lang}
                   isActive={true}
+                  fontScale={fontScale}
                 />
               </div>
             );
@@ -123,6 +126,7 @@ const Scrollytelling: React.FC<Props> = ({ images, blocks, lang }) => {
               block={block}
               lang={lang}
               isActive={i === activeIndex}
+              fontScale={fontScale}
             />
           ))}
           {/* Spacer so the last block + sticky image clear the floating bar */}
