@@ -7,6 +7,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchProductBySlug } from '@/lib/products';
 import { getUnitPriceEurCents, getPriceRange } from '@/lib/pricing';
+import { detailImage, cardImage } from '@/lib/imageOptim';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
 import MeasurementForm from '@/components/MeasurementForm';
@@ -209,7 +210,7 @@ const ProductDetail = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="relative aspect-[3/4] bg-secondary overflow-hidden rounded-2xl mb-4">
-              <img src={product.images[activeImage]} alt={name} className="product-hero-image w-full h-full object-cover" loading="lazy" />
+              <img src={detailImage(product.images[activeImage])} alt={name} className="product-hero-image w-full h-full object-cover" loading="lazy" />
               <div className="absolute top-3 right-3 z-30 flex gap-2">
                 <AdminEditButton to={`/admin/produits?edit=${product.id}`} />
               </div>
@@ -222,7 +223,7 @@ const ProductDetail = () => {
                     onClick={() => setActiveImage(i)}
                     className={`w-14 h-18 sm:w-16 sm:h-20 bg-secondary overflow-hidden rounded-lg border-2 transition-all flex-shrink-0 ${i === activeImage ? 'border-foreground' : 'border-transparent hover:border-foreground/20'}`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <img src={cardImage(img)} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
