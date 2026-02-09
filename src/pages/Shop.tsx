@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -126,34 +126,48 @@ const Shop = () => {
             </div>
           )}
 
-          {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
-              {[...Array(6)].map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
-                {products.map((product, i) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.08 }}
-                  >
-                    <ProductCard product={product} />
-                  </motion.div>
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="skeleton"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12"
+              >
+                {[...Array(6)].map((_, i) => (
+                  <ProductCardSkeleton key={i} />
                 ))}
-              </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="products"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
+                  {products.map((product, i) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, delay: i * 0.06 }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
+                  ))}
+                </div>
 
-              {products.length === 0 && (
-                <p className="text-center text-muted-foreground font-body py-20">
-                  {language === 'fr' ? 'Aucun produit dans cette catégorie.' : 'No products in this category.'}
-                </p>
-              )}
-            </>
-          )}
+                {products.length === 0 && (
+                  <p className="text-center text-muted-foreground font-body py-20">
+                    {language === 'fr' ? 'Aucun produit dans cette catégorie.' : 'No products in this category.'}
+                  </p>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </section>
     </div>
