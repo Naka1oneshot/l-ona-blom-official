@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { Product } from '@/types';
 import { getPriceRange } from '@/lib/pricing';
+import { cardImage } from '@/lib/imageOptim';
 import AdminEditButton from '@/components/AdminEditButton';
 import ColorSwatch from '@/components/product/ColorSwatch';
 import BraidingSwatch from '@/components/product/BraidingSwatch';
@@ -71,7 +72,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={`/boutique/${product.slug}`} className="block">
         <div className="relative aspect-[3/4] overflow-hidden bg-secondary mb-4">
           <img
-            src={product.images[0]}
+            src={cardImage(product.images[0])}
             alt={name}
             className="w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
             style={{ imageRendering: 'auto' }}
@@ -79,7 +80,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           />
           {product.images[1] && (
             <img
-              src={product.images[1]}
+              src={cardImage(product.images[1])}
               alt={name}
               className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
               style={{ imageRendering: 'auto' }}

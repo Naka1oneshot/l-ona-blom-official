@@ -31,6 +31,7 @@ const Index = () => {
           alt="LÉONA BLOM"
           className="w-full h-full object-cover"
           folder="hero"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
         <div className="relative z-10 text-center text-background px-6">
