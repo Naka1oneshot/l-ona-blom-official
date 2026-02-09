@@ -10,6 +10,7 @@ import EditableDBField from '@/components/EditableDBField';
 import EditableDBImage from '@/components/EditableDBImage';
 import CoverFocalPicker from '@/components/collections/CoverFocalPicker';
 import LogoSpinner from '@/components/LogoSpinner';
+import { coverImage, cardImage } from '@/lib/imageOptim';
 
 interface CollectionRow {
   id: string;
@@ -167,7 +168,7 @@ const Collections = () => {
                       {/* Cover image */}
                       {c.cover_image ? (
                         <img
-                          src={c.cover_image}
+                          src={coverImage(c.cover_image)}
                           alt={title}
                           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                           style={{ objectPosition }}
@@ -312,7 +313,7 @@ const Collections = () => {
                               <Link key={i} to={`/collections/${c.slug}`} className="group/thumb block">
                                 <div className="relative aspect-[3/4] overflow-hidden rounded-sm">
                                   <img
-                                    src={img}
+                                    src={cardImage(img)}
                                     alt={`${title} – ${i + 1}`}
                                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover/thumb:scale-[1.03]"
                                     loading="lazy"

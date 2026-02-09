@@ -8,6 +8,7 @@ import EditableDBField from '@/components/EditableDBField';
 import EditableDBImage from '@/components/EditableDBImage';
 import YouTubePlayer from '@/components/collection/YouTubePlayer';
 import LogoSpinner from '@/components/LogoSpinner';
+import { coverImage, cardImage } from '@/lib/imageOptim';
 
 
 interface CollectionRow {
@@ -113,7 +114,7 @@ const CollectionDetail = () => {
             transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }}
             className="w-full h-[60vh]"
           >
-            <img src={collection.cover_image} alt={title} className="w-full h-full object-cover" />
+            <img src={coverImage(collection.cover_image)} alt={title} className="w-full h-full object-cover" />
           </motion.div>
         ) : null}
       </section>
@@ -183,7 +184,7 @@ const CollectionDetail = () => {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="aspect-[3/4] bg-secondary overflow-hidden"
               >
-                <img src={img} alt={`Look ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                <img src={cardImage(img)} alt={`Look ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
               </motion.div>
             ))}
           </div>
