@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import SEOHead from '@/components/SEOHead';
+import LogoSpinner from '@/components/LogoSpinner';
 
 interface LegalPageProps {
   settingsKey: string;
@@ -141,7 +142,7 @@ const LegalPage = ({ settingsKey, titleKey, path }: LegalPageProps) => {
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+              <LogoSpinner />
             </div>
           ) : (
             <div>

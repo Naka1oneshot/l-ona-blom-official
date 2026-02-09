@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale';
 import { Mail, Eye, Archive, Trash2, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import LogoSpinner from '@/components/LogoSpinner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -127,7 +128,7 @@ const AdminMessages = () => {
 
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <div className="w-5 h-5 border border-primary/30 border-t-primary rounded-full animate-spin" />
+          <LogoSpinner size={32} />
         </div>
       ) : filtered.length === 0 ? (
         <p className="text-sm font-body text-muted-foreground py-8 text-center">Aucun message.</p>

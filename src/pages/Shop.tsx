@@ -8,6 +8,7 @@ import { mapProduct } from '@/lib/products';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { useCategories } from '@/hooks/useCategories';
+import LogoSpinner from '@/components/LogoSpinner';
 
 const Shop = () => {
   const { t, language } = useLanguage();
@@ -127,7 +128,7 @@ const Shop = () => {
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+              <LogoSpinner />
             </div>
           ) : (
             <>

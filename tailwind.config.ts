@@ -99,6 +99,10 @@ export default {
           from: { transform: "translateX(100%)" },
           to: { transform: "translateX(0)" },
         },
+        "logo-pulse": {
+          "0%, 100%": { opacity: "0.3", transform: "scale(0.85)" },
+          "50%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -106,6 +110,7 @@ export default {
         "fade-up": "fade-up 0.8s ease-out forwards",
         "fade-in": "fade-in 0.6s ease-out forwards",
         "slide-in-right": "slide-in-right 0.4s ease-out forwards",
+        "logo-pulse": "logo-pulse 1.6s ease-in-out infinite",
       },
     },
   },

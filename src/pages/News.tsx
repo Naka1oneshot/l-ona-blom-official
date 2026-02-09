@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import SEOHead from '@/components/SEOHead';
 import AdminEditButton from '@/components/AdminEditButton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import LogoSpinner from '@/components/LogoSpinner';
 
 interface Post {
   id: string;
@@ -109,7 +110,7 @@ const News = () => {
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+              <LogoSpinner />
             </div>
           ) : (
             <Tabs defaultValue="all" className="w-full">

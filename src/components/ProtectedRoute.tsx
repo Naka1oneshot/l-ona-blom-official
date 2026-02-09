@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import LogoSpinner from '@/components/LogoSpinner';
 
 interface Props {
   children: React.ReactNode;
@@ -12,7 +13,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: Props) => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+        <LogoSpinner />
       </div>
     );
   }
