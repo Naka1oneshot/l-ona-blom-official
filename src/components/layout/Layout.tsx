@@ -3,6 +3,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import Header from './Header';
 import Footer from './Footer';
 import FloatingThemeEditor from '@/components/admin/FloatingThemeEditor';
+import FloatingTaskManager from '@/components/admin/FloatingTaskManager';
 import ThemeHintOverlay from '@/components/admin/ThemeHintOverlay';
 
 interface LayoutProps {
@@ -20,6 +21,7 @@ const Layout = ({ children, hideFooter }: LayoutProps) => {
         </main>
         {!hideFooter && <Footer />}
         <FloatingThemeEditor />
+        <FloatingTaskManager />
         <ThemeHintOverlay />
       </div>
     </HelmetProvider>
