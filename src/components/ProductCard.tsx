@@ -97,15 +97,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </span>
           {/* Product type badges */}
           {(() => {
-            const isInStock = !product.made_to_order && !product.preorder && !product.made_to_measure && (product.stock_qty === null || product.stock_qty > 0);
-            return (product.made_to_order || product.preorder || product.made_to_measure || isInStock) ? (
+            const stockBased = !product.preorder && !product.made_to_measure;
+            const inStock = stockBased && product.stock_qty !== null && product.stock_qty > 0;
+            const outOfStock = stockBased && product.stock_qty !== null && product.stock_qty === 0;
+            return (
               <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                {isInStock && (
+                {inStock && (
                   <span className="text-[9px] tracking-[0.15em] uppercase bg-green-800 text-white px-2.5 py-1 font-body">
                     {language === 'fr' ? 'En stock' : 'In stock'}
                   </span>
                 )}
-                {product.made_to_order && (
+                {(product.made_to_order || outOfStock) && (
                   <span className="text-[9px] tracking-[0.15em] uppercase bg-foreground text-background px-2.5 py-1 font-body">
                     {t('shop.made_to_order')}
                   </span>
@@ -121,7 +123,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                   </span>
                 )}
               </div>
-            ) : null;
+            );
           })()}
         </div>
         <h3 className="text-display text-sm sm:text-lg mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
