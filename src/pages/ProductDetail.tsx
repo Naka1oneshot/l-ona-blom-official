@@ -10,7 +10,8 @@ import { getUnitPriceEurCents, getPriceRange } from '@/lib/pricing';
 import { detailImage, cardImage } from '@/lib/imageOptim';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
-import MeasurementForm from '@/components/MeasurementForm';
+import MeasurementButton from '@/components/product/MeasurementButton';
+import MeasurementOverlay from '@/components/product/MeasurementOverlay';
 import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBField from '@/components/EditableDBField';
 import Scrollytelling from '@/components/product/Scrollytelling';
@@ -76,6 +77,7 @@ const ProductDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [measurements, setMeasurements] = useState<MeasurementData>(emptyMeasurements);
   const { isAdmin } = useAuth();
+  const [measureOverlayOpen, setMeasureOverlayOpen] = useState(false);
   const ctaRef = useRef<HTMLButtonElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
   const [flyAnim, setFlyAnim] = useState<{ imageUrl: string; rect: DOMRect } | null>(null);
@@ -304,28 +306,24 @@ const ProductDetail = () => {
 
             {/* Options section - ref for scroll-to */}
             <div ref={optionsRef}>
-            {/* Size - hide if TU (auto-selected) */}
-            {product.sizes.length > 0 && !isTU && (
+            {/* Size - hide if TU (auto-selected) or made-to-measure */}
+            {product.sizes.length > 0 && !isTU && !product.made_to_measure && (
               <div className="mb-6">
                 <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-3">{t('product.select_size')}</label>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map(size => {
-                    const sizePrice = product.price_by_size_eur?.[size];
-                    const showPrice = priceRange?.hasRange && sizePrice != null;
-                    return (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
-                          selectedSize === size
-                            ? 'border-foreground bg-foreground text-background'
-                            : 'border-foreground/20 hover:border-foreground/60'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    );
-                  })}
+                  {product.sizes.map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-4 py-2 border text-xs font-body tracking-wider rounded-lg transition-all ${
+                        selectedSize === size
+                          ? 'border-foreground bg-foreground text-background'
+                          : 'border-foreground/20 hover:border-foreground/60'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -422,9 +420,17 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* Made-to-Measure Form */}
+            {/* Made-to-Measure Button + Overlay */}
             {product.made_to_measure && (
-              <MeasurementForm measurements={measurements} onChange={setMeasurements} />
+              <>
+                <MeasurementButton measurements={measurements} onClick={() => setMeasureOverlayOpen(true)} />
+                <MeasurementOverlay
+                  open={measureOverlayOpen}
+                  onClose={() => setMeasureOverlayOpen(false)}
+                  measurements={measurements}
+                  onChange={setMeasurements}
+                />
+              </>
             )}
 
             {/* CTA */}
