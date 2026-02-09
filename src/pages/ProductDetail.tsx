@@ -443,6 +443,11 @@ const ProductDetail = () => {
       {/* Scrollytelling editorial section */}
       {editorialBlocks.length > 0 && (
         <div className="-mt-8 md:-mt-28">
+          {/* Decorative transition */}
+          <div className="flex flex-col items-center gap-1 py-8 md:py-10">
+            <span className="block w-8 h-px bg-primary/40" />
+            <span className="block w-12 h-px bg-primary/20 mt-1" />
+          </div>
           <Scrollytelling
             images={product.images}
             blocks={editorialBlocks}
