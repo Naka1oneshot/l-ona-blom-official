@@ -7,6 +7,7 @@ import AdminEditButton from '@/components/AdminEditButton';
 import EditableDBField from '@/components/EditableDBField';
 import EditableDBImage from '@/components/EditableDBImage';
 import YouTubePlayer from '@/components/collection/YouTubePlayer';
+import LogoSpinner from '@/components/LogoSpinner';
 
 
 interface CollectionRow {
@@ -44,7 +45,7 @@ const CollectionDetail = () => {
   if (loading) {
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+        <LogoSpinner />
       </div>
     );
   }

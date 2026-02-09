@@ -1,6 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useComingSoon } from '@/hooks/useComingSoon';
 import ComingSoon from '@/pages/ComingSoon';
+import LogoSpinner from '@/components/LogoSpinner';
 
 interface Props {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ const ComingSoonGate = ({ children }: Props) => {
   if (csLoading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+        <LogoSpinner />
       </div>
     );
   }

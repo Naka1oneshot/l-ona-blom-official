@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import EditableDBField from '@/components/EditableDBField';
 import EditableDBImage from '@/components/EditableDBImage';
 import CoverFocalPicker from '@/components/collections/CoverFocalPicker';
+import LogoSpinner from '@/components/LogoSpinner';
 
 interface CollectionRow {
   id: string;
@@ -105,7 +106,7 @@ const Collections = () => {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="w-6 h-6 border border-foreground/30 border-t-primary animate-spin" />
+          <LogoSpinner />
         </div>
       ) : collections.length === 0 ? (
         <p className="text-center text-muted-foreground font-body py-20">
