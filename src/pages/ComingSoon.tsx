@@ -89,12 +89,17 @@ const ComingSoon = ({ config }: Props) => {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden">
-      {/* Background video – scale up on mobile so the 16:9 video covers the tall viewport */}
-      <div className="absolute inset-0 z-0 opacity-40 flex items-center justify-center overflow-hidden">
+      {/* Background video – slow zoom for cinematic feel */}
+      <motion.div
+        className="absolute inset-0 z-0 opacity-40 flex items-center justify-center overflow-hidden"
+        initial={{ scale: 1 }}
+        animate={{ scale: 1.15 }}
+        transition={{ duration: 30, ease: 'linear', repeat: Infinity, repeatType: 'reverse' }}
+      >
         <div className="w-full h-full min-h-screen min-w-[177.78vh] md:min-w-full md:min-h-full">
           <YouTubePlayer videoId={videoId} className="w-full h-full" />
         </div>
-      </div>
+      </motion.div>
 
       {/* Dark overlay */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
