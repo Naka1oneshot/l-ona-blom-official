@@ -41,19 +41,19 @@ const AdminProducts = () => {
     const a = products[index];
     const b = products[swapIndex];
 
-    // Swap sort_order values
-    const aOrder = a.sort_order ?? index;
-    const bOrder = b.sort_order ?? swapIndex;
+    // Use array indices to guarantee distinct values even when sort_order are equal
+    const aNewOrder = swapIndex;
+    const bNewOrder = index;
 
     const updates = [
-      supabase.from('products').update({ sort_order: bOrder }).eq('id', a.id),
-      supabase.from('products').update({ sort_order: aOrder }).eq('id', b.id),
+      supabase.from('products').update({ sort_order: aNewOrder }).eq('id', a.id),
+      supabase.from('products').update({ sort_order: bNewOrder }).eq('id', b.id),
     ];
 
     // Optimistic update
     const newProducts = [...products];
-    newProducts[index] = { ...b, sort_order: aOrder };
-    newProducts[swapIndex] = { ...a, sort_order: bOrder };
+    newProducts[index] = { ...b, sort_order: bNewOrder };
+    newProducts[swapIndex] = { ...a, sort_order: aNewOrder };
     setProducts(newProducts);
 
     await Promise.all(updates);
