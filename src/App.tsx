@@ -117,6 +117,7 @@ const App = () => (
                     <Route path="/cgv" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_cgv" titleKey="footer.cgv" path="/cgv" /></Layout></ComingSoonGate>} />
                     <Route path="/confidentialite" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_privacy" titleKey="footer.privacy" path="/confidentialite" /></Layout></ComingSoonGate>} />
                     <Route path="/cookies" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_cookies" titleKey="footer.cookies" path="/cookies" /></Layout></ComingSoonGate>} />
+                    <Route path="/mentions-legales" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_mentions" titleKey="footer.legal" path="/mentions-legales" /></Layout></ComingSoonGate>} />
                     <Route path="/connexion" element={<ComingSoonGate><Layout><Login /></Layout></ComingSoonGate>} />
                     <Route path="/inscription" element={<ComingSoonGate><Layout><Signup /></Layout></ComingSoonGate>} />
                     <Route path="/compte" element={
