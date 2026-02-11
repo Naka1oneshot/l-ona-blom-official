@@ -14,7 +14,7 @@ const l = (fr: string, en: string, lang: string) => (lang === 'en' && en ? en : 
 
 const ContactForm = ({ data, language }: Props) => {
   const { form: formConfig } = data;
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm] = useState({ name: '', firstName: '', email: '', subject: '', message: '' });
   const [consent, setConsent] = useState(false);
   const [honeypot, setHoneypot] = useState('');
   const submitMutation = useSubmitContactMessage();
@@ -22,7 +22,8 @@ const ContactForm = ({ data, language }: Props) => {
   if (!formConfig.enabled) return null;
 
   const labels = {
-    name: language === 'en' ? 'Name' : 'Nom',
+    name: language === 'en' ? 'Last name' : 'Nom',
+    firstName: language === 'en' ? 'First name' : 'Prénom',
     email: 'Email',
     subject: language === 'en' ? 'Subject' : 'Sujet',
     message: 'Message',
@@ -45,7 +46,7 @@ const ContactForm = ({ data, language }: Props) => {
         consent,
       });
       toast.success(labels.success);
-      setForm({ name: '', email: '', subject: '', message: '' });
+      setForm({ name: '', firstName: '', email: '', subject: '', message: '' });
       setConsent(false);
     } catch {
       toast.error(language === 'en' ? 'An error occurred.' : 'Une erreur est survenue.');
@@ -69,9 +70,15 @@ const ContactForm = ({ data, language }: Props) => {
       <form onSubmit={handleSubmit} className="space-y-5">
         <input type="text" name="website" value={honeypot} onChange={e => setHoneypot(e.target.value)} className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
 
-        <div>
-          <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2 text-foreground/60">{labels.name}</label>
-          <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputCls} required maxLength={100} />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2 text-foreground/60">{labels.name}</label>
+            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputCls} required maxLength={100} />
+          </div>
+          <div>
+            <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2 text-foreground/60">{labels.firstName}</label>
+            <input type="text" value={form.firstName} onChange={e => setForm(p => ({ ...p, firstName: e.target.value }))} className={inputCls} required maxLength={100} />
+          </div>
         </div>
         <div>
           <label className="text-[10px] tracking-[0.2em] uppercase font-body block mb-2 text-foreground/60">{labels.email}</label>
