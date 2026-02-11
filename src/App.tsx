@@ -48,6 +48,7 @@ const AdminImport = lazy(() => import("./pages/admin/AdminImport"));
 const AdminComingSoon = lazy(() => import("./pages/admin/AdminComingSoon"));
 const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
 const AdminTheme = lazy(() => import("./pages/admin/AdminTheme"));
+const AdminSeoCheck = lazy(() => import("./pages/admin/AdminSeoCheck"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -98,6 +99,7 @@ const App = () => (
                       <Route path="messages" element={<AdminMessages />} />
                       <Route path="coming-soon" element={<AdminComingSoon />} />
                       <Route path="theme" element={<AdminTheme />} />
+                      <Route path="seo-check" element={<AdminSeoCheck />} />
                     </Route>
 
                     {/* Public & customer routes — wrapped in ComingSoonGate */}
