@@ -10,6 +10,7 @@ import AboutCalloutCard from '@/components/about/AboutCalloutCard';
 import AboutBulletList from '@/components/about/AboutBulletList';
 import AboutTimeline from '@/components/about/AboutTimeline';
 import AboutMaterialsGrid from '@/components/about/AboutMaterialsGrid';
+import SEOHead from '@/components/SEOHead';
 
 const EditableParagraphs = ({ paragraphs, keyPrefix, className = '', textClassName = '' }: {
   paragraphs: string[];
@@ -37,6 +38,11 @@ const About = () => {
 
   return (
     <div className="lb-about">
+      <SEOHead
+        title={language === 'fr' ? 'À propos' : 'About'}
+        description={language === 'fr' ? 'L\'histoire de LÉONA BLOM — Maison de mode narrative entre Douala et Paris.' : 'The story of LÉONA BLOM — Narrative fashion house between Douala and Paris.'}
+        path="/a-propos"
+      />
       {/* 1. HERO */}
       <AboutHero
         quote={c.hero.quote}

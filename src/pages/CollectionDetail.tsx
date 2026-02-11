@@ -9,6 +9,9 @@ import EditableDBImage from '@/components/EditableDBImage';
 import YouTubePlayer from '@/components/collection/YouTubePlayer';
 import LogoSpinner from '@/components/LogoSpinner';
 import { coverImage, cardImage } from '@/lib/imageOptim';
+import SEOHead from '@/components/SEOHead';
+import { breadcrumbJsonLd } from '@/lib/jsonLd';
+import { siteConfig } from '@/lib/siteConfig';
 
 
 interface CollectionRow {
@@ -68,8 +71,20 @@ const CollectionDetail = () => {
   const narrative = language === 'fr' ? (collection.narrative_fr || '') : (collection.narrative_en || '');
   const galleryImages = collection.gallery_images || [];
 
+  const narrativeClean = narrative.replace(/<[^>]*>/g, '').trim();
+
   return (
     <div className="pt-20 md:pt-24">
+      <SEOHead
+        title={`${title} | Collections`}
+        description={narrativeClean ? narrativeClean.slice(0, 160) : `Collection ${title} — ${siteConfig.brand}`}
+        path={`/collections/${collection.slug}`}
+        image={collection.cover_image || undefined}
+        jsonLd={breadcrumbJsonLd([
+          { name: 'Collections', url: `${siteConfig.siteUrl}/collections` },
+          { name: title, url: `${siteConfig.siteUrl}/collections/${collection.slug}` },
+        ])}
+      />
       {/* Video Hero */}
       <section className="relative w-full overflow-hidden">
         <AdminEditButton

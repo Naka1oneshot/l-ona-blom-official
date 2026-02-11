@@ -9,6 +9,7 @@ import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { useCategories } from '@/hooks/useCategories';
 import ProductCardSkeleton from '@/components/ProductCardSkeleton';
+import SEOHead from '@/components/SEOHead';
 
 const PAGE_SIZE = 12;
 
@@ -119,8 +120,18 @@ const Shop = () => {
 
   const hasFilter = !!(categorySlug || groupSlug);
 
+  const shopTitle = language === 'fr' ? 'Boutique' : 'Shop';
+  const shopDesc = language === 'fr'
+    ? 'Découvrez nos créations haute couture : robes, ensembles et accessoires en soie, lin et coton.'
+    : 'Discover our haute couture creations: dresses, ensembles and accessories in silk, linen and cotton.';
+
   return (
     <div className="pt-20 md:pt-24">
+      <SEOHead
+        title={breadcrumbCategory || (breadcrumbGroup?.label) || shopTitle}
+        description={shopDesc}
+        path="/boutique"
+      />
       <section className="luxury-container luxury-section">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
