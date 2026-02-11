@@ -2,3 +2,6 @@ project_id = "phujiyshbhiujzcvrrkf"
 
 [functions.translate]
 verify_jwt = false
+
+[functions.tryon-leffa]
+verify_jwt = false

@@ -55,6 +55,9 @@ const AdminFeatures = () => {
       {tryon && (
         <div className="border border-border p-6 space-y-5 max-w-lg">
           <h2 className="text-display text-lg">Essayage virtuel</h2>
+          <p className="text-[10px] font-body text-muted-foreground bg-secondary/50 px-3 py-1.5 rounded">
+            Mode : {tryon.config?.mode === 'ai_leffa' ? 'IA via fal.ai (Leffa)' : 'Overlay manuel'}
+          </p>
 
           <div className="flex items-center justify-between">
             <div>

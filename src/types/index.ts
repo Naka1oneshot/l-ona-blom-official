@@ -46,7 +46,10 @@ export interface Product {
   hover_image_index?: number | null;
   sort_order?: number;
   tryon_enabled?: boolean;
+  tryon_ai_enabled?: boolean;
   tryon_type?: 'top' | 'bottom' | 'dress' | 'accessory' | null;
+  tryon_garment_type?: 'upper_body' | 'lower_body' | 'dresses' | null;
+  tryon_garment_image_url?: string | null;
   tryon_image_url?: string | null;
   tryon_fallback_image_index?: number | null;
   tryon_offset_x?: number | null;
