@@ -5,7 +5,8 @@ import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSiteFeature } from '@/hooks/useSiteFeature';
 import { usePoseDetection, computePlacement } from '@/hooks/usePoseDetection';
-import { Upload, Download, RotateCcw, HelpCircle, Trash2, Plus, Minus, RotateCw, ShieldCheck, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Upload, Download, RotateCcw, HelpCircle, Trash2, Plus, Minus, RotateCw, ShieldCheck, Loader2, FlaskConical } from 'lucide-react';
 
 /* ── Types ──────────────────────────────────────────────────── */
 type TryonType = 'top' | 'bottom' | 'dress' | 'accessory';
@@ -49,6 +50,7 @@ const TryOnPage = () => {
   const { items } = useCart();
   const { language } = useLanguage();
   const { config } = useSiteFeature('virtual_tryon');
+  const { isAdmin } = useAuth();
   const allowWithoutPng = config?.allow_without_png !== false;
 
   /* ── Responsive canvas size ──────────────────────────────── */
@@ -76,6 +78,10 @@ const TryOnPage = () => {
     if (!allowWithoutPng && !p.tryon_image_url) return false;
     return true;
   });
+
+  /* ── Admin test mode (refs) ────────────────────────────────── */
+  const adminGarmentRef = useRef<HTMLInputElement>(null);
+  const [adminTestType, setAdminTestType] = useState<TryonType>('top');
 
   /* ── Pose detection ────────────────────────────────────────── */
   const { landmarks, detecting, detect } = usePoseDetection();
@@ -184,6 +190,27 @@ const TryOnPage = () => {
     });
     setSelectedId(newLayer.id);
   }, [language, landmarks, canvasW, canvasH]);
+
+  const handleAdminGarment = useCallback((file: File) => {
+    const url = URL.createObjectURL(file);
+    const fakeItem = {
+      product: {
+        id: `admin-test-${Date.now()}`,
+        tryon_enabled: true,
+        tryon_type: adminTestType,
+        tryon_image_url: null,
+        tryon_fallback_image_index: 0,
+        tryon_offset_x: 0,
+        tryon_offset_y: 0,
+        tryon_default_scale: null,
+        images: [url],
+        name_fr: 'Test admin',
+        name_en: 'Admin test',
+      },
+      quantity: 1,
+    };
+    addLayer(fakeItem as any);
+  }, [adminTestType, addLayer]);
 
   const removeLayer = useCallback((id: string) => {
     setLayers(prev => prev.filter(l => l.id !== id));
@@ -448,6 +475,52 @@ const TryOnPage = () => {
                 <li>{language === 'fr' ? 'Téléchargez le résultat en PNG' : 'Download the result as PNG'}</li>
               </ul>
             </div>
+
+            {/* Admin test mode */}
+            {isAdmin && (
+              <div className="border border-primary/30 bg-primary/5 p-3 mt-6">
+                <p className="flex items-center gap-1.5 text-[10px] font-body font-medium text-primary mb-3">
+                  <FlaskConical size={12} /> {language === 'fr' ? 'Mode test admin' : 'Admin test mode'}
+                </p>
+                <p className="text-[10px] font-body text-muted-foreground mb-3">
+                  {language === 'fr'
+                    ? 'Importez directement une photo de vêtement pour tester l\'éligibilité sans passer par le panier.'
+                    : 'Import a garment photo directly to test eligibility without the cart.'}
+                </p>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-body text-muted-foreground block">
+                    {language === 'fr' ? 'Type de vêtement' : 'Garment type'}
+                  </label>
+                  <select
+                    value={adminTestType}
+                    onChange={e => setAdminTestType(e.target.value as TryonType)}
+                    className="w-full text-xs font-body border border-border bg-background px-2 py-1.5"
+                  >
+                    <option value="top">{language === 'fr' ? 'Haut' : 'Top'}</option>
+                    <option value="bottom">{language === 'fr' ? 'Bas' : 'Bottom'}</option>
+                    <option value="dress">{language === 'fr' ? 'Robe' : 'Dress'}</option>
+                    <option value="accessory">{language === 'fr' ? 'Accessoire' : 'Accessory'}</option>
+                  </select>
+                  <button
+                    onClick={() => adminGarmentRef.current?.click()}
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] tracking-wider uppercase font-body border border-primary text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    <Upload size={12} /> {language === 'fr' ? 'Importer photo vêtement' : 'Import garment photo'}
+                  </button>
+                  <input
+                    ref={adminGarmentRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) handleAdminGarment(f);
+                      e.target.value = '';
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
