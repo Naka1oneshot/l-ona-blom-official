@@ -41,14 +41,32 @@ function useImage(src: string | null): [HTMLImageElement | null, boolean] {
 }
 
 /* ── Constants ──────────────────────────────────────────────── */
-const CANVAS_W = 600;
-const CANVAS_H = 800;
+const BASE_W = 600;
+const BASE_H = 800;
+const ASPECT = BASE_H / BASE_W; // 4:3
 
 const TryOnPage = () => {
   const { items } = useCart();
   const { language } = useLanguage();
   const { config } = useSiteFeature('virtual_tryon');
   const allowWithoutPng = config?.allow_without_png !== false;
+
+  /* ── Responsive canvas size ──────────────────────────────── */
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const [canvasW, setCanvasW] = useState(BASE_W);
+  const canvasH = Math.round(canvasW * ASPECT);
+
+  useEffect(() => {
+    const measure = () => {
+      if (canvasContainerRef.current) {
+        const w = Math.min(BASE_W, canvasContainerRef.current.clientWidth);
+        setCanvasW(w);
+      }
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
 
   // Filter eligible items
   const eligibleItems = items.filter(item => {
@@ -117,7 +135,7 @@ const TryOnPage = () => {
 
     if (landmarks) {
       // ✅ Pose-based auto-placement
-      const placement = computePlacement(landmarks, type, CANVAS_W, CANVAS_H, {
+      const placement = computePlacement(landmarks, type, canvasW, canvasH, {
         ox: Number(ox),
         oy: Number(oy),
         defaultScale: adminScale != null ? Number(adminScale) : undefined,
@@ -130,11 +148,11 @@ const TryOnPage = () => {
     } else {
       // Fallback: simple heuristic
       const defaultScale = adminScale ?? 0.5;
-      initX = CANVAS_W * 0.25 + Number(ox);
-      initY = type === 'bottom' ? CANVAS_H * 0.45 : CANVAS_H * 0.1;
+      initX = canvasW * 0.25 + Number(ox);
+      initY = type === 'bottom' ? canvasH * 0.45 : canvasH * 0.1;
       initY += Number(oy);
-      w = CANVAS_W * 0.5;
-      h = CANVAS_H * 0.4;
+      w = canvasW * 0.5;
+      h = canvasH * 0.4;
       sc = defaultScale;
     }
 
@@ -165,7 +183,7 @@ const TryOnPage = () => {
       return next;
     });
     setSelectedId(newLayer.id);
-  }, [language, landmarks]);
+  }, [language, landmarks, canvasW, canvasH]);
 
   const removeLayer = useCallback((id: string) => {
     setLayers(prev => prev.filter(l => l.id !== id));
@@ -175,9 +193,9 @@ const TryOnPage = () => {
   const resetPosition = useCallback((id: string) => {
     setLayers(prev => prev.map(l => {
       if (l.id !== id) return l;
-      return { ...l, x: CANVAS_W * 0.25, y: l.type === 'bottom' ? CANVAS_H * 0.45 : CANVAS_H * 0.1, scaleX: 0.5, scaleY: 0.5, rotation: 0 };
+      return { ...l, x: canvasW * 0.25, y: l.type === 'bottom' ? canvasH * 0.45 : canvasH * 0.1, scaleX: 0.5, scaleY: 0.5, rotation: 0 };
     }));
-  }, []);
+  }, [canvasW, canvasH]);
 
   /* ── Scale / Rotate controls ──────────────────────────────── */
   const adjustLayer = useCallback((id: string, changes: Partial<TryonLayer>) => {
@@ -285,11 +303,11 @@ const TryOnPage = () => {
 
           {/* CENTER — Canvas */}
           <div className="flex flex-col items-center gap-4">
-            <div className="border border-border bg-secondary/30 overflow-hidden" style={{ width: CANVAS_W, maxWidth: '100%' }}>
+            <div ref={canvasContainerRef} className="border border-border bg-secondary/30 overflow-hidden w-full" style={{ maxWidth: BASE_W }}>
               <Stage
                 ref={stageRef}
-                width={CANVAS_W}
-                height={CANVAS_H}
+                width={canvasW}
+                height={canvasH}
                 onMouseDown={e => {
                   if (e.target === e.target.getStage()) setSelectedId(null);
                 }}
@@ -302,8 +320,8 @@ const TryOnPage = () => {
                   {photoImg && (
                     <KImage
                       image={photoImg}
-                      width={CANVAS_W}
-                      height={CANVAS_H}
+                      width={canvasW}
+                      height={canvasH}
                       listening={false}
                     />
                   )}
