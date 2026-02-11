@@ -24,7 +24,7 @@ function loadCartFromStorage(): CartItem[] {
   try {
     const raw = localStorage.getItem('lb_cart');
     return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+  } catch (_e) { return []; }
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
