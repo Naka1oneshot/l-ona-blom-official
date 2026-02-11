@@ -8,6 +8,7 @@ import { cardImage } from '@/lib/imageOptim';
 import AdminEditButton from '@/components/AdminEditButton';
 import ColorSwatch from '@/components/product/ColorSwatch';
 import BraidingSwatch from '@/components/product/BraidingSwatch';
+import SmartImage from '@/components/SmartImage';
 
 const COLOR_NAME_FALLBACKS: Record<string, string> = {
   noir: '#000000', noire: '#000000', black: '#000000',
@@ -40,6 +41,8 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
+const GRID_SIZES = "(min-width: 1024px) 33vw, 50vw";
+
 const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   const { language, t } = useLanguage();
   const { formatPrice } = useCurrency();
@@ -54,7 +57,6 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
     .map(c => ({ name: c, hexes: getHexColors(product.color_hex_map, c), type: 'braiding' as const }))
     .filter(c => c.hexes.length > 0);
 
-  // Interleave: color, braiding, color, braiding…
   const interleaved: { name: string; hexes: string[]; type: 'color' | 'braiding' }[] = [];
   const maxLen = Math.max(colorsWithHex.length, braidingWithHex.length);
   for (let i = 0; i < maxLen; i++) {
@@ -64,6 +66,9 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
 
   const maxSwatches = 5;
 
+  const hoverIdx = product.hover_image_index ?? 1;
+  const hoverImg = product.images[hoverIdx] || product.images[1];
+
   return (
     <div className="relative group">
       <AdminEditButton
@@ -72,30 +77,23 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
       />
       <Link to={`/boutique/${product.slug}`} className="block">
         <div className="relative aspect-[3/4] overflow-hidden bg-secondary mb-4">
-          <img
+          {/* Main image */}
+          <SmartImage
             src={cardImage(product.images[0])}
             alt={name}
-            className="w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
-            style={{ imageRendering: 'auto' }}
-            loading={priority ? 'eager' : 'lazy'}
-            decoding={priority ? 'sync' : 'async'}
-            fetchPriority={priority ? 'high' : 'low'}
+            className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+            sizes={GRID_SIZES}
+            priority={priority}
           />
-          {(() => {
-            const hoverIdx = product.hover_image_index ?? 1;
-            const hoverImg = product.images[hoverIdx] || product.images[1];
-            return hoverImg ? (
-              <img
-                src={cardImage(hoverImg)}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
-                style={{ imageRendering: 'auto' }}
-                loading="lazy"
-                decoding="async"
-                fetchPriority="low"
-              />
-            ) : null;
-          })()}
+          {/* Hover image */}
+          {hoverImg && (
+            <SmartImage
+              src={cardImage(hoverImg)}
+              alt=""
+              className="absolute inset-0 w-full h-full opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
+              sizes={GRID_SIZES}
+            />
+          )}
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-500" />
           <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] tracking-[0.2em] uppercase font-body bg-background/90 text-foreground px-5 py-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400 pointer-events-none backdrop-blur-sm">
             {language === 'fr' ? 'Découvrir' : 'Discover'}
