@@ -58,7 +58,10 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     editorial_blocks_json: (product?.editorial_blocks_json || []) as EditorialBlock[],
     // Try-on fields
     tryon_enabled: product?.tryon_enabled || false,
+    tryon_ai_enabled: product?.tryon_ai_enabled || false,
     tryon_type: product?.tryon_type || '',
+    tryon_garment_type: product?.tryon_garment_type || '',
+    tryon_garment_image_url: product?.tryon_garment_image_url || '',
     tryon_image_url: product?.tryon_image_url || '',
     tryon_fallback_image_index: product?.tryon_fallback_image_index ?? 0,
     tryon_offset_x: product?.tryon_offset_x ?? '',
@@ -173,7 +176,10 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       hover_image_index: form.hover_image_index,
       editorial_blocks_json: form.editorial_blocks_json.length > 0 ? JSON.parse(JSON.stringify(form.editorial_blocks_json)) : null,
       tryon_enabled: form.tryon_enabled,
+      tryon_ai_enabled: form.tryon_ai_enabled,
       tryon_type: form.tryon_type || null,
+      tryon_garment_type: form.tryon_garment_type || null,
+      tryon_garment_image_url: form.tryon_garment_image_url || null,
       tryon_image_url: form.tryon_image_url || null,
       tryon_fallback_image_index: form.tryon_fallback_image_index != null ? Number(form.tryon_fallback_image_index) : null,
       tryon_offset_x: form.tryon_offset_x !== '' ? Number(form.tryon_offset_x) : null,
@@ -557,22 +563,78 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           <label className={labelClass}>Essayage virtuel</label>
           <label className="flex items-center gap-2 text-sm font-body cursor-pointer">
             <input type="checkbox" checked={form.tryon_enabled} onChange={e => set('tryon_enabled', e.target.checked)} className="accent-primary" />
-            Activer l'essayage virtuel
+            Activer l'essayage virtuel (overlay)
           </label>
-          {form.tryon_enabled && (
+          <label className="flex items-center gap-2 text-sm font-body cursor-pointer">
+            <input type="checkbox" checked={form.tryon_ai_enabled} onChange={e => set('tryon_ai_enabled', e.target.checked)} className="accent-primary" />
+            Activer l'essayage IA (Leffa)
+          </label>
+          {(form.tryon_enabled || form.tryon_ai_enabled) && (
             <div className="space-y-4">
               <div>
-                <label className={labelClass}>Type de vêtement</label>
-                <select value={form.tryon_type} onChange={e => set('tryon_type', e.target.value)} className={inputClass} required>
+                <label className={labelClass}>Type de vêtement (UI)</label>
+                <select value={form.tryon_type} onChange={e => {
+                  set('tryon_type', e.target.value);
+                  // Auto-map garment type for Leffa
+                  const map: Record<string, string> = { top: 'upper_body', bottom: 'lower_body', dress: 'dresses', accessory: '' };
+                  set('tryon_garment_type', map[e.target.value] || '');
+                }} className={inputClass} required>
                   <option value="">— Choisir —</option>
-                  <option value="top">Top</option>
-                  <option value="bottom">Bottom</option>
-                  <option value="dress">Dress</option>
-                  <option value="accessory">Accessory</option>
+                  <option value="top">Haut (Top)</option>
+                  <option value="bottom">Bas (Bottom)</option>
+                  <option value="dress">Robe (Dress)</option>
+                  <option value="accessory">Accessoire</option>
                 </select>
               </div>
+              {form.tryon_ai_enabled && (
+                <>
+                  <div>
+                    <label className={labelClass}>Type Leffa (garment_type)</label>
+                    <select value={form.tryon_garment_type} onChange={e => set('tryon_garment_type', e.target.value)} className={inputClass}>
+                      <option value="">— Auto —</option>
+                      <option value="upper_body">upper_body</option>
+                      <option value="lower_body">lower_body</option>
+                      <option value="dresses">dresses</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Image vêtement pour l'IA</label>
+                    {form.images.length > 0 ? (
+                      <div className="space-y-2">
+                        <p className="text-[10px] text-muted-foreground font-body">Sélectionnez parmi les photos du produit :</p>
+                        <div className="flex flex-wrap gap-2">
+                          {form.images.map((img: string, idx: number) => {
+                            const isSelected = form.tryon_garment_image_url === img;
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => set('tryon_garment_image_url', img)}
+                                className={`relative w-16 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                                  isSelected ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-foreground/40'
+                                }`}
+                              >
+                                <img src={img} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground font-body">Ou URL externe :</p>
+                        <input value={form.tryon_garment_image_url} onChange={e => set('tryon_garment_image_url', e.target.value)} className={inputClass} placeholder="https://..." />
+                      </div>
+                    ) : (
+                      <input value={form.tryon_garment_image_url} onChange={e => set('tryon_garment_image_url', e.target.value)} className={inputClass} placeholder="https://..." />
+                    )}
+                    {form.tryon_ai_enabled && !form.tryon_garment_image_url && form.images.length > 0 && (
+                      <p className="text-[10px] text-amber-500 font-body mt-1">
+                        Fallback : la première image produit sera utilisée.
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
               <div>
-                <label className={labelClass}>Image détourée (URL PNG, optionnel)</label>
+                <label className={labelClass}>Image détourée overlay (URL PNG, optionnel)</label>
                 <input value={form.tryon_image_url} onChange={e => set('tryon_image_url', e.target.value)} className={inputClass} placeholder="https://..." />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

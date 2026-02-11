@@ -6,7 +6,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useSiteFeature } from '@/hooks/useSiteFeature';
 import { usePoseDetection, computePlacement } from '@/hooks/usePoseDetection';
 import { useAuth } from '@/hooks/useAuth';
-import { Upload, Download, RotateCcw, HelpCircle, Trash2, Plus, Minus, RotateCw, ShieldCheck, Loader2, FlaskConical } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Upload, Download, RotateCcw, HelpCircle, Trash2, Plus, Minus, RotateCw, ShieldCheck, Loader2, FlaskConical, Sparkles, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
 /* ── Types ──────────────────────────────────────────────────── */
 type TryonType = 'top' | 'bottom' | 'dress' | 'accessory';
@@ -49,9 +51,23 @@ const ASPECT = BASE_H / BASE_W; // 4:3
 const TryOnPage = () => {
   const { items } = useCart();
   const { language } = useLanguage();
-  const { config } = useSiteFeature('virtual_tryon');
+  const { enabled: featureEnabled, config } = useSiteFeature('virtual_tryon');
   const { isAdmin } = useAuth();
   const allowWithoutPng = config?.allow_without_png !== false;
+  const isAiMode = config?.mode === 'ai_leffa';
+
+  /* ── AI generation state ──────────────────────────────────── */
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiProgress, setAiProgress] = useState('');
+  const [aiResultUrl, setAiResultUrl] = useState<string | null>(null);
+  const [aiConsented, setAiConsented] = useState(false);
+  const [aiPhotoFile, setAiPhotoFile] = useState<File | null>(null);
+  const aiPhotoRef = useRef<HTMLInputElement>(null);
+
+  /* ── Admin AI test state ──────────────────────────────────── */
+  const [adminAiGarmentUrl, setAdminAiGarmentUrl] = useState('');
+  const [adminAiGarmentType, setAdminAiGarmentType] = useState<'upper_body' | 'lower_body' | 'dresses'>('upper_body');
+  const adminAiGarmentRef = useRef<HTMLInputElement>(null);
 
   /* ── Responsive canvas size ──────────────────────────────── */
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -272,6 +288,103 @@ const TryOnPage = () => {
 
   const selectedLayer = layers.find(l => l.id === selectedId);
 
+  /* ── AI generation ────────────────────────────────────────── */
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const generateAi = useCallback(async (opts: {
+    productId?: string;
+    garmentImageUrl?: string;
+    garmentType?: string;
+    photoFile: File;
+  }) => {
+    setAiGenerating(true);
+    setAiProgress(language === 'fr' ? 'Envoi de la photo…' : 'Uploading photo…');
+    setAiResultUrl(null);
+
+    try {
+      const base64 = await fileToBase64(opts.photoFile);
+
+      const body: any = { userImageBase64: base64 };
+      if (opts.productId) {
+        body.productId = opts.productId;
+      } else {
+        body.garmentImageUrl = opts.garmentImageUrl;
+        body.garmentType = opts.garmentType;
+      }
+
+      setAiProgress(language === 'fr' ? 'Soumission à l\'IA…' : 'Submitting to AI…');
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const createRes = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tryon-leffa/create`,
+        { method: 'POST', headers, body: JSON.stringify(body) }
+      );
+      const createData = await createRes.json();
+      if (!createRes.ok || !createData.request_id) {
+        throw new Error(createData.error || 'Failed to submit');
+      }
+
+      setAiProgress(language === 'fr' ? 'Génération en cours…' : 'Generating…');
+
+      // Poll status
+      const requestId = createData.request_id;
+      let attempts = 0;
+      const maxAttempts = 120; // 2 minutes
+
+      const poll = async () => {
+        while (attempts < maxAttempts) {
+          await new Promise(r => setTimeout(r, 2000));
+          attempts++;
+
+          const statusRes = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tryon-leffa/status?requestId=${requestId}`,
+            { headers }
+          );
+          const statusData = await statusRes.json();
+
+          if (statusData.status === 'COMPLETED') {
+            if (statusData.image_url) {
+              setAiResultUrl(statusData.image_url);
+              setAiProgress('');
+              toast.success(language === 'fr' ? 'Essayage IA terminé !' : 'AI try-on complete!');
+            } else {
+              throw new Error('No image returned');
+            }
+            return;
+          }
+
+          if (statusData.status === 'FAILED') {
+            throw new Error('AI generation failed');
+          }
+
+          setAiProgress(language === 'fr'
+            ? `Génération en cours… (${attempts * 2}s)`
+            : `Generating… (${attempts * 2}s)`);
+        }
+        throw new Error('Timeout');
+      };
+
+      await poll();
+    } catch (err: any) {
+      toast.error(err.message || 'Error');
+      setAiProgress('');
+    } finally {
+      setAiGenerating(false);
+    }
+  }, [language]);
+
   return (
     <div className="min-h-screen bg-background pt-20 md:pt-24">
       <div className="luxury-container max-w-7xl mx-auto px-4 pb-16">
@@ -280,7 +393,9 @@ const TryOnPage = () => {
         </h1>
         <p className="text-center text-xs font-body text-muted-foreground mb-8 flex items-center justify-center gap-1.5">
           <ShieldCheck size={14} />
-          {language === 'fr' ? 'Votre photo reste sur votre appareil.' : 'Your photo stays on your device.'}
+          {isAiMode
+            ? (language === 'fr' ? 'Essayage IA — votre photo est envoyée à un service tiers sécurisé.' : 'AI Try-On — your photo is sent to a secure third-party service.')
+            : (language === 'fr' ? 'Votre photo reste sur votre appareil.' : 'Your photo stays on your device.')}
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_260px] gap-6">
@@ -440,84 +555,138 @@ const TryOnPage = () => {
               const name = language === 'fr' ? p.name_fr : p.name_en;
               const imgUrl = p.tryon_image_url || p.images?.[p.tryon_fallback_image_index ?? 0] || p.images?.[0];
               const isActive = layers.some(l => l.id.startsWith(p.id));
+              const canAi = isAiMode && p.tryon_ai_enabled && p.tryon_garment_type;
               return (
-                <div key={p.id} className="border border-border p-3 flex gap-3 items-center">
-                  {imgUrl && (
-                    <img src={imgUrl} alt={name} className="w-12 h-16 object-cover flex-shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-body font-medium truncate">{name}</p>
-                    <p className="text-[10px] text-muted-foreground font-body uppercase">{p.tryon_type}</p>
+                <div key={p.id} className="border border-border p-3 space-y-2">
+                  <div className="flex gap-3 items-center">
+                    {imgUrl && <img src={imgUrl} alt={name} className="w-12 h-16 object-cover flex-shrink-0" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-body font-medium truncate">{name}</p>
+                      <p className="text-[10px] text-muted-foreground font-body uppercase">{p.tryon_type}</p>
+                    </div>
+                    <button onClick={() => addLayer(item)} className={`text-[10px] tracking-wider uppercase font-body px-3 py-1.5 border transition-colors ${isActive ? 'border-primary text-primary' : 'border-foreground/20 hover:border-foreground'}`}>
+                      Overlay
+                    </button>
                   </div>
-                  <button
-                    onClick={() => addLayer(item)}
-                    className={`text-[10px] tracking-wider uppercase font-body px-3 py-1.5 border transition-colors ${
-                      isActive
-                        ? 'border-primary text-primary'
-                        : 'border-foreground/20 hover:border-foreground'
-                    }`}
-                  >
-                    {language === 'fr' ? 'Essayer' : 'Try'}
-                  </button>
+                  {canAi && (
+                    <button
+                      onClick={() => {
+                        if (!aiPhotoFile) { toast.error(language === 'fr' ? 'Uploadez votre photo IA ci-dessous.' : 'Upload your AI photo below.'); return; }
+                        if (!aiConsented) { toast.error(language === 'fr' ? 'Acceptez le consentement IA.' : 'Accept the AI consent.'); return; }
+                        generateAi({ productId: p.id, photoFile: aiPhotoFile });
+                      }}
+                      disabled={aiGenerating}
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-[10px] tracking-wider uppercase font-body border border-primary/50 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
+                    >
+                      <Sparkles size={12} /> {language === 'fr' ? 'Essayage IA' : 'AI Try-On'}
+                    </button>
+                  )}
                 </div>
               );
             })}
 
+            {/* ── AI Mode Section ──────────────────────────────── */}
+            {isAiMode && (
+              <div className="border border-primary/30 bg-primary/5 p-4 mt-6 space-y-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-body font-medium text-primary">
+                  <Sparkles size={12} /> {language === 'fr' ? 'Essayage IA (Leffa)' : 'AI Try-On (Leffa)'}
+                </p>
+                <label className="flex items-start gap-2 text-[10px] font-body text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={aiConsented} onChange={e => setAiConsented(e.target.checked)} className="accent-primary mt-0.5" />
+                  <span>
+                    <AlertTriangle size={10} className="inline mr-1 text-amber-500" />
+                    {language === 'fr' ? 'J\'accepte que ma photo soit envoyée à un service tiers (fal.ai) pour l\'essayage.' : 'I agree my photo will be sent to a third-party service (fal.ai) for try-on.'}
+                  </span>
+                </label>
+                <div>
+                  <button onClick={() => aiPhotoRef.current?.click()} className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] tracking-wider uppercase font-body border border-border hover:border-foreground transition-colors">
+                    <Upload size={12} /> {aiPhotoFile ? aiPhotoFile.name : (language === 'fr' ? 'Choisir photo' : 'Choose photo')}
+                  </button>
+                  <input ref={aiPhotoRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) setAiPhotoFile(f); }} />
+                </div>
+                {aiGenerating && <div className="flex items-center gap-2 text-[10px] font-body text-primary animate-pulse"><Loader2 size={12} className="animate-spin" /> {aiProgress}</div>}
+                {aiResultUrl && (
+                  <div className="space-y-2">
+                    <img src={aiResultUrl} alt="AI result" className="w-full rounded border border-border" />
+                    <a href={aiResultUrl} download="essayage-ia.png" target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] tracking-wider uppercase font-body bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                      <Download size={12} /> {language === 'fr' ? 'Télécharger' : 'Download'}
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Help */}
             <div className="border border-border/50 p-3 mt-6">
-              <p className="flex items-center gap-1.5 text-[10px] font-body text-muted-foreground mb-1">
-                <HelpCircle size={12} /> {language === 'fr' ? 'Aide' : 'Help'}
-              </p>
+              <p className="flex items-center gap-1.5 text-[10px] font-body text-muted-foreground mb-1"><HelpCircle size={12} /> {language === 'fr' ? 'Aide' : 'Help'}</p>
               <ul className="text-[10px] font-body text-muted-foreground space-y-1 list-disc pl-4">
-                <li>{language === 'fr' ? 'Uploadez votre photo à gauche' : 'Upload your photo on the left'}</li>
-                <li>{language === 'fr' ? 'Cliquez "Essayer" pour placer un vêtement' : 'Click "Try" to place a garment'}</li>
-                <li>{language === 'fr' ? 'Déplacez, redimensionnez et tournez les vêtements' : 'Move, resize and rotate garments'}</li>
-                <li>{language === 'fr' ? 'Téléchargez le résultat en PNG' : 'Download the result as PNG'}</li>
+                <li>{language === 'fr' ? 'Uploadez votre photo à gauche (overlay) ou dans la section IA' : 'Upload your photo on the left (overlay) or in the AI section'}</li>
+                <li>{language === 'fr' ? '"Overlay" : placement manuel du vêtement' : '"Overlay": manual garment placement'}</li>
+                {isAiMode && <li>{language === 'fr' ? '"Essayage IA" : rendu réaliste via l\'intelligence artificielle' : '"AI Try-On": realistic AI-powered render'}</li>}
+                <li>{language === 'fr' ? 'Téléchargez le résultat' : 'Download the result'}</li>
               </ul>
             </div>
 
-            {/* Admin test mode */}
+            {/* Admin overlay test */}
             {isAdmin && (
               <div className="border border-primary/30 bg-primary/5 p-3 mt-6">
-                <p className="flex items-center gap-1.5 text-[10px] font-body font-medium text-primary mb-3">
-                  <FlaskConical size={12} /> {language === 'fr' ? 'Mode test admin' : 'Admin test mode'}
-                </p>
-                <p className="text-[10px] font-body text-muted-foreground mb-3">
-                  {language === 'fr'
-                    ? 'Importez directement une photo de vêtement pour tester l\'éligibilité sans passer par le panier.'
-                    : 'Import a garment photo directly to test eligibility without the cart.'}
-                </p>
+                <p className="flex items-center gap-1.5 text-[10px] font-body font-medium text-primary mb-3"><FlaskConical size={12} /> {language === 'fr' ? 'Test overlay admin' : 'Admin overlay test'}</p>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-body text-muted-foreground block">
-                    {language === 'fr' ? 'Type de vêtement' : 'Garment type'}
-                  </label>
-                  <select
-                    value={adminTestType}
-                    onChange={e => setAdminTestType(e.target.value as TryonType)}
-                    className="w-full text-xs font-body border border-border bg-background px-2 py-1.5"
-                  >
+                  <select value={adminTestType} onChange={e => setAdminTestType(e.target.value as TryonType)} className="w-full text-xs font-body border border-border bg-background px-2 py-1.5">
                     <option value="top">{language === 'fr' ? 'Haut' : 'Top'}</option>
                     <option value="bottom">{language === 'fr' ? 'Bas' : 'Bottom'}</option>
                     <option value="dress">{language === 'fr' ? 'Robe' : 'Dress'}</option>
                     <option value="accessory">{language === 'fr' ? 'Accessoire' : 'Accessory'}</option>
                   </select>
-                  <button
-                    onClick={() => adminGarmentRef.current?.click()}
-                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] tracking-wider uppercase font-body border border-primary text-primary hover:bg-primary/10 transition-colors"
-                  >
-                    <Upload size={12} /> {language === 'fr' ? 'Importer photo vêtement' : 'Import garment photo'}
+                  <button onClick={() => adminGarmentRef.current?.click()} className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] tracking-wider uppercase font-body border border-primary text-primary hover:bg-primary/10 transition-colors">
+                    <Upload size={12} /> {language === 'fr' ? 'Importer vêtement' : 'Import garment'}
                   </button>
-                  <input
-                    ref={adminGarmentRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={e => {
-                      const f = e.target.files?.[0];
-                      if (f) handleAdminGarment(f);
-                      e.target.value = '';
-                    }}
-                  />
+                  <input ref={adminGarmentRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleAdminGarment(f); e.target.value = ''; }} />
+                </div>
+              </div>
+            )}
+
+            {/* Admin AI test */}
+            {isAdmin && isAiMode && (
+              <div className="border border-primary/30 bg-primary/5 p-3 mt-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-body font-medium text-primary mb-3"><FlaskConical size={12} /> <Sparkles size={12} /> {language === 'fr' ? 'Test IA admin' : 'Admin AI test'}</p>
+                <div className="space-y-2">
+                  <select value={adminAiGarmentType} onChange={e => setAdminAiGarmentType(e.target.value as any)} className="w-full text-xs font-body border border-border bg-background px-2 py-1.5">
+                    <option value="upper_body">upper_body (Haut)</option>
+                    <option value="lower_body">lower_body (Bas)</option>
+                    <option value="dresses">dresses (Robe)</option>
+                  </select>
+                  <button onClick={() => adminAiGarmentRef.current?.click()} className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] tracking-wider uppercase font-body border border-primary text-primary hover:bg-primary/10 transition-colors">
+                    <Upload size={12} /> {language === 'fr' ? 'Photo vêtement IA' : 'AI garment photo'}
+                  </button>
+                  <input ref={adminAiGarmentRef} type="file" accept="image/*" className="hidden" onChange={async e => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      const filename = `admin-test/${Date.now()}-${f.name}`;
+                      const { error } = await supabase.storage.from('images').upload(filename, f);
+                      if (error) { toast.error(error.message); return; }
+                      const { data: urlData } = supabase.storage.from('images').getPublicUrl(filename);
+                      setAdminAiGarmentUrl(urlData.publicUrl);
+                      toast.success(language === 'fr' ? 'Image uploadée' : 'Image uploaded');
+                    }
+                    e.target.value = '';
+                  }} />
+                  {adminAiGarmentUrl && (
+                    <>
+                      <img src={adminAiGarmentUrl} alt="Garment" className="w-full h-24 object-contain border border-border rounded" />
+                      <button
+                        onClick={() => {
+                          if (!aiPhotoFile) { toast.error(language === 'fr' ? 'Uploadez votre photo IA.' : 'Upload AI photo.'); return; }
+                          if (!aiConsented) { toast.error(language === 'fr' ? 'Acceptez le consentement.' : 'Accept consent.'); return; }
+                          generateAi({ garmentImageUrl: adminAiGarmentUrl, garmentType: adminAiGarmentType, photoFile: aiPhotoFile });
+                        }}
+                        disabled={aiGenerating}
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] tracking-wider uppercase font-body bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                      >
+                        <Sparkles size={12} /> {language === 'fr' ? 'Lancer essayage IA' : 'Run AI try-on'}
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
