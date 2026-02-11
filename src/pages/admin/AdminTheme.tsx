@@ -19,7 +19,7 @@ const AdminTheme = () => {
     try {
       const hsl = hexToHSL(hex);
       setDraft(prev => ({ ...prev, [cssVar]: hsl }));
-    } catch {}
+    } catch (_e) {}
   };
 
   const handleHslInput = (cssVar: string, val: string) => {
@@ -31,7 +31,7 @@ const AdminTheme = () => {
     try {
       await save(draft);
       toast.success('Thème enregistré');
-    } catch {
+    } catch (_e) {
       toast.error('Erreur lors de la sauvegarde');
     }
     setSaving(false);
@@ -44,7 +44,7 @@ const AdminTheme = () => {
       await reset();
       setDraft({ ...defaults });
       toast.success('Thème réinitialisé');
-    } catch {
+    } catch (_e) {
       toast.error('Erreur');
     }
     setSaving(false);

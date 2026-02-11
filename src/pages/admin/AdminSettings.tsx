@@ -63,7 +63,7 @@ const AdminSettings = () => {
 
   async function handleSave(key: string) {
     let parsed: any;
-    try { parsed = JSON.parse(editValue); } catch { toast.error('JSON invalide'); return; }
+    try { parsed = JSON.parse(editValue); } catch (_e) { toast.error('JSON invalide'); return; }
     const existing = settings.find(s => s.key === key);
     let error;
     if (existing) {

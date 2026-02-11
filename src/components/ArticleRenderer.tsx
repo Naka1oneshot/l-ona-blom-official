@@ -32,7 +32,7 @@ const ArticleRenderer = ({ content, className = '' }: Props) => {
     if (!content) return '';
     try {
       return generateHTML(content, extensions);
-    } catch {
+    } catch (_e) {
       return '';
     }
   }, [content]);

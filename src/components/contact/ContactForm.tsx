@@ -48,7 +48,7 @@ const ContactForm = ({ data, language }: Props) => {
       toast.success(labels.success);
       setForm({ name: '', firstName: '', email: '', subject: '', message: '' });
       setConsent(false);
-    } catch {
+    } catch (_e) {
       toast.error(language === 'en' ? 'An error occurred.' : 'Une erreur est survenue.');
     }
   };
