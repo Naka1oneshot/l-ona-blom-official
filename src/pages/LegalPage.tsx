@@ -286,13 +286,13 @@ const LegalPage = ({ settingsKey, titleKey, path }: LegalPageProps) => {
               </div>
             </div>
           ) : (
-            <div className="group/edit relative">
+            <div className="relative">
               {canEdit && (
                 <button
                   onClick={startEditing}
-                  className="absolute -top-2 right-0 z-50 flex items-center gap-1.5 px-3 py-1.5 text-[10px] tracking-wider uppercase font-body bg-primary text-primary-foreground opacity-0 group-hover/edit:opacity-100 transition-opacity shadow-lg"
+                  className="mb-4 flex items-center gap-1.5 px-3 py-1.5 text-[10px] tracking-wider uppercase font-body bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
                 >
-                  <Pencil size={12} /> Modifier
+                  <Pencil size={12} /> Modifier le contenu
                 </button>
               )}
               {renderMarkdown(content)}
