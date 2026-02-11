@@ -40,7 +40,7 @@ const FloatingThemeEditor = () => {
       const hsl = hexToHSL(hex);
       setDraft(prev => ({ ...prev, [cssVar]: hsl }));
       document.documentElement.style.setProperty(`--${cssVar}`, hsl);
-    } catch {}
+    } catch (_e) {}
   };
 
   const handleHexInput = (cssVar: string, raw: string) => {
@@ -53,14 +53,14 @@ const FloatingThemeEditor = () => {
   const handleSave = async () => {
     setSaving(true);
     try { await save(draft); toast.success('Thème enregistré'); }
-    catch { toast.error('Erreur'); }
+    catch (_e) { toast.error('Erreur'); }
     setSaving(false);
   };
 
   const handleReset = async () => {
     setSaving(true);
     try { await reset(); setDraft({ ...defaults }); toast.success('Thème réinitialisé'); }
-    catch { toast.error('Erreur'); }
+    catch (_e) { toast.error('Erreur'); }
     setSaving(false);
   };
 
