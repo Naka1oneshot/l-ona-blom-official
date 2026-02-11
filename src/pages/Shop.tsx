@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { mapProduct } from '@/lib/products';
@@ -10,49 +10,87 @@ import ProductCard from '@/components/ProductCard';
 import { useCategories } from '@/hooks/useCategories';
 import ProductCardSkeleton from '@/components/ProductCardSkeleton';
 
+const PAGE_SIZE = 12;
+
+// Only the columns ProductCard actually needs
+const PRODUCT_COLUMNS = 'id,slug,status,category,category_id,name_fr,name_en,base_price_eur,price_by_size_eur,price_overrides,images,sizes,colors,materials,braiding_options,braiding_colors,color_hex_map,stock_qty,made_to_order,made_to_measure,preorder,hover_image_index,sort_order,created_at';
+
 const Shop = () => {
   const { t, language } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const { groups } = useCategories();
 
   const categorySlug = searchParams.get('category');
   const groupSlug = searchParams.get('group');
 
+  // Build filtered query helper
+  const buildQuery = useCallback(async (from: number, to: number) => {
+    // We need category data to filter by slug since the DB stores IDs
+    const [{ data: prodData, count }, { data: catData }, { data: groupData }] = await Promise.all([
+      supabase
+        .from('products')
+        .select(PRODUCT_COLUMNS, { count: 'exact' })
+        .eq('status', 'active')
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: false })
+        .range(from, to),
+      supabase.from('categories').select('id,slug,group_id'),
+      supabase.from('category_groups').select('id,slug'),
+    ]);
+
+    const catMap = new Map((catData || []).map((c: any) => [c.id, c]));
+    const groupMap = new Map((groupData || []).map((g: any) => [g.id, g]));
+
+    let mapped = (prodData || []).map((row: any) => {
+      const p = mapProduct(row);
+      const cat = catMap.get(row.category_id);
+      (p as any)._catSlug = cat?.slug || null;
+      (p as any)._groupSlug = cat ? groupMap.get(cat.group_id)?.slug || null : null;
+      return p;
+    });
+
+    // Client-side filter (category/group slugs aren't directly in DB query)
+    if (categorySlug) {
+      mapped = mapped.filter((p: any) => p._catSlug === categorySlug);
+    } else if (groupSlug) {
+      mapped = mapped.filter((p: any) => p._groupSlug === groupSlug);
+    }
+
+    return { mapped, totalCount: count ?? 0 };
+  }, [categorySlug, groupSlug]);
+
+  // Initial load
   useEffect(() => {
+    setProducts([]);
+    setPage(0);
+    setHasMore(true);
     (async () => {
       setLoading(true);
-
-      // Fetch products and categories separately for robustness
-      const [{ data: prodData }, { data: catData }, { data: groupData }] = await Promise.all([
-        supabase.from('products').select('id,slug,status,category,category_id,name_fr,name_en,base_price_eur,price_by_size_eur,price_overrides,images,sizes,colors,materials,braiding_options,braiding_colors,color_hex_map,stock_qty,made_to_order,made_to_measure,preorder,hover_image_index,sort_order,created_at').eq('status', 'active').order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
-        supabase.from('categories').select('*'),
-        supabase.from('category_groups').select('*'),
-      ]);
-
-      const catMap = new Map((catData || []).map((c: any) => [c.id, c]));
-      const groupMap = new Map((groupData || []).map((g: any) => [g.id, g]));
-
-      let mapped = (prodData || []).map((row: any) => {
-        const p = mapProduct(row);
-        const cat = catMap.get(row.category_id);
-        (p as any)._catSlug = cat?.slug || null;
-        (p as any)._groupSlug = cat ? groupMap.get(cat.group_id)?.slug || null : null;
-        return p;
-      });
-
-      // Filter
-      if (categorySlug) {
-        mapped = mapped.filter((p: any) => p._catSlug === categorySlug);
-      } else if (groupSlug) {
-        mapped = mapped.filter((p: any) => p._groupSlug === groupSlug);
-      }
-
+      const { mapped, totalCount } = await buildQuery(0, PAGE_SIZE - 1);
       setProducts(mapped);
+      setHasMore(PAGE_SIZE < totalCount);
+      setPage(1);
       setLoading(false);
     })();
-  }, [categorySlug, groupSlug]);
+  }, [categorySlug, groupSlug, buildQuery]);
+
+  // Load more
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    const { mapped, totalCount } = await buildQuery(from, to);
+    setProducts(prev => [...prev, ...mapped]);
+    setHasMore((page + 1) * PAGE_SIZE < totalCount);
+    setPage(prev => prev + 1);
+    setLoadingMore(false);
+  };
 
   const clearFilter = () => setSearchParams({});
 
@@ -153,9 +191,9 @@ const Shop = () => {
                       key={product.id}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.35, delay: i * 0.06 }}
+                      transition={{ duration: 0.35, delay: Math.min(i, 5) * 0.06 }}
                     >
-                      <ProductCard product={product} priority={i < 6} />
+                      <ProductCard product={product} priority={i < 4} />
                     </motion.div>
                   ))}
                 </div>
@@ -164,6 +202,26 @@ const Shop = () => {
                   <p className="text-center text-muted-foreground font-body py-20">
                     {language === 'fr' ? 'Aucun produit dans cette catégorie.' : 'No products in this category.'}
                   </p>
+                )}
+
+                {/* Load more button */}
+                {hasMore && products.length > 0 && (
+                  <div className="flex justify-center mt-16 mb-8">
+                    <button
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      className="group relative px-10 py-3.5 border border-foreground/20 text-[11px] tracking-[0.2em] uppercase font-body text-foreground hover:bg-foreground hover:text-background transition-all duration-300 disabled:opacity-50"
+                    >
+                      {loadingMore ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 size={14} className="animate-spin" />
+                          {language === 'fr' ? 'Chargement…' : 'Loading…'}
+                        </span>
+                      ) : (
+                        language === 'fr' ? 'Voir plus' : 'See more'
+                      )}
+                    </button>
+                  </div>
                 )}
               </motion.div>
             )}
