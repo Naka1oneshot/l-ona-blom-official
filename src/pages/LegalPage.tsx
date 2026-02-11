@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useEditMode } from '@/contexts/EditModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import SEOHead from '@/components/SEOHead';
 import LogoSpinner from '@/components/LogoSpinner';
+import { Pencil, Check, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface LegalPageProps {
   settingsKey: string;
@@ -110,10 +114,38 @@ You can modify your cookie preferences at any time through your browser settings
   },
 };
 
+/** Render markdown content (headings, bold, paragraphs) */
+function renderMarkdown(content: string) {
+  return content.split('\n').map((line, i) => {
+    if (!line.trim()) return <br key={i} />;
+    if (line.startsWith('## ')) return <h2 key={i} className="text-display text-2xl mt-8 mb-4">{line.replace('## ', '')}</h2>;
+    if (line.startsWith('### ')) return <h3 key={i} className="text-display text-xl mt-6 mb-3">{line.replace('### ', '')}</h3>;
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    return (
+      <p key={i} className="text-sm font-body text-muted-foreground leading-relaxed mb-3">
+        {parts.map((part, j) =>
+          part.startsWith('**') && part.endsWith('**')
+            ? <strong key={j} className="text-foreground font-medium">{part.slice(2, -2)}</strong>
+            : part
+        )}
+      </p>
+    );
+  });
+}
+
 const LegalPage = ({ settingsKey, titleKey, path }: LegalPageProps) => {
   const { language, t } = useLanguage();
+  const { isAdmin } = useAuth();
+  const { editMode } = useEditMode();
+  const canEdit = isAdmin && editMode;
+
   const [content, setContent] = useState<string>('');
+  const [savedValues, setSavedValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     supabase
@@ -122,14 +154,55 @@ const LegalPage = ({ settingsKey, titleKey, path }: LegalPageProps) => {
       .eq('key', settingsKey)
       .maybeSingle()
       .then(({ data }) => {
-        if (data?.value && typeof data.value === 'object' && (data.value as any)[language]) {
-          setContent((data.value as any)[language]);
+        if (data?.value && typeof data.value === 'object') {
+          const vals = data.value as Record<string, string>;
+          setSavedValues(vals);
+          setContent(vals[language] || defaultContent[settingsKey]?.[language] || '');
         } else {
           setContent(defaultContent[settingsKey]?.[language] || '');
         }
         setLoading(false);
       });
   }, [settingsKey, language]);
+
+  const startEditing = useCallback(() => {
+    setDraft(content);
+    setEditing(true);
+  }, [content]);
+
+  useEffect(() => {
+    if (editing && textareaRef.current) {
+      textareaRef.current.focus();
+      const el = textareaRef.current;
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+  }, [editing]);
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    const newValues = { ...savedValues, [language]: draft };
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert(
+        { key: settingsKey, value: newValues as any },
+        { onConflict: 'key' }
+      );
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setSavedValues(newValues);
+      setContent(draft);
+      toast.success('Contenu mis à jour');
+      setEditing(false);
+    }
+  }, [settingsKey, draft, savedValues, language]);
+
+  const handleCancel = () => {
+    setEditing(false);
+    setDraft('');
+  };
 
   const title = t(titleKey);
 
@@ -144,24 +217,51 @@ const LegalPage = ({ settingsKey, titleKey, path }: LegalPageProps) => {
             <div className="flex justify-center py-20">
               <LogoSpinner />
             </div>
+          ) : editing ? (
+            <div className="relative w-full">
+              <p className="text-xs text-muted-foreground mb-2 font-body">
+                Édition en Markdown — langue : <strong>{language.toUpperCase()}</strong>
+              </p>
+              <textarea
+                ref={textareaRef}
+                value={draft}
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  const el = e.target;
+                  el.style.height = 'auto';
+                  el.style.height = el.scrollHeight + 'px';
+                }}
+                onKeyDown={(e) => { if (e.key === 'Escape') handleCancel(); }}
+                className="w-full bg-background/90 border-2 border-primary p-4 focus:outline-none resize-y min-h-[300px] max-h-[80vh] overflow-y-auto text-sm font-mono text-foreground whitespace-pre-wrap leading-relaxed"
+                style={{ height: 'auto' }}
+              />
+              <div className="flex gap-2 mt-3 justify-end">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-1.5 bg-foreground text-background px-4 py-2 text-[10px] tracking-wider uppercase font-body hover:bg-primary transition-colors"
+                >
+                  <Check size={14} /> Enregistrer
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="flex items-center gap-1.5 px-4 py-2 text-[10px] tracking-wider uppercase font-body border border-border hover:border-foreground transition-colors"
+                >
+                  <X size={14} /> Annuler
+                </button>
+              </div>
+            </div>
           ) : (
-            <div>
-              {content.split('\n').map((line, i) => {
-                if (!line.trim()) return <br key={i} />;
-                if (line.startsWith('## ')) return <h2 key={i} className="text-display text-2xl mt-8 mb-4">{line.replace('## ', '')}</h2>;
-                if (line.startsWith('### ')) return <h3 key={i} className="text-display text-xl mt-6 mb-3">{line.replace('### ', '')}</h3>;
-                // Handle bold markdown
-                const parts = line.split(/(\*\*[^*]+\*\*)/g);
-                return (
-                  <p key={i} className="text-sm font-body text-muted-foreground leading-relaxed mb-3">
-                    {parts.map((part, j) =>
-                      part.startsWith('**') && part.endsWith('**')
-                        ? <strong key={j} className="text-foreground font-medium">{part.slice(2, -2)}</strong>
-                        : part
-                    )}
-                  </p>
-                );
-              })}
+            <div className="group/edit relative">
+              {canEdit && (
+                <button
+                  onClick={startEditing}
+                  className="absolute -top-2 right-0 z-50 flex items-center gap-1.5 px-3 py-1.5 text-[10px] tracking-wider uppercase font-body bg-primary text-primary-foreground opacity-0 group-hover/edit:opacity-100 transition-opacity shadow-lg"
+                >
+                  <Pencil size={12} /> Modifier
+                </button>
+              )}
+              {renderMarkdown(content)}
             </div>
           )}
         </motion.div>
