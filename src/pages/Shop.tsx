@@ -28,38 +28,53 @@ const Shop = () => {
   const categorySlug = searchParams.get('category');
   const groupSlug = searchParams.get('group');
 
-  // Build filtered query helper
+  // Build filtered query helper — filters server-side for correct pagination
   const buildQuery = useCallback(async (from: number, to: number) => {
-    // We need category data to filter by slug since the DB stores IDs
-    const [{ data: prodData, count }, { data: catData }, { data: groupData }] = await Promise.all([
-      supabase
-        .from('products')
-        .select(PRODUCT_COLUMNS, { count: 'exact' })
-        .eq('status', 'active')
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: false })
-        .range(from, to),
+    // Resolve slug → id(s) first so we can filter in the DB query
+    const [{ data: catData }, { data: groupData }] = await Promise.all([
       supabase.from('categories').select('id,slug,group_id'),
       supabase.from('category_groups').select('id,slug'),
     ]);
 
-    const catMap = new Map((catData || []).map((c: any) => [c.id, c]));
-    const groupMap = new Map((groupData || []).map((g: any) => [g.id, g]));
+    const cats = catData || [];
+    const groups = groupData || [];
 
-    let mapped = (prodData || []).map((row: any) => {
-      const p = mapProduct(row);
-      const cat = catMap.get(row.category_id);
-      (p as any)._catSlug = cat?.slug || null;
-      (p as any)._groupSlug = cat ? groupMap.get(cat.group_id)?.slug || null : null;
-      return p;
-    });
+    // Determine which category IDs to filter by
+    let filterCategoryIds: string[] | null = null;
 
-    // Client-side filter (category/group slugs aren't directly in DB query)
     if (categorySlug) {
-      mapped = mapped.filter((p: any) => p._catSlug === categorySlug);
+      const cat = cats.find((c: any) => c.slug === categorySlug);
+      if (cat) filterCategoryIds = [cat.id];
+      else filterCategoryIds = []; // no match → empty results
     } else if (groupSlug) {
-      mapped = mapped.filter((p: any) => p._groupSlug === groupSlug);
+      const group = groups.find((g: any) => g.slug === groupSlug);
+      if (group) {
+        filterCategoryIds = cats
+          .filter((c: any) => c.group_id === group.id)
+          .map((c: any) => c.id);
+      } else {
+        filterCategoryIds = [];
+      }
     }
+
+    let query = supabase
+      .from('products')
+      .select(PRODUCT_COLUMNS, { count: 'exact' })
+      .eq('status', 'active');
+
+    if (filterCategoryIds !== null) {
+      if (filterCategoryIds.length === 0) {
+        return { mapped: [], totalCount: 0 };
+      }
+      query = query.in('category_id', filterCategoryIds);
+    }
+
+    const { data: prodData, count } = await query
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    const mapped = (prodData || []).map((row: any) => mapProduct(row));
 
     return { mapped, totalCount: count ?? 0 };
   }, [categorySlug, groupSlug]);
