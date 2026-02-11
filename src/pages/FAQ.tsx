@@ -8,6 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import SEOHead from '@/components/SEOHead';
 
 const FAQ = () => {
   const { language, t } = useLanguage();
@@ -15,6 +16,11 @@ const FAQ = () => {
 
   return (
     <div className="pt-20 md:pt-24">
+      <SEOHead
+        title="FAQ"
+        description={language === 'fr' ? 'Questions fréquentes sur les créations LÉONA BLOM, les commandes et la livraison.' : 'Frequently asked questions about LÉONA BLOM creations, orders and delivery.'}
+        path="/faq"
+      />
       <section className="luxury-container luxury-section max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

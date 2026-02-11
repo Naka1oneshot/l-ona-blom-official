@@ -10,6 +10,8 @@ import { getUnitPriceEurCents, getPriceRange } from '@/lib/pricing';
 import { detailImage, cardImage } from '@/lib/imageOptim';
 import { toast } from 'sonner';
 import SEOHead from '@/components/SEOHead';
+import { productJsonLd, breadcrumbJsonLd } from '@/lib/jsonLd';
+import { siteConfig } from '@/lib/siteConfig';
 import MeasurementButton from '@/components/product/MeasurementButton';
 import MeasurementOverlay from '@/components/product/MeasurementOverlay';
 import AdminEditButton from '@/components/AdminEditButton';
@@ -204,6 +206,13 @@ const ProductDetail = () => {
         path={`/boutique/${product.slug}`}
         image={product.images[0]}
         type="product"
+        jsonLd={[
+          productJsonLd(product, language),
+          breadcrumbJsonLd([
+            { name: language === 'fr' ? 'Boutique' : 'Shop', url: `${siteConfig.siteUrl}/boutique` },
+            { name, url: `${siteConfig.siteUrl}/boutique/${product.slug}` },
+          ]),
+        ]}
       />
       <div className="luxury-container py-8 md:py-20">
         {/* Breadcrumb */}

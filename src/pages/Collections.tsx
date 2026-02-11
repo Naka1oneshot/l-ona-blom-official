@@ -11,6 +11,7 @@ import EditableDBImage from '@/components/EditableDBImage';
 import CoverFocalPicker from '@/components/collections/CoverFocalPicker';
 import LogoSpinner from '@/components/LogoSpinner';
 import { coverImage, cardImage } from '@/lib/imageOptim';
+import SEOHead from '@/components/SEOHead';
 
 interface CollectionRow {
   id: string;
@@ -92,6 +93,11 @@ const Collections = () => {
 
   return (
     <div className="pt-20 md:pt-24">
+      <SEOHead
+        title="Collections"
+        description={language === 'fr' ? 'Explorez les collections LÉONA BLOM — Luxe narratif, haute couture éthique.' : 'Explore LÉONA BLOM collections — Narrative luxury, ethical haute couture.'}
+        path="/collections"
+      />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}

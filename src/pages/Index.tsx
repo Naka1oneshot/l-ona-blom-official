@@ -6,6 +6,7 @@ import { fetchFeaturedProducts } from '@/lib/products';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import SEOHead from '@/components/SEOHead';
+import { organizationJsonLd, websiteJsonLd } from '@/lib/jsonLd';
 import EditableText from '@/components/EditableText';
 import EditableImage from '@/components/EditableImage';
 import EventsSection from '@/components/home/EventsSection';
@@ -22,7 +23,7 @@ const Index = () => {
   }, []);
   return (
     <div>
-      <SEOHead />
+      <SEOHead path="/" jsonLd={[organizationJsonLd(), websiteJsonLd()]} />
       {/* Hero */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <EditableImage
