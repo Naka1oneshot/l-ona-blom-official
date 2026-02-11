@@ -512,6 +512,13 @@ export type Database = {
           stock_qty: number | null
           story_en: string | null
           story_fr: string | null
+          tryon_default_scale: number | null
+          tryon_enabled: boolean
+          tryon_fallback_image_index: number | null
+          tryon_image_url: string | null
+          tryon_offset_x: number | null
+          tryon_offset_y: number | null
+          tryon_type: string | null
           updated_at: string
         }
         Insert: {
@@ -553,6 +560,13 @@ export type Database = {
           stock_qty?: number | null
           story_en?: string | null
           story_fr?: string | null
+          tryon_default_scale?: number | null
+          tryon_enabled?: boolean
+          tryon_fallback_image_index?: number | null
+          tryon_image_url?: string | null
+          tryon_offset_x?: number | null
+          tryon_offset_y?: number | null
+          tryon_type?: string | null
           updated_at?: string
         }
         Update: {
@@ -594,6 +608,13 @@ export type Database = {
           stock_qty?: number | null
           story_en?: string | null
           story_fr?: string | null
+          tryon_default_scale?: number | null
+          tryon_enabled?: boolean
+          tryon_fallback_image_index?: number | null
+          tryon_image_url?: string | null
+          tryon_offset_x?: number | null
+          tryon_offset_y?: number | null
+          tryon_type?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -684,6 +705,27 @@ export type Database = {
           times_redeemed?: number | null
           type?: string
           value?: number
+        }
+        Relationships: []
+      }
+      site_features: {
+        Row: {
+          config: Json
+          enabled: boolean
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          enabled?: boolean
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          enabled?: boolean
+          key?: string
+          updated_at?: string
         }
         Relationships: []
       }

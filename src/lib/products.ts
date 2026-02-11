@@ -39,6 +39,13 @@ export function mapProduct(row: any): Product {
     editorial_blocks_json: row.editorial_blocks_json as any[] | null,
     hover_image_index: row.hover_image_index ?? null,
     sort_order: row.sort_order ?? 0,
+    tryon_enabled: row.tryon_enabled ?? false,
+    tryon_type: row.tryon_type ?? null,
+    tryon_image_url: row.tryon_image_url ?? null,
+    tryon_fallback_image_index: row.tryon_fallback_image_index ?? null,
+    tryon_offset_x: row.tryon_offset_x ?? null,
+    tryon_offset_y: row.tryon_offset_y ?? null,
+    tryon_default_scale: row.tryon_default_scale ?? null,
   };
 }
 

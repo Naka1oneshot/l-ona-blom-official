@@ -56,6 +56,14 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     images: product?.images || [],
     hover_image_index: product?.hover_image_index ?? null,
     editorial_blocks_json: (product?.editorial_blocks_json || []) as EditorialBlock[],
+    // Try-on fields
+    tryon_enabled: product?.tryon_enabled || false,
+    tryon_type: product?.tryon_type || '',
+    tryon_image_url: product?.tryon_image_url || '',
+    tryon_fallback_image_index: product?.tryon_fallback_image_index ?? 0,
+    tryon_offset_x: product?.tryon_offset_x ?? '',
+    tryon_offset_y: product?.tryon_offset_y ?? '',
+    tryon_default_scale: product?.tryon_default_scale ?? '',
   });
 
   const [customStyles, setCustomStyles] = useState<{ value: string; label: string }[]>(
@@ -102,6 +110,12 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate tryon
+    if (form.tryon_enabled && !form.tryon_type) {
+      toast.error('Type d\'essayage requis si essayage activé.');
+      return;
+    }
 
     // Validate editorial blocks
     for (const block of form.editorial_blocks_json) {
@@ -158,6 +172,13 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       images: form.images,
       hover_image_index: form.hover_image_index,
       editorial_blocks_json: form.editorial_blocks_json.length > 0 ? JSON.parse(JSON.stringify(form.editorial_blocks_json)) : null,
+      tryon_enabled: form.tryon_enabled,
+      tryon_type: form.tryon_type || null,
+      tryon_image_url: form.tryon_image_url || null,
+      tryon_fallback_image_index: form.tryon_fallback_image_index != null ? Number(form.tryon_fallback_image_index) : null,
+      tryon_offset_x: form.tryon_offset_x !== '' ? Number(form.tryon_offset_x) : null,
+      tryon_offset_y: form.tryon_offset_y !== '' ? Number(form.tryon_offset_y) : null,
+      tryon_default_scale: form.tryon_default_scale !== '' ? Number(form.tryon_default_scale) : null,
     };
 
     let error;
@@ -529,6 +550,51 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className={labelClass}>Options de tressage (séparées par virgule)</label><input value={form.braiding_options} onChange={e => set('braiding_options', e.target.value)} className={inputClass} /></div>
           <div><label className={labelClass}>Couleurs de tressage (séparées par virgule)</label><input value={form.braiding_colors} onChange={e => set('braiding_colors', e.target.value)} className={inputClass} placeholder="Magenta, Noir, Blanc" /></div>
+        </div>
+
+        {/* Essayage virtuel */}
+        <div className="border border-border rounded-lg p-5 space-y-4">
+          <label className={labelClass}>Essayage virtuel</label>
+          <label className="flex items-center gap-2 text-sm font-body cursor-pointer">
+            <input type="checkbox" checked={form.tryon_enabled} onChange={e => set('tryon_enabled', e.target.checked)} className="accent-primary" />
+            Activer l'essayage virtuel
+          </label>
+          {form.tryon_enabled && (
+            <div className="space-y-4">
+              <div>
+                <label className={labelClass}>Type de vêtement</label>
+                <select value={form.tryon_type} onChange={e => set('tryon_type', e.target.value)} className={inputClass} required>
+                  <option value="">— Choisir —</option>
+                  <option value="top">Top</option>
+                  <option value="bottom">Bottom</option>
+                  <option value="dress">Dress</option>
+                  <option value="accessory">Accessory</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Image détourée (URL PNG, optionnel)</label>
+                <input value={form.tryon_image_url} onChange={e => set('tryon_image_url', e.target.value)} className={inputClass} placeholder="https://..." />
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className={labelClass}>Fallback image index</label>
+                  <input type="number" min="0" value={form.tryon_fallback_image_index} onChange={e => set('tryon_fallback_image_index', e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Offset X</label>
+                  <input type="number" value={form.tryon_offset_x} onChange={e => set('tryon_offset_x', e.target.value)} className={inputClass} placeholder="0" />
+                </div>
+                <div>
+                  <label className={labelClass}>Offset Y</label>
+                  <input type="number" value={form.tryon_offset_y} onChange={e => set('tryon_offset_y', e.target.value)} className={inputClass} placeholder="0" />
+                </div>
+                <div>
+                  <label className={labelClass}>Scale par défaut</label>
+                  <input type="number" step="0.1" value={form.tryon_default_scale} onChange={e => set('tryon_default_scale', e.target.value)} className={inputClass} placeholder="0.5" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Editorial Blocks Builder */}

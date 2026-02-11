@@ -45,6 +45,13 @@ export interface Product {
   editorial_blocks_json: any[] | null;
   hover_image_index?: number | null;
   sort_order?: number;
+  tryon_enabled?: boolean;
+  tryon_type?: 'top' | 'bottom' | 'dress' | 'accessory' | null;
+  tryon_image_url?: string | null;
+  tryon_fallback_image_index?: number | null;
+  tryon_offset_x?: number | null;
+  tryon_offset_y?: number | null;
+  tryon_default_scale?: number | null;
 }
 
 export interface Collection {
