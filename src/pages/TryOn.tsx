@@ -4,7 +4,8 @@ import Konva from 'konva';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSiteFeature } from '@/hooks/useSiteFeature';
-import { Upload, Download, RotateCcw, HelpCircle, Trash2, Plus, Minus, RotateCw, ShieldCheck } from 'lucide-react';
+import { usePoseDetection, computePlacement } from '@/hooks/usePoseDetection';
+import { Upload, Download, RotateCcw, HelpCircle, Trash2, Plus, Minus, RotateCw, ShieldCheck, Loader2 } from 'lucide-react';
 
 /* ── Types ──────────────────────────────────────────────────── */
 type TryonType = 'top' | 'bottom' | 'dress' | 'accessory';
@@ -58,10 +59,20 @@ const TryOnPage = () => {
     return true;
   });
 
+  /* ── Pose detection ────────────────────────────────────────── */
+  const { landmarks, detecting, detect } = usePoseDetection();
+
   /* ── Photo state ──────────────────────────────────────────── */
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoImg] = useImage(photoUrl);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Run pose detection when photo loads
+  useEffect(() => {
+    if (photoImg) {
+      detect(photoImg);
+    }
+  }, [photoImg, detect]);
 
   const handlePhoto = useCallback((file: File) => {
     const url = URL.createObjectURL(file);
@@ -98,14 +109,34 @@ const TryOnPage = () => {
 
     const name = language === 'fr' ? p.name_fr : p.name_en;
 
-    // Compute initial position
-    const defaultScale = p.tryon_default_scale ?? 0.5;
     const ox = p.tryon_offset_x ?? 0;
     const oy = p.tryon_offset_y ?? 0;
+    const adminScale = p.tryon_default_scale;
 
-    let initX = CANVAS_W * 0.25 + Number(ox);
-    let initY = type === 'bottom' ? CANVAS_H * 0.45 : CANVAS_H * 0.1;
-    initY += Number(oy);
+    let initX: number, initY: number, w: number, h: number, sc: number;
+
+    if (landmarks) {
+      // ✅ Pose-based auto-placement
+      const placement = computePlacement(landmarks, type, CANVAS_W, CANVAS_H, {
+        ox: Number(ox),
+        oy: Number(oy),
+        defaultScale: adminScale != null ? Number(adminScale) : undefined,
+      });
+      initX = placement.x;
+      initY = placement.y;
+      w = placement.width;
+      h = placement.height;
+      sc = placement.scaleX;
+    } else {
+      // Fallback: simple heuristic
+      const defaultScale = adminScale ?? 0.5;
+      initX = CANVAS_W * 0.25 + Number(ox);
+      initY = type === 'bottom' ? CANVAS_H * 0.45 : CANVAS_H * 0.1;
+      initY += Number(oy);
+      w = CANVAS_W * 0.5;
+      h = CANVAS_H * 0.4;
+      sc = defaultScale;
+    }
 
     const newLayer: TryonLayer = {
       id: `${p.id}-${Date.now()}`,
@@ -114,11 +145,11 @@ const TryOnPage = () => {
       imageUrl: imgUrl,
       x: initX,
       y: initY,
-      scaleX: defaultScale,
-      scaleY: defaultScale,
+      scaleX: sc,
+      scaleY: sc,
       rotation: 0,
-      width: CANVAS_W * 0.5,
-      height: CANVAS_H * 0.4,
+      width: w,
+      height: h,
     };
 
     setLayers(prev => {
@@ -130,12 +161,11 @@ const TryOnPage = () => {
       } else if (type === 'dress') {
         next = next.filter(l => l.type !== 'top' && l.type !== 'bottom' && l.type !== 'dress');
       }
-      // accessory: just push
       next.push(newLayer);
       return next;
     });
     setSelectedId(newLayer.id);
-  }, [language]);
+  }, [language, landmarks]);
 
   const removeLayer = useCallback((id: string) => {
     setLayers(prev => prev.filter(l => l.id !== id));
@@ -237,6 +267,19 @@ const TryOnPage = () => {
             </div>
             {photoUrl && (
               <img src={photoUrl} alt="Preview" className="w-full aspect-[3/4] object-cover border border-border" />
+            )}
+            {detecting && (
+              <div className="flex items-center gap-2 text-[10px] font-body text-muted-foreground animate-pulse">
+                <Loader2 size={12} className="animate-spin" />
+                {language === 'fr' ? 'Détection de la pose…' : 'Detecting pose…'}
+              </div>
+            )}
+            {photoImg && !detecting && (
+              <p className="text-[10px] font-body text-muted-foreground">
+                {landmarks
+                  ? (language === 'fr' ? '✓ Pose détectée — placement intelligent actif' : '✓ Pose detected — smart placement active')
+                  : (language === 'fr' ? '⚠ Pose non détectée — placement par défaut' : '⚠ Pose not detected — default placement')}
+              </p>
             )}
           </div>
 
