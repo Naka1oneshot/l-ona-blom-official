@@ -80,8 +80,11 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Handle human image: if base64, upload to fal storage
-      if (userImageBase64) {
+      // Handle human image: URL or base64
+      const humanImageUrlDirect = body.humanImageUrl;
+      if (humanImageUrlDirect) {
+        humanImageUrl = humanImageUrlDirect;
+      } else if (userImageBase64) {
         // Upload to fal storage
         const uploadRes = await fetch("https://fal.run/fal-ai/fal-storage/upload", {
           method: "PUT",
@@ -93,7 +96,6 @@ Deno.serve(async (req) => {
         });
 
         if (!uploadRes.ok) {
-          // Fallback: use data URI directly
           humanImageUrl = userImageBase64.startsWith("data:")
             ? userImageBase64
             : `data:image/jpeg;base64,${userImageBase64}`;
@@ -102,13 +104,15 @@ Deno.serve(async (req) => {
           humanImageUrl = uploadData.url || uploadData.file_url || userImageBase64;
         }
       } else {
-        return new Response(JSON.stringify({ error: "userImageBase64 required" }), {
+        return new Response(JSON.stringify({ error: "humanImageUrl or userImageBase64 required" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       // Submit to fal queue
+      console.log("Submitting to fal.ai:", { humanImageUrl: humanImageUrl.substring(0, 80), garmentImageUrl: garmentImageUrl.substring(0, 80), garmentType });
+      const startTime = Date.now();
       const falRes = await fetch(FAL_BASE, {
         method: "POST",
         headers: {
@@ -116,15 +120,14 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          input: {
-            human_image_url: humanImageUrl,
-            garment_image_url: garmentImageUrl,
-            garment_type: garmentType,
-          },
+          human_image_url: humanImageUrl,
+          garment_image_url: garmentImageUrl,
+          garment_type: garmentType,
         }),
       });
 
       const falData = await falRes.json();
+      console.log("fal.ai response:", falRes.status, JSON.stringify(falData).substring(0, 500));
 
       if (!falRes.ok) {
         return new Response(JSON.stringify({ error: "fal.ai error", details: falData }), {
@@ -133,7 +136,13 @@ Deno.serve(async (req) => {
         });
       }
 
-      return new Response(JSON.stringify({ request_id: falData.request_id }), {
+      const submitDuration = Date.now() - startTime;
+      return new Response(JSON.stringify({ 
+        request_id: falData.request_id, 
+        submit_ms: submitDuration,
+        status_url: falData.status_url,
+        response_url: falData.response_url,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -148,16 +157,19 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Use fal.ai's correct status URL format (without subpath)
+      const FAL_STATUS_BASE = "https://queue.fal.run/fal-ai/leffa";
+      const statusUrl = `${FAL_STATUS_BASE}/requests/${requestId}/status`;
+      console.log("Checking fal status:", statusUrl);
+
       // Check status
-      const statusRes = await fetch(
-        `${FAL_BASE}/requests/${requestId}/status`,
-        {
-          headers: { Authorization: `Key ${FAL_KEY}` },
-        }
-      );
+      const statusRes = await fetch(statusUrl, {
+        headers: { Authorization: `Key ${FAL_KEY}` },
+      });
       
       if (!statusRes.ok) {
         const errText = await statusRes.text();
+        console.log("fal status error:", statusRes.status, errText);
         return new Response(JSON.stringify({ error: "fal status error", details: errText }), {
           status: 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -177,7 +189,7 @@ Deno.serve(async (req) => {
       if (statusData.status === "COMPLETED") {
         // Get result
         const resultRes = await fetch(
-          `${FAL_BASE}/requests/${requestId}`,
+          `${FAL_STATUS_BASE}/requests/${requestId}`,
           {
             headers: { Authorization: `Key ${FAL_KEY}` },
           }
