@@ -112,6 +112,40 @@ With your consent, we may use analytical cookies to understand how you use our s
 ### Managing Cookies
 You can modify your cookie preferences at any time through your browser settings.`,
   },
+  legal_mentions: {
+    fr: `## Mentions Légales
+
+### Éditeur du site
+LÉONA BLOM — Maison de maroquinerie artisanale.
+
+### Hébergement
+Le site leonablom.com est hébergé par Lovable Cloud.
+
+### Propriété intellectuelle
+L'ensemble des contenus (textes, photographies, illustrations, logos) présents sur ce site sont la propriété exclusive de LÉONA BLOM et sont protégés par le droit d'auteur. Toute reproduction, même partielle, est interdite sans autorisation préalable.
+
+### Responsabilité
+LÉONA BLOM s'efforce d'assurer l'exactitude des informations diffusées sur ce site, mais ne saurait être tenue responsable des erreurs ou omissions.
+
+### Contact
+Pour toute question : contact@leonablom.com`,
+    en: `## Legal Notice
+
+### Site Publisher
+LÉONA BLOM — Artisanal leather goods house.
+
+### Hosting
+The website leonablom.com is hosted by Lovable Cloud.
+
+### Intellectual Property
+All content (texts, photographs, illustrations, logos) on this site is the exclusive property of LÉONA BLOM and is protected by copyright. Any reproduction, even partial, is prohibited without prior authorization.
+
+### Liability
+LÉONA BLOM strives to ensure the accuracy of the information published on this site but cannot be held responsible for errors or omissions.
+
+### Contact
+For any questions: contact@leonablom.com`,
+  },
 };
 
 /** Render markdown content (headings, bold, paragraphs) */

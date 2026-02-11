@@ -18,6 +18,7 @@ const Footer = () => {
 
           {/* Legal links horizontal */}
           <div className="flex flex-wrap items-center gap-4 md:gap-6">
+            <Link to="/mentions-legales" className="luxury-link text-[11px] opacity-80 hover:opacity-100 font-body">{t('footer.legal')}</Link>
             <Link to="/cgv" className="luxury-link text-[11px] opacity-80 hover:opacity-100 font-body">{t('footer.cgv')}</Link>
             <Link to="/confidentialite" className="luxury-link text-[11px] opacity-80 hover:opacity-100 font-body">{t('footer.privacy')}</Link>
             <Link to="/cookies" className="luxury-link text-[11px] opacity-80 hover:opacity-100 font-body">{t('footer.cookies')}</Link>
