@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 
+// Module-level cache: once an image URL has been loaded, never show shimmer again
+const loadedUrlCache = new Set<string>();
+
 interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string | undefined | null;
   alt: string;
@@ -9,12 +12,6 @@ interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackClassName?: string;
 }
 
-/**
- * Optimised image component with:
- * - lazy/eager loading based on priority
- * - shimmer placeholder while loading
- * - null-safe: renders neutral block when src is missing
- */
 const SmartImage = ({
   src,
   alt,
@@ -25,26 +22,28 @@ const SmartImage = ({
   style,
   ...rest
 }: SmartImageProps) => {
-  const [loaded, setLoaded] = useState(false);
+  const alreadyCached = !!(src && loadedUrlCache.has(src));
+  const [loaded, setLoaded] = useState(alreadyCached);
   const [error, setError] = useState(false);
 
   if (!src || error) {
     return (
       <div
-        className={cn(
-          'bg-muted',
-          className,
-          fallbackClassName,
-        )}
+        className={cn('bg-muted', className, fallbackClassName)}
         style={style}
         aria-hidden="true"
       />
     );
   }
 
+  const handleLoad = () => {
+    loadedUrlCache.add(src);
+    setLoaded(true);
+  };
+
   return (
     <div className={cn('relative overflow-hidden', className)} style={style}>
-      {/* Shimmer placeholder */}
+      {/* Shimmer placeholder — only if never loaded before */}
       {!loaded && (
         <div
           className="absolute inset-0 bg-muted animate-pulse"
@@ -58,11 +57,15 @@ const SmartImage = ({
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
         fetchPriority={priority ? 'high' : 'low'}
-        onLoad={() => setLoaded(true)}
+        onLoad={handleLoad}
         onError={() => setError(true)}
         className={cn(
-          'w-full h-full object-cover transition-opacity duration-300',
-          loaded ? 'opacity-100' : 'opacity-0',
+          'w-full h-full object-cover',
+          alreadyCached
+            ? 'opacity-100'
+            : loaded
+              ? 'opacity-100 transition-opacity duration-200'
+              : 'opacity-0',
         )}
         style={{ imageRendering: 'auto' }}
         {...rest}
