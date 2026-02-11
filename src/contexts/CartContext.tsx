@@ -20,8 +20,20 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+function loadCartFromStorage(): CartItem[] {
+  try {
+    const raw = localStorage.getItem('lb_cart');
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
+
+  // Persist to localStorage
+  React.useEffect(() => {
+    localStorage.setItem('lb_cart', JSON.stringify(items));
+  }, [items]);
 
   const addItem = useCallback((product: Product, options?: { size?: string; color?: string; braiding?: string; braiding_color?: string; measurements?: MeasurementData }): StockSplitInfo | null => {
     let splitInfo: StockSplitInfo | null = null;

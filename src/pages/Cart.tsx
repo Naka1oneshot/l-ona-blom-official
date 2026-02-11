@@ -5,12 +5,20 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
 import { getUnitPriceEurCents } from '@/lib/pricing';
-import { Minus, Plus, X, Package, Clock } from 'lucide-react';
+import { Minus, Plus, X, Package, Clock, Sparkles } from 'lucide-react';
+import { useSiteFeature } from '@/hooks/useSiteFeature';
 
 const Cart = () => {
   const { language, t } = useLanguage();
   const { formatPrice } = useCurrency();
   const { items, removeItem, updateQuantity, totalCentsEur } = useCart();
+  const { enabled: tryonEnabled, config: tryonConfig } = useSiteFeature('virtual_tryon');
+  const allowWithoutPng = tryonConfig?.allow_without_png !== false;
+  const hasTryonItems = items.some(i => {
+    const p = i.product as any;
+    return p.tryon_enabled && p.tryon_type && (allowWithoutPng || p.tryon_image_url);
+  });
+  const showTryonButton = tryonEnabled && items.length > 0 && hasTryonItems;
 
   return (
     <div className="pt-20 md:pt-24">
@@ -110,9 +118,20 @@ const Cart = () => {
                   <span className="text-sm font-body tracking-wider uppercase">{t('cart.subtotal')}</span>
                   <span className="text-xl font-body">{formatPrice(totalCentsEur)}</span>
                 </div>
-                <button className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-colors duration-300">
+                <button className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary/90 transition-colors duration-300">
                   {t('cart.checkout')}
                 </button>
+                {showTryonButton && (
+                  <a
+                    href="/try-on"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 border border-primary text-primary py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary/5 transition-colors duration-300 mt-3"
+                  >
+                    <Sparkles size={14} />
+                    {language === 'fr' ? 'Essayage virtuel' : 'Virtual try-on'}
+                  </a>
+                )}
                 <Link
                   to="/boutique"
                   className="block text-center mt-4 text-sm font-body text-muted-foreground luxury-link"

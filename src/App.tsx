@@ -49,6 +49,8 @@ const AdminComingSoon = lazy(() => import("./pages/admin/AdminComingSoon"));
 const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
 const AdminTheme = lazy(() => import("./pages/admin/AdminTheme"));
 const AdminSeoCheck = lazy(() => import("./pages/admin/AdminSeoCheck"));
+const AdminFeatures = lazy(() => import("./pages/admin/AdminFeatures"));
+const TryOnPage = lazy(() => import("./pages/TryOn"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +102,7 @@ const App = () => (
                       <Route path="coming-soon" element={<AdminComingSoon />} />
                       <Route path="theme" element={<AdminTheme />} />
                       <Route path="seo-check" element={<AdminSeoCheck />} />
+                      <Route path="fonctionnalites" element={<AdminFeatures />} />
                     </Route>
 
                     {/* Public & customer routes — wrapped in ComingSoonGate */}
@@ -114,6 +117,7 @@ const App = () => (
                     <Route path="/contact" element={<ComingSoonGate><Layout><Contact /></Layout></ComingSoonGate>} />
                     <Route path="/faq" element={<ComingSoonGate><Layout><FAQ /></Layout></ComingSoonGate>} />
                     <Route path="/panier" element={<ComingSoonGate><Layout><Cart /></Layout></ComingSoonGate>} />
+                    <Route path="/try-on" element={<ComingSoonGate><Layout><TryOnPage /></Layout></ComingSoonGate>} />
                     <Route path="/cgv" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_cgv" titleKey="footer.cgv" path="/cgv" /></Layout></ComingSoonGate>} />
                     <Route path="/confidentialite" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_privacy" titleKey="footer.privacy" path="/confidentialite" /></Layout></ComingSoonGate>} />
                     <Route path="/cookies" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_cookies" titleKey="footer.cookies" path="/cookies" /></Layout></ComingSoonGate>} />
