@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -133,11 +132,7 @@ const Shop = () => {
         path="/boutique"
       />
       <section className="luxury-container luxury-section">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+        <div>
           {!hasFilter && (
             <h1 className="text-display text-4xl md:text-5xl text-center mb-6">{t('shop.title')}</h1>
           )}
@@ -175,69 +170,47 @@ const Shop = () => {
             </div>
           )}
 
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.div
-                key="skeleton"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12"
-              >
-                {[...Array(6)].map((_, i) => (
-                  <ProductCardSkeleton key={i} />
+          {loading ? (
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
+              {[...Array(6)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
+                {products.map((product, i) => (
+                  <ProductCard key={product.id} product={product} priority={i < 4} />
                 ))}
-              </motion.div>
-            ) : (
-              <motion.div
-                key="products"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
-              >
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-12">
-                  {products.map((product, i) => (
-                    <motion.div
-                      key={product.id}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.35, delay: Math.min(i, 5) * 0.06 }}
-                    >
-                      <ProductCard product={product} priority={i < 4} />
-                    </motion.div>
-                  ))}
+              </div>
+
+              {products.length === 0 && (
+                <p className="text-center text-muted-foreground font-body py-20">
+                  {language === 'fr' ? 'Aucun produit dans cette catégorie.' : 'No products in this category.'}
+                </p>
+              )}
+
+              {hasMore && products.length > 0 && (
+                <div className="flex justify-center mt-16 mb-8">
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="group relative px-10 py-3.5 border border-foreground/20 text-[11px] tracking-[0.2em] uppercase font-body text-foreground hover:bg-foreground hover:text-background transition-all duration-300 disabled:opacity-50"
+                  >
+                    {loadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 size={14} className="animate-spin" />
+                        {language === 'fr' ? 'Chargement…' : 'Loading…'}
+                      </span>
+                    ) : (
+                      language === 'fr' ? 'Voir plus' : 'See more'
+                    )}
+                  </button>
                 </div>
-
-                {products.length === 0 && (
-                  <p className="text-center text-muted-foreground font-body py-20">
-                    {language === 'fr' ? 'Aucun produit dans cette catégorie.' : 'No products in this category.'}
-                  </p>
-                )}
-
-                {/* Load more button */}
-                {hasMore && products.length > 0 && (
-                  <div className="flex justify-center mt-16 mb-8">
-                    <button
-                      onClick={loadMore}
-                      disabled={loadingMore}
-                      className="group relative px-10 py-3.5 border border-foreground/20 text-[11px] tracking-[0.2em] uppercase font-body text-foreground hover:bg-foreground hover:text-background transition-all duration-300 disabled:opacity-50"
-                    >
-                      {loadingMore ? (
-                        <span className="flex items-center gap-2">
-                          <Loader2 size={14} className="animate-spin" />
-                          {language === 'fr' ? 'Chargement…' : 'Loading…'}
-                        </span>
-                      ) : (
-                        language === 'fr' ? 'Voir plus' : 'See more'
-                      )}
-                    </button>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+              )}
+            </>
+          )}
+        </div>
       </section>
     </div>
   );
