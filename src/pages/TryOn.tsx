@@ -1,11 +1,13 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSiteFeature } from '@/hooks/useSiteFeature';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, Download, ShieldCheck, Loader2, FlaskConical, Sparkles, AlertTriangle } from 'lucide-react';
+import { fetchProducts } from '@/lib/products';
+import { Upload, Download, ShieldCheck, Loader2, FlaskConical, Sparkles, AlertTriangle, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import type { Product } from '@/types';
 
 const ESTIMATED_TOTAL_S = 150; // ~2min30 based on real tests
 
@@ -30,6 +32,14 @@ const TryOnPage = () => {
   const [adminAiGarmentUrl, setAdminAiGarmentUrl] = useState('');
   const [adminAiGarmentType, setAdminAiGarmentType] = useState<'upper_body' | 'lower_body' | 'dresses'>('upper_body');
   const adminAiGarmentRef = useRef<HTMLInputElement>(null);
+  const [adminProducts, setAdminProducts] = useState<Product[]>([]);
+  const [adminSelectedProductId, setAdminSelectedProductId] = useState<string>('');
+
+  // Fetch all products for admin gallery picker
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchProducts().then(setAdminProducts);
+  }, [isAdmin]);
 
   // Filter eligible AI items
   const eligibleItems = items.filter(item => {
@@ -289,15 +299,70 @@ const TryOnPage = () => {
 
           {/* ── Admin AI test ───────────────────────────────── */}
           {isAdmin && (
-            <div className="border border-primary/30 bg-primary/5 p-5 space-y-3">
+            <div className="border border-primary/30 bg-primary/5 p-5 space-y-4">
               <p className="flex items-center gap-1.5 text-[10px] font-body font-medium text-primary">
                 <FlaskConical size={12} /> <Sparkles size={12} /> {language === 'fr' ? 'Test IA admin' : 'Admin AI test'}
               </p>
+
+              {/* Garment type */}
               <select value={adminAiGarmentType} onChange={e => setAdminAiGarmentType(e.target.value as any)} className="w-full text-xs font-body border border-border bg-background px-2 py-1.5">
                 <option value="upper_body">upper_body (Haut)</option>
                 <option value="lower_body">lower_body (Bas)</option>
                 <option value="dresses">dresses (Robe)</option>
               </select>
+
+              {/* ── Pick from product gallery ── */}
+              <div className="space-y-2">
+                <p className="text-[10px] tracking-[0.15em] uppercase font-body text-muted-foreground flex items-center gap-1">
+                  <ImageIcon size={10} /> {language === 'fr' ? 'Choisir depuis un produit' : 'Pick from a product'}
+                </p>
+                <select
+                  value={adminSelectedProductId}
+                  onChange={e => setAdminSelectedProductId(e.target.value)}
+                  className="w-full text-xs font-body border border-border bg-background px-2 py-1.5"
+                >
+                  <option value="">{language === 'fr' ? '— Sélectionner un produit —' : '— Select a product —'}</option>
+                  {adminProducts.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {language === 'fr' ? p.name_fr : p.name_en}
+                    </option>
+                  ))}
+                </select>
+
+                {(() => {
+                  const selectedProduct = adminProducts.find(p => p.id === adminSelectedProductId);
+                  if (!selectedProduct || !selectedProduct.images?.length) return null;
+                  return (
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {selectedProduct.images.map((imgUrl, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setAdminAiGarmentUrl(imgUrl);
+                            toast.success(language === 'fr' ? `Image ${idx + 1} sélectionnée` : `Image ${idx + 1} selected`);
+                          }}
+                          className={`relative aspect-[3/4] border-2 overflow-hidden transition-all ${adminAiGarmentUrl === imgUrl ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/50'}`}
+                        >
+                          <img src={imgUrl} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
+                          {adminAiGarmentUrl === imgUrl && (
+                            <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                              <Sparkles size={14} className="text-primary" />
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* ── Or upload custom garment ── */}
+              <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-body">
+                <div className="flex-1 h-px bg-border" />
+                <span>{language === 'fr' ? 'ou uploader une image' : 'or upload an image'}</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
               <button onClick={() => adminAiGarmentRef.current?.click()} className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] tracking-wider uppercase font-body border border-primary text-primary hover:bg-primary/10 transition-colors">
                 <Upload size={12} /> {language === 'fr' ? 'Photo vêtement IA' : 'AI garment photo'}
               </button>
@@ -313,6 +378,8 @@ const TryOnPage = () => {
                 }
                 e.target.value = '';
               }} />
+
+              {/* Selected garment preview + run */}
               {adminAiGarmentUrl && (
                 <>
                   <img src={adminAiGarmentUrl} alt="Garment" className="w-full h-24 object-contain border border-border rounded" />
