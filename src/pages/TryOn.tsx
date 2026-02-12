@@ -59,6 +59,10 @@ const TryOnPage = () => {
   /* ── AI generation state ──────────────────────────────────── */
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiProgress, setAiProgress] = useState('');
+  const [aiPercent, setAiPercent] = useState(0);
+  const [aiElapsed, setAiElapsed] = useState(0);
+  const aiStartRef = useRef<number>(0);
+  const ESTIMATED_TOTAL_S = 150; // ~2min30 based on real tests
   const [aiResultUrl, setAiResultUrl] = useState<string | null>(null);
   const [aiConsented, setAiConsented] = useState(false);
   const [aiPhotoFile, setAiPhotoFile] = useState<File | null>(null);
@@ -307,6 +311,9 @@ const TryOnPage = () => {
     setAiGenerating(true);
     setAiProgress(language === 'fr' ? 'Envoi de la photo…' : 'Uploading photo…');
     setAiResultUrl(null);
+    setAiPercent(0);
+    setAiElapsed(0);
+    aiStartRef.current = Date.now();
 
     try {
       const base64 = await fileToBase64(opts.photoFile);
@@ -320,6 +327,7 @@ const TryOnPage = () => {
       }
 
       setAiProgress(language === 'fr' ? 'Soumission à l\'IA…' : 'Submitting to AI…');
+      setAiPercent(5);
 
       const { data: { session } } = await supabase.auth.getSession();
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -337,16 +345,32 @@ const TryOnPage = () => {
       }
 
       setAiProgress(language === 'fr' ? 'Génération en cours…' : 'Generating…');
+      setAiPercent(10);
 
       // Poll status
       const requestId = createData.request_id;
       let attempts = 0;
-      const maxAttempts = 120; // 2 minutes
+      const maxAttempts = 120;
 
       const poll = async () => {
         while (attempts < maxAttempts) {
           await new Promise(r => setTimeout(r, 2000));
           attempts++;
+
+          const elapsedS = Math.round((Date.now() - aiStartRef.current) / 1000);
+          setAiElapsed(elapsedS);
+          // Progress: 10% at start, approach 95% asymptotically
+          const pct = Math.min(95, 10 + 85 * (1 - Math.exp(-elapsedS / (ESTIMATED_TOTAL_S * 0.6))));
+          setAiPercent(Math.round(pct));
+
+          const remainS = Math.max(0, Math.round(ESTIMATED_TOTAL_S - elapsedS));
+          const remainMin = Math.floor(remainS / 60);
+          const remainSec = remainS % 60;
+          const eta = remainMin > 0 ? `${remainMin}min ${remainSec}s` : `${remainSec}s`;
+
+          setAiProgress(language === 'fr'
+            ? `Génération en cours… ~${eta} restant`
+            : `Generating… ~${eta} remaining`);
 
           const statusRes = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tryon-leffa/status?requestId=${requestId}`,
@@ -355,6 +379,7 @@ const TryOnPage = () => {
           const statusData = await statusRes.json();
 
           if (statusData.status === 'COMPLETED') {
+            setAiPercent(100);
             if (statusData.image_url) {
               setAiResultUrl(statusData.image_url);
               setAiProgress('');
@@ -368,10 +393,6 @@ const TryOnPage = () => {
           if (statusData.status === 'FAILED') {
             throw new Error('AI generation failed');
           }
-
-          setAiProgress(language === 'fr'
-            ? `Génération en cours… (${attempts * 2}s)`
-            : `Generating… (${attempts * 2}s)`);
         }
         throw new Error('Timeout');
       };
@@ -604,7 +625,25 @@ const TryOnPage = () => {
                   </button>
                   <input ref={aiPhotoRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) setAiPhotoFile(f); }} />
                 </div>
-                {aiGenerating && <div className="flex items-center gap-2 text-[10px] font-body text-primary animate-pulse"><Loader2 size={12} className="animate-spin" /> {aiProgress}</div>}
+{aiGenerating && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-body text-primary">
+                      <span className="flex items-center gap-1.5 animate-pulse"><Loader2 size={12} className="animate-spin" /> {aiProgress}</span>
+                      <span className="text-muted-foreground">{aiPercent}%</span>
+                    </div>
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+                      <div
+                        className="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
+                        style={{ width: `${aiPercent}%` }}
+                      />
+                    </div>
+                    {aiElapsed > 0 && (
+                      <p className="text-[9px] font-body text-muted-foreground text-right">
+                        {language === 'fr' ? `Écoulé : ${Math.floor(aiElapsed/60)}min ${aiElapsed%60}s` : `Elapsed: ${Math.floor(aiElapsed/60)}min ${aiElapsed%60}s`}
+                      </p>
+                    )}
+                  </div>
+                )}
                 {aiResultUrl && (
                   <div className="space-y-2">
                     <img src={aiResultUrl} alt="AI result" className="w-full rounded border border-border" />
