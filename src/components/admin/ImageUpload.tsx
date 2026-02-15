@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Upload, X, Loader2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import ImageCropper from './ImageCropper';
+import { generateAllVariants } from '@/lib/imageVariants';
 
 /* ─── shared helpers ─── */
 
@@ -24,6 +25,45 @@ async function uploadFile(file: File | Blob, folder: string, ext = 'webp'): Prom
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
   return data.publicUrl;
+}
+
+/**
+ * Upload a source image and generate __grid + __detail WebP variants.
+ * Returns the __grid public URL (to be stored in DB).
+ */
+async function uploadWithVariants(
+  file: File | Blob,
+  folder: string,
+): Promise<string | null> {
+  const baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  try {
+    const variants = await generateAllVariants(file);
+
+    let gridUrl: string | null = null;
+
+    for (const v of variants) {
+      const path = `${folder}/${baseName}${v.suffix}.webp`;
+      const { error } = await supabase.storage.from(BUCKET).upload(path, v.blob, {
+        cacheControl: '31536000',
+        upsert: false,
+        contentType: 'image/webp',
+      });
+      if (error) {
+        toast.error(`Erreur upload ${v.suffix}: ${error.message}`);
+        return null;
+      }
+      if (v.suffix === '__grid') {
+        const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        gridUrl = data.publicUrl;
+      }
+    }
+
+    return gridUrl;
+  } catch (err: any) {
+    toast.error(`Erreur génération variantes: ${err.message}`);
+    return null;
+  }
 }
 
 const labelClass =
@@ -145,7 +185,7 @@ export const VideoUpload = ({
   );
 };
 
-/* ─── Multi Image Upload with Crop ─── */
+/* ─── Multi Image Upload with Variants ─── */
 
 interface MultiImageUploadProps {
   value: string[];
@@ -154,6 +194,8 @@ interface MultiImageUploadProps {
   folder?: string;
   /** Set to a number (e.g. 3/4) to force a crop dialog before upload. null = no crop. */
   cropAspect?: number | null;
+  /** Generate __grid + __detail variants at upload time (default: true for product images) */
+  generateVariants?: boolean;
 }
 
 export const MultiImageUpload = ({
@@ -161,15 +203,26 @@ export const MultiImageUpload = ({
   onChange,
   label = 'Images',
   folder = 'uploads',
-  cropAspect = 3 / 4,
+  cropAspect = null,
+  generateVariants = true,
 }: MultiImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Crop queue: files waiting to be cropped one-by-one
   const [cropQueue, setCropQueue] = useState<string[]>([]);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const pendingUploads = useRef<string[]>([]);
+
+  /* ── upload a single file (with or without variants) ── */
+  const uploadSingleFile = async (file: File | Blob): Promise<string | null> => {
+    if (generateVariants) {
+      return uploadWithVariants(file, folder);
+    } else {
+      return uploadFile(file, folder, file instanceof File ? file.name.split('.').pop() : 'webp');
+    }
+  };
 
   /* ── file selection ── */
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,15 +236,18 @@ export const MultiImageUpload = ({
       setCropQueue(urls);
       setCropSrc(urls[0]);
     } else {
-      // No crop – upload directly (legacy behaviour)
+      // No crop – generate variants and upload directly
       setUploading(true);
       const newUrls: string[] = [];
-      for (const file of Array.from(files)) {
-        const url = await uploadFile(file, folder, file.name.split('.').pop());
+      const total = files.length;
+      for (let i = 0; i < total; i++) {
+        setUploadProgress(`${i + 1}/${total}`);
+        const url = await uploadSingleFile(files[i]);
         if (url) newUrls.push(url);
       }
       onChange([...value, ...newUrls]);
       setUploading(false);
+      setUploadProgress('');
     }
 
     if (inputRef.current) inputRef.current.value = '';
@@ -200,7 +256,7 @@ export const MultiImageUpload = ({
   /* ── crop callbacks ── */
   const handleCropComplete = async (blob: Blob) => {
     setUploading(true);
-    const url = await uploadFile(blob, folder, 'webp');
+    const url = await uploadSingleFile(blob);
     setUploading(false);
 
     if (url) pendingUploads.current.push(url);
@@ -314,7 +370,11 @@ export const MultiImageUpload = ({
         className="flex items-center gap-2 border border-dashed border-border px-4 py-3 text-sm font-body text-muted-foreground hover:border-primary hover:text-foreground transition-colors"
       >
         {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-        {uploading ? 'Envoi en cours…' : 'Ajouter des images'}
+        {uploading
+          ? `Traitement ${uploadProgress}…`
+          : generateVariants
+            ? 'Ajouter des images (grid + detail auto)'
+            : 'Ajouter des images'}
       </button>
       <input
         ref={inputRef}

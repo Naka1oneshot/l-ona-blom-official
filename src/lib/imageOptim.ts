@@ -1,3 +1,5 @@
+import { isVariantUrl, toVariant } from './imageVariants';
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const OBJECT_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/`;
 const RENDER_PREFIX = `${SUPABASE_URL}/storage/v1/render/image/public/`;
@@ -27,11 +29,25 @@ export function optimizeImage(
 /** Check if a URL is a Supabase Storage URL */
 export const isSupabaseUrl = (url: string) => url.startsWith(OBJECT_PREFIX);
 
-/** Preset for product card thumbnails */
-export const cardImage = (url: string) => optimizeImage(url, { width: 400, quality: 70 });
+/**
+ * Preset for product card thumbnails.
+ * If the URL uses the variant naming convention (__grid.webp), return the grid URL directly
+ * (already optimally sized). Otherwise fall back to server-side resize.
+ */
+export const cardImage = (url: string) => {
+  if (isVariantUrl(url)) return toVariant(url, '__grid');
+  return optimizeImage(url, { width: 400, quality: 70 });
+};
 
-/** Preset for product detail gallery */
-export const detailImage = (url: string) => optimizeImage(url, { width: 1200 });
+/**
+ * Preset for product detail gallery.
+ * If the URL uses the variant naming convention, return the detail URL.
+ * Otherwise fall back to server-side resize.
+ */
+export const detailImage = (url: string) => {
+  if (isVariantUrl(url)) return toVariant(url, '__detail');
+  return optimizeImage(url, { width: 1200 });
+};
 
 /** Preset for collection covers */
 export const coverImage = (url: string) => optimizeImage(url, { width: 1200, quality: 75 });
@@ -45,6 +61,7 @@ const DETAIL_WIDTHS = [800, 1200, 1800];
 
 /**
  * Generate a srcSet string for responsive images.
+ * For variant URLs, we don't need srcSet — the variant is already at the right size.
  * Only works on Supabase Storage URLs; returns empty string otherwise.
  */
 export function generateSrcSet(
@@ -52,7 +69,10 @@ export function generateSrcSet(
   preset: 'card' | 'detail' = 'card',
   quality = 80,
 ): string {
-  if (!url || !url.startsWith(OBJECT_PREFIX)) return '';
+  if (!url) return '';
+  // Variant URLs are pre-sized — no srcSet needed
+  if (isVariantUrl(url)) return '';
+  if (!url.startsWith(OBJECT_PREFIX)) return '';
   const widths = preset === 'detail' ? DETAIL_WIDTHS : CARD_WIDTHS;
   return widths
     .map(w => `${optimizeImage(url, { width: w, quality })} ${w}w`)

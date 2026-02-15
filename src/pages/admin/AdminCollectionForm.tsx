@@ -93,6 +93,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
           onChange={(urls) => set('gallery_images', urls)}
           label="Galerie d'images"
           folder="collections"
+          generateVariants={false}
         />
 
         {/* Reference code */}
