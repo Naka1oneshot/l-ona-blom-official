@@ -287,7 +287,7 @@ const ProductDetail = () => {
             </div>
 
             <p className="text-xl md:text-2xl font-body font-light mb-8 tracking-wide">
-              {priceRange?.hasRange && !selectedSize && (
+              {(product.made_to_measure || (priceRange?.hasRange && !selectedSize)) && (
                 <span className="text-muted-foreground text-base mr-1">
                   {language === 'fr' ? 'À partir de' : 'From'}
                 </span>
