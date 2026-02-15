@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Globe, CheckCircle2, AlertTriangle, RefreshCw, ExternalLink } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Globe, CheckCircle2, AlertTriangle, RefreshCw, ExternalLink, Link2Off } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,15 +13,24 @@ interface SitemapUrl {
   priority?: string;
 }
 
+type UrlStatus = 'ok' | 'slug-issue' | 'orphan' | 'checking';
+
 interface UrlCheckResult {
   url: string;
   path: string;
   lastmod?: string;
   priority?: string;
-  slugIssue?: string; // e.g. spaces, uppercase
+  slugIssues: string[];
+  status: UrlStatus;
 }
 
 const SITEMAP_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap`;
+
+const KNOWN_STATIC_PATHS = new Set([
+  '/', '/boutique', '/collections', '/actualites', '/a-propos',
+  '/contact', '/faq', '/try-on', '/cgv', '/confidentialite',
+  '/cookies', '/mentions-legales',
+]);
 
 function parseSitemapXml(xml: string): SitemapUrl[] {
   const parser = new DOMParser();
@@ -37,28 +47,15 @@ function parseSitemapXml(xml: string): SitemapUrl[] {
   return urls;
 }
 
-function analyzeUrl(entry: SitemapUrl): UrlCheckResult {
-  const path = new URL(entry.loc).pathname;
-  const result: UrlCheckResult = {
-    url: entry.loc,
-    path,
-    lastmod: entry.lastmod,
-    priority: entry.priority,
-  };
-
-  // Check for spaces or uppercase in path (excluding the domain)
-  if (path !== '/' && /[A-Z]/.test(path)) {
-    result.slugIssue = 'Majuscules dans l\'URL';
-  }
-  if (/ |%20/.test(entry.loc)) {
-    result.slugIssue = 'Espaces dans l\'URL';
-  }
-  // Check for accented characters
-  if (/[àâäéèêëïîôùûüÿçœæ]/.test(decodeURIComponent(path))) {
-    result.slugIssue = (result.slugIssue ? result.slugIssue + ' + ' : '') + 'Accents dans l\'URL';
-  }
-
-  return result;
+function detectSlugIssues(path: string): string[] {
+  if (path === '/') return [];
+  const issues: string[] = [];
+  if (/[A-Z]/.test(path)) issues.push('Majuscules');
+  if (/ |%20/.test(path)) issues.push('Espaces');
+  try {
+    if (/[àâäéèêëïîôùûüÿçœæ]/i.test(decodeURIComponent(path))) issues.push('Accents');
+  } catch {}
+  return issues;
 }
 
 const SitemapAudit: React.FC = () => {
@@ -67,28 +64,76 @@ const SitemapAudit: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
 
-  const fetchSitemap = async () => {
+  const fetchAndValidate = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(SITEMAP_ENDPOINT);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const xml = await res.text();
+      // Fetch sitemap + DB data in parallel
+      const [sitemapRes, productsRes, collectionsRes, postsRes] = await Promise.all([
+        fetch(SITEMAP_ENDPOINT),
+        supabase.from('products').select('slug, status'),
+        supabase.from('collections').select('slug, published_at'),
+        supabase.from('posts').select('slug, published_at'),
+      ]);
+
+      if (!sitemapRes.ok) throw new Error(`Sitemap HTTP ${sitemapRes.status}`);
+      const xml = await sitemapRes.text();
       const entries = parseSitemapXml(xml);
-      setUrls(entries.map(analyzeUrl));
+
+      // Build lookup sets for valid slugs
+      const activeProductSlugs = new Set(
+        (productsRes.data || []).filter(p => p.status === 'active').map(p => p.slug)
+      );
+      const publishedCollectionSlugs = new Set(
+        (collectionsRes.data || []).filter(c => c.published_at).map(c => c.slug)
+      );
+      const publishedPostSlugs = new Set(
+        (postsRes.data || []).filter(p => p.published_at).map(p => p.slug)
+      );
+
+      const results: UrlCheckResult[] = entries.map(entry => {
+        const path = new URL(entry.loc).pathname;
+        const slugIssues = detectSlugIssues(path);
+
+        // Check if the path corresponds to a valid resource
+        let status: UrlStatus = 'ok';
+
+        if (KNOWN_STATIC_PATHS.has(path)) {
+          // Known static route — always OK
+        } else if (path.startsWith('/boutique/')) {
+          const slug = decodeURIComponent(path.replace('/boutique/', ''));
+          if (!activeProductSlugs.has(slug)) status = 'orphan';
+        } else if (path.startsWith('/collections/')) {
+          const slug = decodeURIComponent(path.replace('/collections/', ''));
+          if (!publishedCollectionSlugs.has(slug)) status = 'orphan';
+        } else if (path.startsWith('/actualites/')) {
+          const slug = decodeURIComponent(path.replace('/actualites/', ''));
+          if (!publishedPostSlugs.has(slug)) status = 'orphan';
+        } else {
+          // Unknown route pattern
+          status = 'orphan';
+        }
+
+        if (slugIssues.length > 0) status = 'slug-issue';
+
+        return { url: entry.loc, path, lastmod: entry.lastmod, priority: entry.priority, slugIssues, status };
+      });
+
+      setUrls(results);
       setFetched(true);
     } catch (e: any) {
-      setError(e.message || 'Erreur lors du chargement du sitemap');
+      setError(e.message || 'Erreur lors du chargement');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchSitemap(); }, []);
+  useEffect(() => { fetchAndValidate(); }, []);
 
-  const issueUrls = urls.filter(u => u.slugIssue);
-  const staticUrls = urls.filter(u => !u.path.includes('/', 2)); // top-level paths
-  const dynamicUrls = urls.filter(u => u.path.split('/').length > 2);
+  const issueUrls = urls.filter(u => u.status !== 'ok');
+  const orphanUrls = urls.filter(u => u.status === 'orphan');
+  const slugIssueUrls = urls.filter(u => u.status === 'slug-issue');
+  const okUrls = urls.filter(u => u.status === 'ok');
 
   return (
     <Card>
@@ -104,9 +149,9 @@ const SitemapAudit: React.FC = () => {
               rel="noopener noreferrer"
               className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
             >
-              Voir le XML <ExternalLink size={12} />
+              XML <ExternalLink size={12} />
             </a>
-            <Button variant="ghost" size="sm" onClick={fetchSitemap} disabled={loading}>
+            <Button variant="ghost" size="sm" onClick={fetchAndValidate} disabled={loading}>
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             </Button>
           </div>
@@ -129,43 +174,89 @@ const SitemapAudit: React.FC = () => {
                 ) : (
                   <AlertTriangle size={16} className="text-destructive" />
                 )}
-                <span className="font-medium">{issueUrls.length} problème{issueUrls.length !== 1 ? 's' : ''} d'URL</span>
+                <span className="font-medium">
+                  {issueUrls.length === 0
+                    ? 'Toutes les URLs sont valides'
+                    : `${issueUrls.length} problème${issueUrls.length > 1 ? 's' : ''}`}
+                </span>
               </div>
-              <Badge variant="outline" className="font-mono text-xs">{staticUrls.length} statiques</Badge>
-              <Badge variant="outline" className="font-mono text-xs">{dynamicUrls.length} dynamiques</Badge>
+              <Badge variant="outline" className="font-mono text-xs">{okUrls.length} ✓ valides</Badge>
+              {orphanUrls.length > 0 && (
+                <Badge variant="destructive" className="text-xs">{orphanUrls.length} orphelines</Badge>
+              )}
+              {slugIssueUrls.length > 0 && (
+                <Badge variant="destructive" className="text-xs">{slugIssueUrls.length} slug invalide</Badge>
+              )}
             </div>
 
-            {/* Issues table */}
-            {issueUrls.length > 0 && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>URL</TableHead>
-                    <TableHead>Problème</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {issueUrls.map(u => (
-                    <TableRow key={u.url}>
-                      <TableCell className="font-mono text-xs break-all">{u.path}</TableCell>
-                      <TableCell>
-                        <Badge variant="destructive" className="text-[10px]">{u.slugIssue}</Badge>
-                      </TableCell>
+            {/* Orphan URLs — link to content that doesn't exist in DB */}
+            {orphanUrls.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium flex items-center gap-1.5">
+                  <Link2Off size={14} className="text-destructive" /> URLs orphelines (contenu introuvable en base)
+                </h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Chemin</TableHead>
+                      <TableHead>Statut</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {orphanUrls.map(u => (
+                      <TableRow key={u.url}>
+                        <TableCell className="font-mono text-xs break-all">{u.path}</TableCell>
+                        <TableCell>
+                          <Badge variant="destructive" className="text-[10px]">Contenu introuvable</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
 
-            {/* All URLs list */}
+            {/* Slug issues */}
+            {slugIssueUrls.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium flex items-center gap-1.5">
+                  <AlertTriangle size={14} className="text-destructive" /> Problèmes de slug
+                </h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Chemin</TableHead>
+                      <TableHead>Problèmes</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {slugIssueUrls.map(u => (
+                      <TableRow key={u.url}>
+                        <TableCell className="font-mono text-xs break-all">{u.path}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {u.slugIssues.map(i => (
+                              <Badge key={i} variant="destructive" className="text-[10px]">{i}</Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            {/* Full URL list */}
             <details className="text-sm">
               <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                Voir toutes les URLs ({urls.length})
+                Toutes les URLs ({urls.length})
               </summary>
               <div className="mt-2 max-h-64 overflow-y-auto border rounded-md">
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Statut</TableHead>
                       <TableHead>Chemin</TableHead>
                       <TableHead>Dernière MAJ</TableHead>
                       <TableHead>Priorité</TableHead>
@@ -174,6 +265,13 @@ const SitemapAudit: React.FC = () => {
                   <TableBody>
                     {urls.map(u => (
                       <TableRow key={u.url}>
+                        <TableCell>
+                          {u.status === 'ok' ? (
+                            <CheckCircle2 size={14} className="text-primary" />
+                          ) : (
+                            <AlertTriangle size={14} className="text-destructive" />
+                          )}
+                        </TableCell>
                         <TableCell className="font-mono text-xs">{u.path}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">{u.lastmod || '—'}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">{u.priority || '—'}</TableCell>
