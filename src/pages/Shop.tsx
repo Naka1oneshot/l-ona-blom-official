@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { X, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { mapProduct } from '@/lib/products';
 import { Product } from '@/types';
@@ -17,6 +18,7 @@ const PRODUCT_COLUMNS = 'id,slug,status,category,category_id,name_fr,name_en,bas
 
 const Shop = () => {
   const { t, language } = useLanguage();
+  const { isAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,8 +61,12 @@ const Shop = () => {
 
     let query = supabase
       .from('products')
-      .select(PRODUCT_COLUMNS, { count: 'exact' })
-      .eq('status', 'active');
+      .select(PRODUCT_COLUMNS, { count: 'exact' });
+
+    // Admins see all products (including drafts); public sees only active
+    if (!isAdmin) {
+      query = query.eq('status', 'active');
+    }
 
     if (filterCategoryIds !== null) {
       if (filterCategoryIds.length === 0) {
@@ -77,7 +83,7 @@ const Shop = () => {
     const mapped = (prodData || []).map((row: any) => mapProduct(row));
 
     return { mapped, totalCount: count ?? 0 };
-  }, [categorySlug, groupSlug]);
+  }, [categorySlug, groupSlug, isAdmin]);
 
   // Initial load
   useEffect(() => {
