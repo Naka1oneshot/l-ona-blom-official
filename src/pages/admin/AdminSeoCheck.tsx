@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AlertTriangle, CheckCircle2, Image, Tag, FileText, Layers, Package, Newspaper, Globe } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Image, Tag, FileText, Layers, Package, Newspaper, Globe, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import SitemapAudit from '@/components/admin/SitemapAudit';
 
@@ -49,61 +50,63 @@ const AdminSeoCheck = () => {
   const [loading, setLoading] = useState(true);
   const [totals, setTotals] = useState({ products: 0, collections: 0, posts: 0 });
   const [sitemapIssueCount, setSitemapIssueCount] = useState(0);
+  const [auditKey, setAuditKey] = useState(0);
 
-  useEffect(() => {
-    async function audit() {
-      setLoading(true);
-      const [prodRes, colRes, postRes] = await Promise.all([
-        supabase.from('products').select('id, slug, name_fr, name_en, description_fr, description_en, images, reference_code, base_price_eur, stock_qty, status'),
-        supabase.from('collections').select('id, slug, title_fr, title_en, narrative_fr, narrative_en, cover_image, published_at'),
-        supabase.from('posts').select('id, slug, title_fr, title_en, lead_fr, lead_en, cover_image, published_at'),
-      ]);
+  const runAudit = async () => {
+    setLoading(true);
+    const [prodRes, colRes, postRes] = await Promise.all([
+      supabase.from('products').select('id, slug, name_fr, name_en, description_fr, description_en, images, reference_code, base_price_eur, stock_qty, status'),
+      supabase.from('collections').select('id, slug, title_fr, title_en, narrative_fr, narrative_en, cover_image, published_at'),
+      supabase.from('posts').select('id, slug, title_fr, title_en, lead_fr, lead_en, cover_image, published_at'),
+    ]);
 
-      const products = prodRes.data || [];
-      const collections = colRes.data || [];
-      const posts = postRes.data || [];
+    const products = prodRes.data || [];
+    const collections = colRes.data || [];
+    const posts = postRes.data || [];
 
-      setTotals({ products: products.length, collections: collections.length, posts: posts.length });
+    setTotals({ products: products.length, collections: collections.length, posts: posts.length });
 
-      // Product issues
-      const pIssues: ProductIssue[] = [];
-      for (const p of products) {
-        const issues: string[] = [];
-        if (!p.images || p.images.length === 0) issues.push('Aucune image');
-        if (!p.reference_code) issues.push('Pas de référence (SKU)');
-        if (!p.description_fr && !p.description_en) issues.push('Pas de description');
-        if (!p.name_en) issues.push('Pas de nom EN');
-        if (p.base_price_eur === 0) issues.push('Prix à 0');
-        if (issues.length > 0) pIssues.push({ id: p.id, slug: p.slug, name_fr: p.name_fr, issues });
-      }
-      setProductIssues(pIssues);
-
-      // Collection issues
-      const cIssues: CollectionIssue[] = [];
-      for (const c of collections) {
-        const issues: string[] = [];
-        if (!c.cover_image) issues.push('Pas de cover image');
-        if (!c.narrative_fr && !c.narrative_en) issues.push('Pas de narrative/description');
-        if (!c.title_en) issues.push('Pas de titre EN');
-        if (issues.length > 0) cIssues.push({ id: c.id, slug: c.slug, title_fr: c.title_fr, issues });
-      }
-      setCollectionIssues(cIssues);
-
-      // Post issues
-      const aIssues: PostIssue[] = [];
-      for (const a of posts) {
-        const issues: string[] = [];
-        if (!a.cover_image) issues.push('Pas de cover image');
-        if (!a.lead_fr && !a.lead_en) issues.push('Pas de meta description (lead)');
-        if (!a.title_en) issues.push('Pas de titre EN');
-        if (issues.length > 0) aIssues.push({ id: a.id, slug: a.slug, title_fr: a.title_fr, issues });
-      }
-      setPostIssues(aIssues);
-
-      setLoading(false);
+    const pIssues: ProductIssue[] = [];
+    for (const p of products) {
+      const issues: string[] = [];
+      if (!p.images || p.images.length === 0) issues.push('Aucune image');
+      if (!p.reference_code) issues.push('Pas de référence (SKU)');
+      if (!p.description_fr && !p.description_en) issues.push('Pas de description');
+      if (!p.name_en) issues.push('Pas de nom EN');
+      if (p.base_price_eur === 0) issues.push('Prix à 0');
+      if (issues.length > 0) pIssues.push({ id: p.id, slug: p.slug, name_fr: p.name_fr, issues });
     }
-    audit();
-  }, []);
+    setProductIssues(pIssues);
+
+    const cIssues: CollectionIssue[] = [];
+    for (const c of collections) {
+      const issues: string[] = [];
+      if (!c.cover_image) issues.push('Pas de cover image');
+      if (!c.narrative_fr && !c.narrative_en) issues.push('Pas de narrative/description');
+      if (!c.title_en) issues.push('Pas de titre EN');
+      if (issues.length > 0) cIssues.push({ id: c.id, slug: c.slug, title_fr: c.title_fr, issues });
+    }
+    setCollectionIssues(cIssues);
+
+    const aIssues: PostIssue[] = [];
+    for (const a of posts) {
+      const issues: string[] = [];
+      if (!a.cover_image) issues.push('Pas de cover image');
+      if (!a.lead_fr && !a.lead_en) issues.push('Pas de meta description (lead)');
+      if (!a.title_en) issues.push('Pas de titre EN');
+      if (issues.length > 0) aIssues.push({ id: a.id, slug: a.slug, title_fr: a.title_fr, issues });
+    }
+    setPostIssues(aIssues);
+
+    setLoading(false);
+  };
+
+  const handleRefresh = () => {
+    setAuditKey(k => k + 1);
+    runAudit();
+  };
+
+  useEffect(() => { runAudit(); }, []);
 
   const totalIssues = productIssues.length + collectionIssues.length + postIssues.length + sitemapIssueCount;
 
@@ -117,11 +120,17 @@ const AdminSeoCheck = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-display text-3xl mb-2">Audit SEO</h1>
-        <p className="text-sm text-muted-foreground font-body">
-          Vérification automatique des données nécessaires au référencement.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-display text-3xl mb-2">Audit SEO</h1>
+          <p className="text-sm text-muted-foreground font-body">
+            Vérification automatique des données nécessaires au référencement.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          Actualiser
+        </Button>
       </div>
 
       {/* Summary cards */}
@@ -181,7 +190,7 @@ const AdminSeoCheck = () => {
       </Card>
 
       {/* Sitemap audit */}
-      <SitemapAudit onIssueCount={setSitemapIssueCount} />
+      <SitemapAudit key={auditKey} onIssueCount={setSitemapIssueCount} />
 
       {/* Product issues */}
       {productIssues.length > 0 && (
