@@ -32,6 +32,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Account = lazy(() => import("./pages/Account"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 
 // Admin pages — only loaded when admin navigates there
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
@@ -119,6 +120,7 @@ const App = () => (
                     <Route path="/contact" element={<ComingSoonGate><Layout><Contact /></Layout></ComingSoonGate>} />
                     <Route path="/faq" element={<ComingSoonGate><Layout><FAQ /></Layout></ComingSoonGate>} />
                     <Route path="/panier" element={<ComingSoonGate><Layout><Cart /></Layout></ComingSoonGate>} />
+                    <Route path="/paiement-succes" element={<ComingSoonGate><Layout><PaymentSuccess /></Layout></ComingSoonGate>} />
                     <Route path="/try-on" element={<ComingSoonGate><Layout><TryOnPage /></Layout></ComingSoonGate>} />
                     <Route path="/cgv" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_cgv" titleKey="footer.cgv" path="/cgv" /></Layout></ComingSoonGate>} />
                     <Route path="/confidentialite" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_privacy" titleKey="footer.privacy" path="/confidentialite" /></Layout></ComingSoonGate>} />
