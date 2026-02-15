@@ -1,9 +1,14 @@
 /**
  * Image variant generator — runs at upload time in the admin.
  *
- * For each uploaded image, generates two WebP variants using canvas:
- *   • GRID  (900×1200)  — for shop listing cards
- *   • DETAIL (1800×2400) — for product detail pages
+ * Product images → two 3:4 portrait WebP variants:
+ *   • GRID   (900×1200)  — shop listing cards
+ *   • DETAIL (1800×2400) — product detail pages
+ *
+ * Collection cover → one wide landscape WebP variant:
+ *   • COVER  (1920×840)  — collection hero / listing covers
+ *
+ * Collection gallery → same 3:4 portrait variants as products.
  *
  * The image is scaled with "contain" logic so nothing is cropped.
  * The remaining space is filled with a configurable background colour.
@@ -18,10 +23,20 @@ export interface VariantSpec {
   quality: number;
 }
 
+/** Product image variants (portrait 3:4) */
 export const VARIANTS: VariantSpec[] = [
   { suffix: '__grid', width: 900, height: 1200, quality: 0.82 },
   { suffix: '__detail', width: 1800, height: 2400, quality: 0.88 },
 ];
+
+/** Collection cover variant (landscape ~16:7) */
+export const COVER_VARIANTS: VariantSpec[] = [
+  { suffix: '__cover', width: 1920, height: 840, quality: 0.85 },
+];
+
+/** All known variant suffixes */
+const ALL_SUFFIXES = ['__grid', '__detail', '__cover'] as const;
+export type VariantSuffix = (typeof ALL_SUFFIXES)[number];
 
 /**
  * Load a File / Blob into an HTMLImageElement.
@@ -79,15 +94,16 @@ export async function generateVariant(
 }
 
 /**
- * Generate all variants for a given source file.
+ * Generate all variants for a given source file using the specified specs.
  * Returns an array of { suffix, blob } ready for upload.
  */
 export async function generateAllVariants(
   file: File | Blob,
+  specs: VariantSpec[] = VARIANTS,
 ): Promise<{ suffix: string; blob: Blob }[]> {
   const results: { suffix: string; blob: Blob }[] = [];
   // Sequential to avoid overwhelming the browser with concurrent canvas ops
-  for (const spec of VARIANTS) {
+  for (const spec of specs) {
     const blob = await generateVariant(file, spec);
     results.push({ suffix: spec.suffix, blob });
   }
@@ -98,13 +114,15 @@ export async function generateAllVariants(
 
 /** Check whether a URL uses the variant naming convention */
 export function isVariantUrl(url: string): boolean {
-  return url.includes('__grid.webp') || url.includes('__detail.webp');
+  return ALL_SUFFIXES.some((s) => url.includes(`${s}.webp`));
 }
 
 /** Given a variant URL (any variant), derive the URL for a specific suffix */
-export function toVariant(url: string, targetSuffix: '__grid' | '__detail'): string {
+export function toVariant(url: string, targetSuffix: VariantSuffix): string {
   if (!isVariantUrl(url)) return url; // legacy URL — return as-is
-  return url
-    .replace('__grid.webp', `${targetSuffix}.webp`)
-    .replace('__detail.webp', `${targetSuffix}.webp`);
+  let result = url;
+  for (const s of ALL_SUFFIXES) {
+    result = result.replace(`${s}.webp`, `${targetSuffix}.webp`);
+  }
+  return result;
 }

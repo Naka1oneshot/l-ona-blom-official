@@ -49,8 +49,11 @@ export const detailImage = (url: string) => {
   return optimizeImage(url, { width: 1200 });
 };
 
-/** Preset for collection covers */
-export const coverImage = (url: string) => optimizeImage(url, { width: 1200, quality: 75 });
+/** Preset for collection covers — use __cover variant if available */
+export const coverImage = (url: string) => {
+  if (isVariantUrl(url)) return toVariant(url, '__cover');
+  return optimizeImage(url, { width: 1920, quality: 80 });
+};
 
 /** Ultra-small blurred placeholder (20px wide) */
 export const blurImage = (url: string) => optimizeImage(url, { width: 20, quality: 20 });

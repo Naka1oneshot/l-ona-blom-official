@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { ImageUpload, VideoUpload, MultiImageUpload } from '@/components/admin/ImageUpload';
+import { COVER_VARIANTS } from '@/lib/imageVariants';
 import TranslateButton from '@/components/admin/TranslateButton';
 
 interface Props {
@@ -79,6 +80,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
           onChange={(url) => set('cover_image', url)}
           label="Image de couverture"
           folder="collections"
+          variantSpecs={COVER_VARIANTS}
         />
 
         <VideoUpload
@@ -93,7 +95,7 @@ const AdminCollectionForm = ({ collection, onSave, onCancel }: Props) => {
           onChange={(urls) => set('gallery_images', urls)}
           label="Galerie d'images"
           folder="collections"
-          generateVariants={false}
+          generateVariants={true}
         />
 
         {/* Reference code */}

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Upload, X, Loader2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import ImageCropper from './ImageCropper';
-import { generateAllVariants } from '@/lib/imageVariants';
+import { generateAllVariants, VARIANTS, COVER_VARIANTS, type VariantSpec } from '@/lib/imageVariants';
 
 /* ─── shared helpers ─── */
 
@@ -28,19 +28,21 @@ async function uploadFile(file: File | Blob, folder: string, ext = 'webp'): Prom
 }
 
 /**
- * Upload a source image and generate __grid + __detail WebP variants.
- * Returns the __grid public URL (to be stored in DB).
+ * Upload a source image and generate WebP variants.
+ * @param specs – which variant specs to generate (defaults to product VARIANTS)
+ * Returns the public URL of the *first* variant (to be stored in DB).
  */
 async function uploadWithVariants(
   file: File | Blob,
   folder: string,
+  specs: VariantSpec[] = VARIANTS,
 ): Promise<string | null> {
   const baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   try {
-    const variants = await generateAllVariants(file);
+    const variants = await generateAllVariants(file, specs);
 
-    let gridUrl: string | null = null;
+    let primaryUrl: string | null = null;
 
     for (const v of variants) {
       const path = `${folder}/${baseName}${v.suffix}.webp`;
@@ -53,13 +55,14 @@ async function uploadWithVariants(
         toast.error(`Erreur upload ${v.suffix}: ${error.message}`);
         return null;
       }
-      if (v.suffix === '__grid') {
+      // Store the first variant's URL as the primary one
+      if (!primaryUrl) {
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-        gridUrl = data.publicUrl;
+        primaryUrl = data.publicUrl;
       }
     }
 
-    return gridUrl;
+    return primaryUrl;
   } catch (err: any) {
     toast.error(`Erreur génération variantes: ${err.message}`);
     return null;
@@ -76,6 +79,8 @@ interface ImageUploadProps {
   onChange: (url: string) => void;
   label?: string;
   folder?: string;
+  /** If set, generate these variants at upload instead of uploading the raw file */
+  variantSpecs?: VariantSpec[] | null;
 }
 
 export const ImageUpload = ({
@@ -83,6 +88,7 @@ export const ImageUpload = ({
   onChange,
   label = 'Image',
   folder = 'uploads',
+  variantSpecs = null,
 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -91,7 +97,12 @@ export const ImageUpload = ({
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const url = await uploadFile(file, folder, file.name.split('.').pop());
+    let url: string | null;
+    if (variantSpecs) {
+      url = await uploadWithVariants(file, folder, variantSpecs);
+    } else {
+      url = await uploadFile(file, folder, file.name.split('.').pop());
+    }
     if (url) onChange(url);
     setUploading(false);
     if (inputRef.current) inputRef.current.value = '';
@@ -194,8 +205,10 @@ interface MultiImageUploadProps {
   folder?: string;
   /** Set to a number (e.g. 3/4) to force a crop dialog before upload. null = no crop. */
   cropAspect?: number | null;
-  /** Generate __grid + __detail variants at upload time (default: true for product images) */
+  /** Generate variants at upload time (default: true for product images) */
   generateVariants?: boolean;
+  /** Custom variant specs (defaults to VARIANTS if generateVariants=true) */
+  variantSpecs?: VariantSpec[];
 }
 
 export const MultiImageUpload = ({
@@ -205,6 +218,7 @@ export const MultiImageUpload = ({
   folder = 'uploads',
   cropAspect = null,
   generateVariants = true,
+  variantSpecs = VARIANTS,
 }: MultiImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
@@ -218,7 +232,7 @@ export const MultiImageUpload = ({
   /* ── upload a single file (with or without variants) ── */
   const uploadSingleFile = async (file: File | Blob): Promise<string | null> => {
     if (generateVariants) {
-      return uploadWithVariants(file, folder);
+      return uploadWithVariants(file, folder, variantSpecs);
     } else {
       return uploadFile(file, folder, file instanceof File ? file.name.split('.').pop() : 'webp');
     }
