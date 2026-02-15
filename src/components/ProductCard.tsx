@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -46,6 +46,7 @@ const GRID_SIZES = "(min-width: 1024px) 33vw, 50vw";
 const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   const { language, t } = useLanguage();
   const { formatPrice } = useCurrency();
+  const [hoverReady, setHoverReady] = useState(false);
 
   const name = language === 'fr' ? product.name_fr : product.name_en;
 
@@ -68,9 +69,18 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
 
   const hoverIdx = product.hover_image_index ?? 1;
   const hoverImg = product.images[hoverIdx] || product.images[1];
+  const hoverSrc = hoverImg ? cardImage(hoverImg) : null;
+
+  // Preload hover image on mouseenter — only once
+  const handleMouseEnter = useCallback(() => {
+    if (hoverReady || !hoverSrc) return;
+    const img = new Image();
+    img.src = hoverSrc;
+    setHoverReady(true);
+  }, [hoverReady, hoverSrc]);
 
   return (
-    <div className="relative group">
+    <div className="relative group" onMouseEnter={handleMouseEnter}>
       <AdminEditButton
         to={`/admin/produits?edit=${product.id}`}
         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -84,14 +94,16 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
             className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out group-hover:opacity-0"
             sizes={GRID_SIZES}
             priority={priority}
+            preset="card"
           />
-          {/* Hover image */}
-          {hoverImg && (
+          {/* Hover image — only mounted after mouseenter */}
+          {hoverReady && hoverSrc && (
             <SmartImage
-              src={cardImage(hoverImg)}
+              src={hoverSrc}
               alt=""
               className="absolute inset-0 w-full h-full opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
               sizes={GRID_SIZES}
+              preset="card"
             />
           )}
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-500" />

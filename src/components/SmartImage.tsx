@@ -31,7 +31,6 @@ function openDB(): Promise<IDBDatabase> {
         }
       };
     } catch {
-      // IndexedDB unavailable (SSR, privacy mode) — fail silently
       reject(new Error('IndexedDB unavailable'));
     }
   });
@@ -48,11 +47,10 @@ async function idbHas(url: string): Promise<boolean> {
         const row = req.result;
         if (!row) return resolve(false);
         if (Date.now() - row.ts > TTL_MS) {
-          // expired — remove async
-          idbAdd(url).catch(() => {}); // will overwrite with fresh ts
+          idbAdd(url).catch(() => {});
           resolve(false);
         } else {
-          memoryCache.add(url); // promote to L1
+          memoryCache.add(url);
           resolve(true);
         }
       };
@@ -73,9 +71,7 @@ async function idbAdd(url: string) {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/*  Hydrate L1 cache from L2 on startup (async, non-blocking)        */
-/* ------------------------------------------------------------------ */
+/* Hydrate L1 from L2 on startup */
 openDB()
   .then(db => {
     const tx = db.transaction(STORE, 'readonly');
@@ -96,8 +92,11 @@ interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string | undefined | null;
   alt: string;
   sizes?: string;
+  srcSet?: string;
   priority?: boolean;
   fallbackClassName?: string;
+  /** 'card' | 'detail' — controls which srcSet widths are generated */
+  preset?: 'card' | 'detail';
 }
 
 const SmartImage = ({
@@ -105,8 +104,10 @@ const SmartImage = ({
   alt,
   className,
   sizes,
+  srcSet: srcSetProp,
   priority = false,
   fallbackClassName,
+  preset = 'card',
   style,
   ...rest
 }: SmartImageProps) => {
@@ -164,7 +165,7 @@ const SmartImage = ({
     );
   }
 
-  const srcSet = generateSrcSet(src);
+  const computedSrcSet = srcSetProp || generateSrcSet(src, preset);
 
   return (
     <div ref={containerRef} className={cn('relative overflow-hidden', className)} style={style}>
@@ -178,7 +179,7 @@ const SmartImage = ({
           style={{ imageRendering: 'auto' }}
         />
       )}
-      {/* Shimmer fallback if blur hasn't loaded yet */}
+      {/* Shimmer fallback if not yet in view */}
       {!loaded && !inView && (
         <div className="absolute inset-0 bg-muted animate-pulse" aria-hidden="true" />
       )}
@@ -186,7 +187,7 @@ const SmartImage = ({
         <img
           src={src}
           alt={alt}
-          srcSet={srcSet || undefined}
+          srcSet={computedSrcSet || undefined}
           sizes={sizes}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"

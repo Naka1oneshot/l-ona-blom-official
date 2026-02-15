@@ -125,7 +125,7 @@ const ToolbarButton = ({
 async function uploadToStorage(file: File, folder: string): Promise<string | null> {
   const ext = file.name.split('.').pop();
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await supabase.storage.from('images').upload(path, file, { cacheControl: '3600', upsert: false });
+  const { error } = await supabase.storage.from('images').upload(path, file, { cacheControl: '31536000', upsert: false });
   if (error) { toast.error(`Erreur upload: ${error.message}`); return null; }
   const { data } = supabase.storage.from('images').getPublicUrl(path);
   return data.publicUrl;

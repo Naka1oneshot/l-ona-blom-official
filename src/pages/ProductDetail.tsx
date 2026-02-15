@@ -230,7 +230,7 @@ const ProductDetail = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="relative aspect-[3/4] bg-secondary overflow-hidden rounded-2xl mb-4">
-              <img src={detailImage(product.images[activeImage])} alt={name} className="product-hero-image w-full h-full object-cover" loading="lazy" />
+              <img src={detailImage(product.images[activeImage])} alt={name} className="product-hero-image w-full h-full object-cover" fetchPriority="high" decoding="async" />
               <div className="absolute top-3 right-3 z-30 flex gap-2">
                 <AdminEditButton to={`/admin/produits?edit=${product.id}`} />
               </div>
