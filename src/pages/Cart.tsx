@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
 import { getUnitPriceEurCents } from '@/lib/pricing';
-import { Minus, Plus, X, Package, Clock, Sparkles } from 'lucide-react';
+import { Minus, Plus, X, Package, Clock, Sparkles, Loader2 } from 'lucide-react';
 import { useSiteFeature } from '@/hooks/useSiteFeature';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Cart = () => {
   const { language, t } = useLanguage();
@@ -19,6 +21,42 @@ const Cart = () => {
     return p.tryon_enabled && p.tryon_type && (allowWithoutPng || p.tryon_image_url);
   });
   const showTryonButton = tryonEnabled && items.length > 0 && hasTryonItems;
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  const handleCheckout = async () => {
+    setCheckoutLoading(true);
+    try {
+      const cartItems = items.map(item => {
+        const name = language === 'fr' ? item.product.name_fr : item.product.name_en;
+        const unitPrice = item.unit_price_eur_cents ?? getUnitPriceEurCents(item.product, item.size);
+        return {
+          name,
+          unit_price_cents: unitPrice,
+          quantity: item.quantity,
+          image_url: item.product.images[0] || undefined,
+          size: item.size,
+          color: item.color,
+          braiding: item.braiding,
+        };
+      });
+
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { items: cartItems, currency: 'EUR', locale: language },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      toast.error(language === 'fr' ? 'Erreur lors du paiement' : 'Checkout error');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   return (
     <div className="pt-20 md:pt-24">
@@ -118,7 +156,12 @@ const Cart = () => {
                   <span className="text-sm font-body tracking-wider uppercase">{t('cart.subtotal')}</span>
                   <span className="text-xl font-body">{formatPrice(totalCentsEur)}</span>
                 </div>
-                <button className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary/90 transition-colors duration-300">
+                <button
+                  onClick={handleCheckout}
+                  disabled={checkoutLoading}
+                  className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary/90 transition-colors duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {checkoutLoading && <Loader2 size={14} className="animate-spin" />}
                   {t('cart.checkout')}
                 </button>
                 {showTryonButton && (
