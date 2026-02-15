@@ -23,16 +23,19 @@ const navItems = [
   { to: '/admin/reglages', icon: Settings, label: 'Réglages' },
 ];
 
-/** Lightweight SEO issue counter — runs once on mount */
+/** Lightweight SEO issue counter — runs once on mount, includes sitemap check */
 function useSeoIssueCount() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
     (async () => {
-      const [prodRes, colRes, postRes] = await Promise.all([
-        supabase.from('products').select('id, name_en, description_fr, description_en, images, reference_code, base_price_eur, status'),
-        supabase.from('collections').select('id, title_en, narrative_fr, narrative_en, cover_image, published_at'),
-        supabase.from('posts').select('id, title_en, lead_fr, lead_en, cover_image, published_at'),
+      const SITEMAP_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap`;
+
+      const [prodRes, colRes, postRes, sitemapRes] = await Promise.all([
+        supabase.from('products').select('id, name_en, description_fr, description_en, images, reference_code, base_price_eur, status, slug'),
+        supabase.from('collections').select('id, title_en, narrative_fr, narrative_en, cover_image, published_at, slug'),
+        supabase.from('posts').select('id, title_en, lead_fr, lead_en, cover_image, published_at, slug'),
+        fetch(SITEMAP_ENDPOINT).then(r => r.ok ? r.text() : '').catch(() => ''),
       ]);
 
       let issues = 0;
@@ -53,6 +56,32 @@ function useSeoIssueCount() {
         else if (!a.lead_fr && !a.lead_en) issues++;
         else if (!a.title_en) issues++;
       }
+
+      // Sitemap cross-check
+      if (sitemapRes) {
+        const KNOWN_STATIC = new Set(['/', '/boutique', '/collections', '/actualites', '/a-propos', '/contact', '/faq', '/try-on', '/cgv', '/confidentialite', '/cookies', '/mentions-legales']);
+        const activeProdSlugs = new Set((prodRes.data || []).filter(p => p.status === 'active').map(p => p.slug));
+        const pubColSlugs = new Set((colRes.data || []).filter(c => c.published_at).map(c => c.slug));
+        const pubPostSlugs = new Set((postRes.data || []).filter(a => a.published_at).map(a => a.slug));
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(sitemapRes, 'application/xml');
+        doc.querySelectorAll('url loc').forEach(el => {
+          try {
+            const path = new URL(el.textContent || '').pathname;
+            if (KNOWN_STATIC.has(path)) return;
+            // Check slug format issues
+            if (/[A-Z]/.test(path) || / |%20/.test(path)) { issues++; return; }
+            try { if (/[àâäéèêëïîôùûüÿçœæ]/i.test(decodeURIComponent(path))) { issues++; return; } } catch {}
+            // Check orphan
+            if (path.startsWith('/boutique/')) { if (!activeProdSlugs.has(decodeURIComponent(path.replace('/boutique/', '')))) issues++; }
+            else if (path.startsWith('/collections/')) { if (!pubColSlugs.has(decodeURIComponent(path.replace('/collections/', '')))) issues++; }
+            else if (path.startsWith('/actualites/')) { if (!pubPostSlugs.has(decodeURIComponent(path.replace('/actualites/', '')))) issues++; }
+            else issues++; // unknown route
+          } catch {}
+        });
+      }
+
       setCount(issues);
     })();
   }, []);
@@ -109,11 +138,11 @@ const AdminLayout = () => {
               >
                 <item.icon size={15} />
                 {item.label}
-                {badge > 0 && (
-                  <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium leading-none px-1">
-                    {badge}
-                  </span>
-                )}
+                {item.badgeKey !== undefined && (
+                   <span className={`ml-auto min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-medium leading-none px-1 ${badge > 0 ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground'}`}>
+                     {badge}
+                   </span>
+                 )}
               </Link>
             );
           })}
@@ -138,11 +167,11 @@ const AdminLayout = () => {
               >
                 <item.icon size={12} />
                 {item.label}
-                {badge > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[8px] font-medium leading-none px-0.5">
-                    {badge}
-                  </span>
-                )}
+                {item.badgeKey !== undefined && (
+                   <span className={`absolute -top-1 -right-1 min-w-[14px] h-[14px] flex items-center justify-center rounded-full text-[8px] font-medium leading-none px-0.5 ${badge > 0 ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground'}`}>
+                     {badge}
+                   </span>
+                 )}
               </Link>
             );
           })}
