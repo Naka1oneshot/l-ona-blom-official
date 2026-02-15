@@ -2,26 +2,15 @@ import React, { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, X, Loader2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
+import ImageCropper from './ImageCropper';
 
-interface ImageUploadProps {
-  value: string;
-  onChange: (url: string) => void;
-  label?: string;
-  folder?: string;
-}
-
-interface MultiImageUploadProps {
-  value: string[];
-  onChange: (urls: string[]) => void;
-  label?: string;
-  folder?: string;
-}
+/* ─── shared helpers ─── */
 
 const BUCKET = 'images';
 
-async function uploadFile(file: File, folder: string): Promise<string | null> {
-  const ext = file.name.split('.').pop();
-  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+async function uploadFile(file: File | Blob, folder: string, ext = 'webp'): Promise<string | null> {
+  const fileExt = file instanceof File ? (file.name.split('.').pop() ?? ext) : ext;
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
     cacheControl: '31536000',
@@ -37,9 +26,24 @@ async function uploadFile(file: File, folder: string): Promise<string | null> {
   return data.publicUrl;
 }
 
-const labelClass = "text-[10px] tracking-[0.2em] uppercase font-body block mb-1.5 text-muted-foreground";
+const labelClass =
+  'text-[10px] tracking-[0.2em] uppercase font-body block mb-1.5 text-muted-foreground';
 
-export const ImageUpload = ({ value, onChange, label = 'Image', folder = 'uploads' }: ImageUploadProps) => {
+/* ─── Single Image Upload ─── */
+
+interface ImageUploadProps {
+  value: string;
+  onChange: (url: string) => void;
+  label?: string;
+  folder?: string;
+}
+
+export const ImageUpload = ({
+  value,
+  onChange,
+  label = 'Image',
+  folder = 'uploads',
+}: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -47,7 +51,7 @@ export const ImageUpload = ({ value, onChange, label = 'Image', folder = 'upload
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const url = await uploadFile(file, folder);
+    const url = await uploadFile(file, folder, file.name.split('.').pop());
     if (url) onChange(url);
     setUploading(false);
     if (inputRef.current) inputRef.current.value = '';
@@ -83,7 +87,14 @@ export const ImageUpload = ({ value, onChange, label = 'Image', folder = 'upload
   );
 };
 
-export const VideoUpload = ({ value, onChange, label = 'Vidéo', folder = 'uploads' }: ImageUploadProps) => {
+/* ─── Video Upload ─── */
+
+export const VideoUpload = ({
+  value,
+  onChange,
+  label = 'Vidéo',
+  folder = 'uploads',
+}: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -91,7 +102,7 @@ export const VideoUpload = ({ value, onChange, label = 'Vidéo', folder = 'uploa
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const url = await uploadFile(file, folder);
+    const url = await uploadFile(file, folder, file.name.split('.').pop());
     if (url) onChange(url);
     setUploading(false);
     if (inputRef.current) inputRef.current.value = '';
@@ -102,7 +113,14 @@ export const VideoUpload = ({ value, onChange, label = 'Vidéo', folder = 'uploa
       <label className={labelClass}>{label}</label>
       {value ? (
         <div className="relative inline-block">
-          <video src={value} className="w-48 h-auto border border-border" muted autoPlay loop playsInline />
+          <video
+            src={value}
+            className="w-48 h-auto border border-border"
+            muted
+            autoPlay
+            loop
+            playsInline
+          />
           <button
             type="button"
             onClick={() => onChange('')}
@@ -127,24 +145,99 @@ export const VideoUpload = ({ value, onChange, label = 'Vidéo', folder = 'uploa
   );
 };
 
-export const MultiImageUpload = ({ value, onChange, label = 'Images', folder = 'uploads' }: MultiImageUploadProps) => {
+/* ─── Multi Image Upload with Crop ─── */
+
+interface MultiImageUploadProps {
+  value: string[];
+  onChange: (urls: string[]) => void;
+  label?: string;
+  folder?: string;
+  /** Set to a number (e.g. 3/4) to force a crop dialog before upload. null = no crop. */
+  cropAspect?: number | null;
+}
+
+export const MultiImageUpload = ({
+  value,
+  onChange,
+  label = 'Images',
+  folder = 'uploads',
+  cropAspect = 3 / 4,
+}: MultiImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Crop queue: files waiting to be cropped one-by-one
+  const [cropQueue, setCropQueue] = useState<string[]>([]);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const pendingUploads = useRef<string[]>([]);
+
+  /* ── file selection ── */
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
-    setUploading(true);
-    const newUrls: string[] = [];
-    for (const file of Array.from(files)) {
-      const url = await uploadFile(file, folder);
-      if (url) newUrls.push(url);
+
+    if (cropAspect) {
+      // Build object URLs for each file and queue them
+      const urls = Array.from(files).map((f) => URL.createObjectURL(f));
+      pendingUploads.current = [];
+      setCropQueue(urls);
+      setCropSrc(urls[0]);
+    } else {
+      // No crop – upload directly (legacy behaviour)
+      setUploading(true);
+      const newUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const url = await uploadFile(file, folder, file.name.split('.').pop());
+        if (url) newUrls.push(url);
+      }
+      onChange([...value, ...newUrls]);
+      setUploading(false);
     }
-    onChange([...value, ...newUrls]);
-    setUploading(false);
+
     if (inputRef.current) inputRef.current.value = '';
   };
 
+  /* ── crop callbacks ── */
+  const handleCropComplete = async (blob: Blob) => {
+    setUploading(true);
+    const url = await uploadFile(blob, folder, 'webp');
+    setUploading(false);
+
+    if (url) pendingUploads.current.push(url);
+
+    // Move to next in queue
+    const remaining = cropQueue.slice(1);
+    if (remaining.length > 0) {
+      setCropQueue(remaining);
+      setCropSrc(remaining[0]);
+    } else {
+      // All done
+      setCropQueue([]);
+      setCropSrc(null);
+      if (pendingUploads.current.length > 0) {
+        onChange([...value, ...pendingUploads.current]);
+        pendingUploads.current = [];
+      }
+    }
+  };
+
+  const handleCropCancel = () => {
+    // Skip this image, move to next
+    const remaining = cropQueue.slice(1);
+    if (remaining.length > 0) {
+      setCropQueue(remaining);
+      setCropSrc(remaining[0]);
+    } else {
+      setCropQueue([]);
+      setCropSrc(null);
+      if (pendingUploads.current.length > 0) {
+        onChange([...value, ...pendingUploads.current]);
+        pendingUploads.current = [];
+      }
+    }
+  };
+
+  /* ── remove / reorder ── */
   const remove = (index: number) => {
     onChange(value.filter((_, i) => i !== index));
   };
@@ -223,7 +316,25 @@ export const MultiImageUpload = ({ value, onChange, label = 'Images', folder = '
         {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
         {uploading ? 'Envoi en cours…' : 'Ajouter des images'}
       </button>
-      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFiles}
+      />
+
+      {/* Crop dialog */}
+      {cropSrc && cropAspect && (
+        <ImageCropper
+          src={cropSrc}
+          aspectRatio={cropAspect}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          open={!!cropSrc}
+        />
+      )}
     </div>
   );
 };
