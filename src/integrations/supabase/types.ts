@@ -548,6 +548,8 @@ export type Database = {
           stock_qty: number | null
           story_en: string | null
           story_fr: string | null
+          stripe_price_id: string | null
+          stripe_product_id: string | null
           tryon_ai_enabled: boolean
           tryon_default_scale: number | null
           tryon_enabled: boolean
@@ -599,6 +601,8 @@ export type Database = {
           stock_qty?: number | null
           story_en?: string | null
           story_fr?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
           tryon_ai_enabled?: boolean
           tryon_default_scale?: number | null
           tryon_enabled?: boolean
@@ -650,6 +654,8 @@ export type Database = {
           stock_qty?: number | null
           story_en?: string | null
           story_fr?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
           tryon_ai_enabled?: boolean
           tryon_default_scale?: number | null
           tryon_enabled?: boolean
