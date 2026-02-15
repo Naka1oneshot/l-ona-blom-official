@@ -58,7 +58,11 @@ function detectSlugIssues(path: string): string[] {
   return issues;
 }
 
-const SitemapAudit: React.FC = () => {
+interface SitemapAuditProps {
+  onIssueCount?: (count: number) => void;
+}
+
+const SitemapAudit: React.FC<SitemapAuditProps> = ({ onIssueCount }) => {
   const [urls, setUrls] = useState<UrlCheckResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,6 +125,8 @@ const SitemapAudit: React.FC = () => {
 
       setUrls(results);
       setFetched(true);
+      const issueCount = results.filter(u => u.status !== 'ok').length;
+      onIssueCount?.(issueCount);
     } catch (e: any) {
       setError(e.message || 'Erreur lors du chargement');
     } finally {

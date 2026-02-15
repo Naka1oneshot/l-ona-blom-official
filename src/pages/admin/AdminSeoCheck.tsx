@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AlertTriangle, CheckCircle2, Image, Tag, FileText, Layers, Package, Newspaper } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Image, Tag, FileText, Layers, Package, Newspaper, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -48,6 +48,7 @@ const AdminSeoCheck = () => {
   const [postIssues, setPostIssues] = useState<PostIssue[]>([]);
   const [loading, setLoading] = useState(true);
   const [totals, setTotals] = useState({ products: 0, collections: 0, posts: 0 });
+  const [sitemapIssueCount, setSitemapIssueCount] = useState(0);
 
   useEffect(() => {
     async function audit() {
@@ -104,7 +105,7 @@ const AdminSeoCheck = () => {
     audit();
   }, []);
 
-  const totalIssues = productIssues.length + collectionIssues.length + postIssues.length;
+  const totalIssues = productIssues.length + collectionIssues.length + postIssues.length + sitemapIssueCount;
 
   if (loading) {
     return (
@@ -124,7 +125,7 @@ const AdminSeoCheck = () => {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6 text-center">
             {totalIssues === 0 ? (
@@ -157,6 +158,13 @@ const AdminSeoCheck = () => {
             <p className="text-xs uppercase tracking-wider text-muted-foreground mt-1">Articles</p>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <Globe className="mx-auto mb-2 text-muted-foreground" size={28} />
+            <p className="text-2xl font-display font-medium">{sitemapIssueCount}</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-1">Sitemap</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Routes index status */}
@@ -173,7 +181,7 @@ const AdminSeoCheck = () => {
       </Card>
 
       {/* Sitemap audit */}
-      <SitemapAudit />
+      <SitemapAudit onIssueCount={setSitemapIssueCount} />
 
       {/* Product issues */}
       {productIssues.length > 0 && (
