@@ -11,10 +11,15 @@ const STATIC_ROUTES = [
   { loc: "/", priority: "1.0", changefreq: "weekly" },
   { loc: "/boutique", priority: "0.9", changefreq: "daily" },
   { loc: "/collections", priority: "0.8", changefreq: "weekly" },
+  { loc: "/actualites", priority: "0.7", changefreq: "weekly" },
   { loc: "/a-propos", priority: "0.6", changefreq: "monthly" },
   { loc: "/contact", priority: "0.5", changefreq: "monthly" },
   { loc: "/faq", priority: "0.4", changefreq: "monthly" },
-  { loc: "/actualites", priority: "0.7", changefreq: "weekly" },
+  { loc: "/try-on", priority: "0.4", changefreq: "monthly" },
+  { loc: "/cgv", priority: "0.2", changefreq: "yearly" },
+  { loc: "/confidentialite", priority: "0.2", changefreq: "yearly" },
+  { loc: "/cookies", priority: "0.2", changefreq: "yearly" },
+  { loc: "/mentions-legales", priority: "0.2", changefreq: "yearly" },
 ];
 
 function escapeXml(str: string): string {
