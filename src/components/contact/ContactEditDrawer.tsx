@@ -174,7 +174,7 @@ const ImageUploadField = ({ label, value, folder, onChange }: { label: string; v
     setUploading(true);
     const ext = file.name.split('.').pop();
     const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error } = await supabase.storage.from('images').upload(path, file, { cacheControl: '3600', upsert: false });
+    const { error } = await supabase.storage.from('images').upload(path, file, { cacheControl: '31536000', upsert: false });
     if (error) { toast.error(error.message); setUploading(false); return; }
     const { data } = supabase.storage.from('images').getPublicUrl(path);
     onChange(data.publicUrl);

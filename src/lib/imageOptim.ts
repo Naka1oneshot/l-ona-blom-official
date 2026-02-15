@@ -1,8 +1,9 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const STORAGE_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/`;
+const OBJECT_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/`;
+const RENDER_PREFIX = `${SUPABASE_URL}/storage/v1/render/image/public/`;
 
 /**
- * Optimise a Supabase Storage public URL by appending image transformation params.
+ * Optimise a Supabase Storage public URL using the /render/image/ transform endpoint.
  * Non-Supabase URLs are returned as-is.
  */
 export function optimizeImage(
@@ -11,17 +12,20 @@ export function optimizeImage(
 ): string {
   if (!url) return '';
   // Only transform Supabase storage URLs
-  if (!url.startsWith(STORAGE_PREFIX)) return url;
+  if (!url.startsWith(OBJECT_PREFIX)) return url;
 
+  // Switch from /object/public/ to /render/image/public/
+  const path = url.slice(OBJECT_PREFIX.length).split('?')[0]; // strip existing params
   const params = new URLSearchParams();
   if (opts.width) params.set('width', String(opts.width));
   if (opts.height) params.set('height', String(opts.height));
   params.set('quality', String(opts.quality ?? 80));
-  params.set('format', 'webp');
 
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}${params.toString()}`;
+  return `${RENDER_PREFIX}${path}?${params.toString()}`;
 }
+
+/** Check if a URL is a Supabase Storage URL */
+export const isSupabaseUrl = (url: string) => url.startsWith(OBJECT_PREFIX);
 
 /** Preset for product card thumbnails */
 export const cardImage = (url: string) => optimizeImage(url, { width: 400, quality: 70 });
@@ -36,7 +40,8 @@ export const coverImage = (url: string) => optimizeImage(url, { width: 1200, qua
 export const blurImage = (url: string) => optimizeImage(url, { width: 20, quality: 20 });
 
 /** Default responsive breakpoints */
-const DEFAULT_SRCSET_WIDTHS = [400, 800, 1200];
+const CARD_WIDTHS = [400, 800];
+const DETAIL_WIDTHS = [800, 1200, 1800];
 
 /**
  * Generate a srcSet string for responsive images.
@@ -44,10 +49,11 @@ const DEFAULT_SRCSET_WIDTHS = [400, 800, 1200];
  */
 export function generateSrcSet(
   url: string | undefined | null,
-  widths: number[] = DEFAULT_SRCSET_WIDTHS,
+  preset: 'card' | 'detail' = 'card',
   quality = 80,
 ): string {
-  if (!url || !url.startsWith(STORAGE_PREFIX)) return '';
+  if (!url || !url.startsWith(OBJECT_PREFIX)) return '';
+  const widths = preset === 'detail' ? DETAIL_WIDTHS : CARD_WIDTHS;
   return widths
     .map(w => `${optimizeImage(url, { width: w, quality })} ${w}w`)
     .join(', ');
