@@ -8,7 +8,8 @@ import EditableDBField from '@/components/EditableDBField';
 import EditableDBImage from '@/components/EditableDBImage';
 import YouTubePlayer from '@/components/collection/YouTubePlayer';
 import LogoSpinner from '@/components/LogoSpinner';
-import { coverImage, cardImage } from '@/lib/imageOptim';
+import { coverImage, cardImage, detailImage } from '@/lib/imageOptim';
+import { isVariantUrl } from '@/lib/imageVariants';
 import SEOHead from '@/components/SEOHead';
 import { breadcrumbJsonLd } from '@/lib/jsonLd';
 import { siteConfig } from '@/lib/siteConfig';
@@ -199,7 +200,14 @@ const CollectionDetail = () => {
                 transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.06 }}
                 className="aspect-[3/4] bg-secondary overflow-hidden"
               >
-                <img src={cardImage(img)} alt={`Look ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" fetchPriority="low" />
+                <img
+                  src={detailImage(img)}
+                  alt={`Look ${i + 1}`}
+                  className={`w-full h-full ${isVariantUrl(img) ? 'object-contain' : 'object-cover'}`}
+                  loading="lazy"
+                  decoding="async"
+                  fetchPriority="low"
+                />
               </motion.div>
             ))}
           </div>
