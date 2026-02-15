@@ -8,6 +8,8 @@ interface PromoConfig {
   video_type: 'youtube' | 'upload';
   button_text: string;
   button_link: string;
+  starts_at: string;
+  ends_at: string;
 }
 
 const defaultConfig: PromoConfig = {
@@ -15,6 +17,8 @@ const defaultConfig: PromoConfig = {
   video_type: 'youtube',
   button_text: 'Réserver Maintenant',
   button_link: '/boutique',
+  starts_at: '',
+  ends_at: '',
 };
 
 function extractYouTubeId(url: string): string | null {
@@ -196,12 +200,53 @@ const AdminPromotion = () => {
           </div>
         </div>
 
+        {/* Schedule */}
+        <div>
+          <label className={labelClass}>Programmation (optionnel)</label>
+          <p className="text-xs text-muted-foreground font-body mb-3">
+            Laissez vide pour une activation manuelle. Si renseignées, la promotion s'affichera uniquement entre ces deux dates.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Début</label>
+              <input
+                type="datetime-local"
+                value={config.starts_at}
+                onChange={e => set('starts_at', e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Fin</label>
+              <input
+                type="datetime-local"
+                value={config.ends_at}
+                onChange={e => set('ends_at', e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Preview info */}
         {enabled && config.video_url && (
-          <div className="border border-primary/30 bg-primary/5 p-4">
+          <div className="border border-primary/30 bg-primary/5 p-4 space-y-1">
             <p className="text-xs font-body text-primary">
               ✓ La promotion est active. La vidéo remplacera la couverture de la page d'accueil avec le bouton « {config.button_text} ».
             </p>
+            {config.starts_at && (
+              <p className="text-xs font-body text-muted-foreground">
+                Début : {new Date(config.starts_at).toLocaleString('fr-FR')}
+              </p>
+            )}
+            {config.ends_at && (
+              <p className="text-xs font-body text-muted-foreground">
+                Fin : {new Date(config.ends_at).toLocaleString('fr-FR')}
+                {new Date(config.ends_at) < new Date() && (
+                  <span className="text-destructive ml-2">⚠ Date passée — la promotion ne s'affichera pas</span>
+                )}
+              </p>
+            )}
           </div>
         )}
 
