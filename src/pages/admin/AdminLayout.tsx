@@ -11,7 +11,7 @@ const navItems = [
   { to: '/admin/collections', icon: Layers, label: 'Collections' },
   { to: '/admin/commandes', icon: ShoppingCart, label: 'Commandes' },
   { to: '/admin/articles', icon: FileText, label: 'Articles' },
-  { to: '/admin/messages', icon: Mail, label: 'Messages' },
+  { to: '/admin/messages', icon: Mail, label: 'Messages', badgeKey: 'messages' },
   { to: '/admin/clients', icon: Users, label: 'Clients' },
   { to: '/admin/promos', icon: Tag, label: 'Promos' },
   { to: '/admin/import', icon: FileUp, label: 'Import' },
@@ -36,7 +36,6 @@ function useSeoIssueCount() {
       ]);
 
       let issues = 0;
-
       for (const p of (prodRes.data || [])) {
         if (!p.images || (p.images as any[]).length === 0) issues++;
         else if (!p.reference_code) issues++;
@@ -44,21 +43,33 @@ function useSeoIssueCount() {
         else if (!p.name_en) issues++;
         else if (p.base_price_eur === 0) issues++;
       }
-
       for (const c of (colRes.data || [])) {
         if (!c.cover_image) issues++;
         else if (!c.narrative_fr && !c.narrative_en) issues++;
         else if (!c.title_en) issues++;
       }
-
       for (const a of (postRes.data || [])) {
         if (!a.cover_image) issues++;
         else if (!a.lead_fr && !a.lead_en) issues++;
         else if (!a.title_en) issues++;
       }
-
       setCount(issues);
     })();
+  }, []);
+
+  return count;
+}
+
+/** Count of unread (status = 'new') contact messages */
+function useNewMessageCount() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    supabase
+      .from('contact_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'new')
+      .then(({ count: c }) => setCount(c ?? 0));
   }, []);
 
   return count;
@@ -67,9 +78,11 @@ function useSeoIssueCount() {
 const AdminLayout = () => {
   const location = useLocation();
   const seoCount = useSeoIssueCount();
+  const msgCount = useNewMessageCount();
 
   const badgeCounts: Record<string, number> = {
     seo: seoCount,
+    messages: msgCount,
   };
 
   return (
