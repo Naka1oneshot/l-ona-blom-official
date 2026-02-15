@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminProductForm from './AdminProductForm';
 
@@ -10,6 +10,7 @@ const AdminProducts = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -59,6 +60,22 @@ const AdminProducts = () => {
     await Promise.all(updates);
   }
 
+  const missingStripeCount = products.filter(p => p.status === 'active' && !p.stripe_product_id).length;
+
+  async function syncStripe() {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-stripe-products');
+      if (error) throw error;
+      toast.success(`${data.synced} produit(s) synchronisé(s) sur Stripe`);
+      load();
+    } catch (err: any) {
+      toast.error(err.message || 'Erreur de synchronisation');
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   if (creating || editing) {
     return (
       <AdminProductForm
@@ -73,12 +90,24 @@ const AdminProducts = () => {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-display text-3xl">Produits</h1>
-        <button
-          onClick={() => setCreating(true)}
-          className="flex items-center gap-2 bg-foreground text-background px-4 py-2.5 text-xs tracking-[0.15em] uppercase font-body hover:bg-primary transition-colors"
-        >
-          <Plus size={14} /> Nouveau
-        </button>
+        <div className="flex items-center gap-3">
+          {missingStripeCount > 0 && (
+            <button
+              onClick={syncStripe}
+              disabled={syncing}
+              className="flex items-center gap-2 border border-border px-4 py-2.5 text-xs tracking-[0.15em] uppercase font-body hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
+              Sync Stripe ({missingStripeCount})
+            </button>
+          )}
+          <button
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-2 bg-foreground text-background px-4 py-2.5 text-xs tracking-[0.15em] uppercase font-body hover:bg-primary transition-colors"
+          >
+            <Plus size={14} /> Nouveau
+          </button>
+        </div>
       </div>
 
       <div className="border border-border divide-y divide-border">
@@ -118,6 +147,11 @@ const AdminProducts = () => {
               <p className="text-sm font-body font-medium truncate">
                 {p.reference_code && <span className="text-muted-foreground font-normal mr-1.5">{p.reference_code}</span>}
                 {p.name_fr}
+                {p.status === 'active' && !p.stripe_product_id && (
+                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-[9px] tracking-wider uppercase font-body bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                    Stripe manquant
+                  </span>
+                )}
               </p>
               <p className="text-xs text-muted-foreground font-body">
                 {p.category} · {p.status} · €{(p.base_price_eur / 100).toFixed(2)}
