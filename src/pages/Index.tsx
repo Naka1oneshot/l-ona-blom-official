@@ -25,7 +25,14 @@ const Index = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const { enabled: promoEnabled, config: promoConfig } = useSiteFeature('hero_promotion');
 
-  const promoActive = promoEnabled && promoConfig?.video_url;
+  const promoActive = useMemo(() => {
+    if (!promoEnabled || !promoConfig?.video_url) return false;
+    const now = new Date();
+    if (promoConfig.starts_at && new Date(promoConfig.starts_at) > now) return false;
+    if (promoConfig.ends_at && new Date(promoConfig.ends_at) < now) return false;
+    return true;
+  }, [promoEnabled, promoConfig]);
+
   const ytId = promoActive && promoConfig.video_type === 'youtube'
     ? extractYouTubeId(promoConfig.video_url)
     : null;
