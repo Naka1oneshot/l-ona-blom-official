@@ -4,8 +4,9 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useSaveContactPage, type ContactPageData, type ContactSocial } from '@/hooks/useContactPage';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Plus, Trash2, Camera } from 'lucide-react';
+import { Loader2, Plus, Trash2, Camera, Crop } from 'lucide-react';
 import { toast } from 'sonner';
+import ImageCropper from '@/components/admin/ImageCropper';
 
 interface Props {
   open: boolean;
@@ -16,6 +17,8 @@ interface Props {
 const ContactEditDrawer = ({ open, onOpenChange, data }: Props) => {
   const [draft, setDraft] = useState<ContactPageData>(structuredClone(data));
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropTarget, setCropTarget] = useState<'hero' | 'atelier'>('hero');
   const saveMutation = useSaveContactPage();
 
   const set = <K extends keyof ContactPageData>(section: K, value: ContactPageData[K]) =>
@@ -66,6 +69,7 @@ const ContactEditDrawer = ({ open, onOpenChange, data }: Props) => {
             value={draft.hero.image_url}
             folder="contact"
             onChange={url => set('hero', { ...draft.hero, image_url: url })}
+            onCrop={url => { setCropTarget('hero'); setCropSrc(url); }}
           />
           <label className={labelCls}>Titre ({lang.toUpperCase()})</label>
           <input value={lang === 'fr' ? draft.hero.title_fr : draft.hero.title_en} onChange={e => set('hero', { ...draft.hero, [lang === 'fr' ? 'title_fr' : 'title_en']: e.target.value })} className={inputCls} />
@@ -133,6 +137,7 @@ const ContactEditDrawer = ({ open, onOpenChange, data }: Props) => {
             value={draft.atelier.image_url}
             folder="contact"
             onChange={url => set('atelier', { ...draft.atelier, image_url: url })}
+            onCrop={url => { setCropTarget('atelier'); setCropSrc(url); }}
           />
           <label className={labelCls}>Titre ({lang.toUpperCase()})</label>
           <input value={lang === 'fr' ? draft.atelier.title_fr : draft.atelier.title_en} onChange={e => set('atelier', { ...draft.atelier, [lang === 'fr' ? 'title_fr' : 'title_en']: e.target.value })} className={inputCls} />
@@ -150,6 +155,28 @@ const ContactEditDrawer = ({ open, onOpenChange, data }: Props) => {
             Enregistrer
           </button>
         </div>
+        {/* Cropper dialog */}
+        {cropSrc && (
+          <ImageCropper
+            open
+            src={cropSrc}
+            aspectRatio={cropTarget === 'hero' ? 16 / 7 : 3 / 4}
+            onCancel={() => setCropSrc(null)}
+            onCropComplete={async (blob) => {
+              setCropSrc(null);
+              const path = `contact/${Date.now()}-crop.webp`;
+              const { error } = await supabase.storage.from('images').upload(path, blob, { cacheControl: '31536000', upsert: false });
+              if (error) { toast.error(error.message); return; }
+              const { data: d } = supabase.storage.from('images').getPublicUrl(path);
+              if (cropTarget === 'hero') {
+                set('hero', { ...draft.hero, image_url: d.publicUrl });
+              } else {
+                set('atelier', { ...draft.atelier, image_url: d.publicUrl });
+              }
+              toast.success('Image recadrée');
+            }}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );
@@ -164,7 +191,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 );
 
 /** Inline image upload field for the drawer */
-const ImageUploadField = ({ label, value, folder, onChange }: { label: string; value: string; folder: string; onChange: (url: string) => void }) => {
+const ImageUploadField = ({ label, value, folder, onChange, onCrop }: { label: string; value: string; folder: string; onChange: (url: string) => void; onCrop?: (url: string) => void }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -188,14 +215,26 @@ const ImageUploadField = ({ label, value, folder, onChange }: { label: string; v
       {value && (
         <div className="relative mb-2">
           <img src={value} alt={label} className="w-full h-32 object-cover border border-foreground/10" />
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-destructive/90 text-destructive-foreground rounded-full hover:bg-destructive transition-colors"
-            title="Supprimer l'image"
-          >
-            <Trash2 size={12} />
-          </button>
+          <div className="absolute top-1.5 right-1.5 flex gap-1">
+            {onCrop && (
+              <button
+                type="button"
+                onClick={() => onCrop(value)}
+                className="w-6 h-6 flex items-center justify-center bg-primary/90 text-primary-foreground rounded-full hover:bg-primary transition-colors"
+                title="Recadrer"
+              >
+                <Crop size={12} />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="w-6 h-6 flex items-center justify-center bg-destructive/90 text-destructive-foreground rounded-full hover:bg-destructive transition-colors"
+              title="Supprimer l'image"
+            >
+              <Trash2 size={12} />
+            </button>
+          </div>
         </div>
       )}
       <button
