@@ -56,7 +56,7 @@ const Index = () => {
         <>
           {/* Promo Video Hero */}
           <section className="relative w-full bg-foreground">
-            <div className={`w-full relative overflow-hidden ${isMobile && !hasMobileVideo ? 'aspect-[9/16] max-h-[90vh]' : 'aspect-video max-h-[80vh]'}`}>
+            <div className={`w-full relative overflow-hidden ${isMobile ? 'h-[calc(100svh-64px)]' : 'aspect-video max-h-[80vh]'}`}>
               {ytId ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
