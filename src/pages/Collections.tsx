@@ -204,6 +204,13 @@ const Collections = () => {
                       {/* Dark overlay for text readability */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:from-black/70 transition-colors duration-500" />
 
+                      {/* Admin: draft badge for unpublished */}
+                      {isAdmin && !c.published_at && (
+                        <span className="absolute top-4 left-4 z-10 text-[10px] tracking-[0.15em] uppercase bg-amber-600 text-white px-3 py-1.5 font-body">
+                          {language === 'fr' ? 'Brouillon' : 'Draft'}
+                        </span>
+                      )}
+
                       {/* Title overlay + chevron */}
                       <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 md:pb-10 lg:pb-12 px-6 text-center">
                         {isAdmin ? (
