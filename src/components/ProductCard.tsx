@@ -5,6 +5,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { Product } from '@/types';
 import { getPriceRange } from '@/lib/pricing';
 import { cardImage } from '@/lib/imageOptim';
+import { isVariantUrl } from '@/lib/imageVariants';
 import AdminEditButton from '@/components/AdminEditButton';
 import ColorSwatch from '@/components/product/ColorSwatch';
 import BraidingSwatch from '@/components/product/BraidingSwatch';
@@ -67,6 +68,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
 
   const maxSwatches = 5;
 
+  const hasVariants = isVariantUrl(product.images[0] || '');
   const hoverIdx = product.hover_image_index ?? 1;
   const hoverImg = product.images[hoverIdx] || product.images[1];
   const hoverSrc = hoverImg ? cardImage(hoverImg) : null;
@@ -86,7 +88,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
       />
       <Link to={`/boutique/${product.slug}`} className="block">
-        <div className="relative aspect-[3/4] overflow-hidden bg-secondary mb-4">
+        <div className="relative aspect-[3/4] overflow-hidden bg-[#FDFDFD] mb-4">
           {/* Main image */}
           <SmartImage
             src={cardImage(product.images[0])}
@@ -95,6 +97,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
             sizes={GRID_SIZES}
             priority={priority}
             preset="card"
+            objectFit={hasVariants ? 'contain' : 'cover'}
           />
           {/* Hover image — only mounted after mouseenter */}
           {hoverReady && hoverSrc && (
@@ -104,6 +107,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
               className="absolute inset-0 w-full h-full opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
               sizes={GRID_SIZES}
               preset="card"
+              objectFit={hasVariants ? 'contain' : 'cover'}
             />
           )}
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-500" />

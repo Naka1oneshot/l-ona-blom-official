@@ -97,6 +97,8 @@ interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackClassName?: string;
   /** 'card' | 'detail' — controls which srcSet widths are generated */
   preset?: 'card' | 'detail';
+  /** Override the default object-fit (object-cover). Set to 'contain' for variant images. */
+  objectFit?: 'cover' | 'contain';
 }
 
 const SmartImage = ({
@@ -108,6 +110,7 @@ const SmartImage = ({
   priority = false,
   fallbackClassName,
   preset = 'card',
+  objectFit = 'cover',
   style,
   ...rest
 }: SmartImageProps) => {
@@ -195,7 +198,8 @@ const SmartImage = ({
           onLoad={handleLoad}
           onError={() => setError(true)}
           className={cn(
-            'w-full h-full object-cover',
+            'w-full h-full',
+            objectFit === 'contain' ? 'object-contain' : 'object-cover',
             alreadyCached
               ? 'opacity-100'
               : loaded
