@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from 'react-router-dom';
+import SitemapAudit from '@/components/admin/SitemapAudit';
 
 interface ProductIssue {
   id: string;
@@ -170,6 +171,9 @@ const AdminSeoCheck = () => {
           <p className="text-xs text-muted-foreground">Routes noindex : {NON_INDEX_ROUTES.join(', ')}</p>
         </CardContent>
       </Card>
+
+      {/* Sitemap audit */}
+      <SitemapAudit />
 
       {/* Product issues */}
       {productIssues.length > 0 && (
