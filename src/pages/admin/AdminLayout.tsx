@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import Header from '@/components/layout/Header';
+import { supabase } from '@/integrations/supabase/client';
 import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard, FolderTree, FileUp, Clock, Mail, Palette, Search, Sparkles, HelpCircle } from 'lucide-react';
 
 const navItems = [
@@ -16,14 +17,60 @@ const navItems = [
   { to: '/admin/import', icon: FileUp, label: 'Import' },
   { to: '/admin/coming-soon', icon: Clock, label: 'Coming Soon' },
   { to: '/admin/theme', icon: Palette, label: 'Thème' },
-  { to: '/admin/seo-check', icon: Search, label: 'SEO' },
+  { to: '/admin/seo-check', icon: Search, label: 'SEO', badgeKey: 'seo' },
   { to: '/admin/faq', icon: HelpCircle, label: 'FAQ' },
   { to: '/admin/fonctionnalites', icon: Sparkles, label: 'Fonctionnalités' },
   { to: '/admin/reglages', icon: Settings, label: 'Réglages' },
 ];
 
+/** Lightweight SEO issue counter — runs once on mount */
+function useSeoIssueCount() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      const [prodRes, colRes, postRes] = await Promise.all([
+        supabase.from('products').select('id, name_en, description_fr, description_en, images, reference_code, base_price_eur, status'),
+        supabase.from('collections').select('id, title_en, narrative_fr, narrative_en, cover_image, published_at'),
+        supabase.from('posts').select('id, title_en, lead_fr, lead_en, cover_image, published_at'),
+      ]);
+
+      let issues = 0;
+
+      for (const p of (prodRes.data || [])) {
+        if (!p.images || (p.images as any[]).length === 0) issues++;
+        else if (!p.reference_code) issues++;
+        else if (!p.description_fr && !p.description_en) issues++;
+        else if (!p.name_en) issues++;
+        else if (p.base_price_eur === 0) issues++;
+      }
+
+      for (const c of (colRes.data || [])) {
+        if (!c.cover_image) issues++;
+        else if (!c.narrative_fr && !c.narrative_en) issues++;
+        else if (!c.title_en) issues++;
+      }
+
+      for (const a of (postRes.data || [])) {
+        if (!a.cover_image) issues++;
+        else if (!a.lead_fr && !a.lead_en) issues++;
+        else if (!a.title_en) issues++;
+      }
+
+      setCount(issues);
+    })();
+  }, []);
+
+  return count;
+}
+
 const AdminLayout = () => {
   const location = useLocation();
+  const seoCount = useSeoIssueCount();
+
+  const badgeCounts: Record<string, number> = {
+    seo: seoCount,
+  };
 
   return (
     <>
@@ -36,6 +83,7 @@ const AdminLayout = () => {
             const active = item.exact
               ? location.pathname === item.to
               : location.pathname.startsWith(item.to);
+            const badge = item.badgeKey ? badgeCounts[item.badgeKey] || 0 : 0;
             return (
               <Link
                 key={item.to}
@@ -48,6 +96,11 @@ const AdminLayout = () => {
               >
                 <item.icon size={15} />
                 {item.label}
+                {badge > 0 && (
+                  <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium leading-none px-1">
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -61,16 +114,22 @@ const AdminLayout = () => {
             const active = item.exact
               ? location.pathname === item.to
               : location.pathname.startsWith(item.to);
+            const badge = item.badgeKey ? badgeCounts[item.badgeKey] || 0 : 0;
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] tracking-wider uppercase font-body whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-1.5 px-3 py-1.5 text-[10px] tracking-wider uppercase font-body whitespace-nowrap transition-colors ${
                   active ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <item.icon size={12} />
                 {item.label}
+                {badge > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[8px] font-medium leading-none px-0.5">
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}
