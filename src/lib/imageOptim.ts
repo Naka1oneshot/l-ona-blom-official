@@ -31,3 +31,24 @@ export const detailImage = (url: string) => optimizeImage(url, { width: 1200 });
 
 /** Preset for collection covers */
 export const coverImage = (url: string) => optimizeImage(url, { width: 1200, quality: 75 });
+
+/** Ultra-small blurred placeholder (20px wide) */
+export const blurImage = (url: string) => optimizeImage(url, { width: 20, quality: 20 });
+
+/** Default responsive breakpoints */
+const DEFAULT_SRCSET_WIDTHS = [400, 800, 1200];
+
+/**
+ * Generate a srcSet string for responsive images.
+ * Only works on Supabase Storage URLs; returns empty string otherwise.
+ */
+export function generateSrcSet(
+  url: string | undefined | null,
+  widths: number[] = DEFAULT_SRCSET_WIDTHS,
+  quality = 80,
+): string {
+  if (!url || !url.startsWith(STORAGE_PREFIX)) return '';
+  return widths
+    .map(w => `${optimizeImage(url, { width: w, quality })} ${w}w`)
+    .join(', ');
+}

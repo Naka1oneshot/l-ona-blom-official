@@ -5,6 +5,7 @@ import Footer from './Footer';
 import FloatingThemeEditor from '@/components/admin/FloatingThemeEditor';
 import FloatingTaskManager from '@/components/admin/FloatingTaskManager';
 import ThemeHintOverlay from '@/components/admin/ThemeHintOverlay';
+import ImagePreloader from '@/components/ImagePreloader';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ interface LayoutProps {
 const Layout = ({ children, hideFooter }: LayoutProps) => {
   return (
     <HelmetProvider>
+      <ImagePreloader />
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 bg-background">
