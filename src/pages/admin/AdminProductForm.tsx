@@ -10,6 +10,32 @@ import type { EditorialBlock } from '@/types/editorial';
 import { STANDARD_SIZES, detectSizeSet, buildPriceBySizePayload } from '@/lib/pricing';
 import type { SizeCode } from '@/types';
 
+/** Price input: text mode, validates on blur, stores cents */
+const PriceInput = ({ value, onChange, className }: { value: number; onChange: (cents: number) => void; className?: string }) => {
+  const [raw, setRaw] = useState(value ? (value / 100).toFixed(2) : '');
+  const handleBlur = () => {
+    const euros = parseFloat(raw);
+    const cents = isNaN(euros) || euros < 0 ? 0 : Math.round(euros * 100);
+    onChange(cents);
+    setRaw(cents ? (cents / 100).toFixed(2) : '');
+  };
+  // Sync from parent when value changes externally (e.g. size set switch)
+  React.useEffect(() => {
+    setRaw(value ? (value / 100).toFixed(2) : '');
+  }, [value]);
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={raw}
+      onChange={e => setRaw(e.target.value)}
+      onBlur={handleBlur}
+      className={className}
+      placeholder="0.00"
+    />
+  );
+};
+
 interface Props {
   product?: any;
   onSave: () => void;
@@ -395,16 +421,10 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
             {sizesToShow.map(size => (
               <div key={size}>
                 <label className={labelClass}>Prix {size} (€)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={sizePrices[size] ? (sizePrices[size] / 100).toFixed(2) : ''}
-                  onChange={e => {
-                    const euros = parseFloat(e.target.value);
-                    setSizePrices(p => ({ ...p, [size]: isNaN(euros) ? 0 : Math.round(euros * 100) }));
-                  }}
+                <PriceInput
+                  value={sizePrices[size] || 0}
+                  onChange={cents => setSizePrices(p => ({ ...p, [size]: cents }))}
                   className={inputClass}
-                  placeholder="0.00"
                 />
               </div>
             ))}
