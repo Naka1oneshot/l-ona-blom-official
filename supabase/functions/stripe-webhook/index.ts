@@ -13,6 +13,39 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${d}`);
 };
 
+async function sendOrderEmail(
+  orderId: string,
+  items: any[],
+  session: any,
+  shippingAddress: any
+) {
+  try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-order-email`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        customerEmail: session.customer_details?.email || "",
+        customerName: session.customer_details?.name || "Client",
+        orderId,
+        items,
+        total: session.amount_total || 0,
+        currency: (session.currency || "eur").toUpperCase(),
+        shippingAddress,
+      }),
+    });
+    const result = await res.json();
+    logStep("Email function response", { status: res.status, result });
+  } catch (err) {
+    logStep("Email sending failed (non-blocking)", { error: err instanceof Error ? err.message : String(err) });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -103,9 +136,12 @@ serve(async (req) => {
 
             if (error) logStep("Error updating order", { error: error.message });
             else logStep("Order updated to PAID", { orderId: existingOrder.id });
+
+            // Send confirmation emails
+            await sendOrderEmail(existingOrder.id, itemsJson, session, shippingAddress);
           } else {
             // Create a new order
-            const { error } = await supabase.from("orders").insert({
+            const { data: newOrder, error } = await supabase.from("orders").insert({
               stripe_session_id: session.id,
               status: "PAID",
               currency: (session.currency || "eur").toUpperCase(),
@@ -116,10 +152,13 @@ serve(async (req) => {
               items_json: itemsJson,
               shipping_address_json: shippingAddress,
               notes: `Stripe session ${session.id}`,
-            });
+            }).select("id").single();
 
             if (error) logStep("Error creating order", { error: error.message });
-            else logStep("Order created", { sessionId: session.id });
+            else {
+              logStep("Order created", { orderId: newOrder.id });
+              await sendOrderEmail(newOrder.id, itemsJson, session, shippingAddress);
+            }
           }
         }
         break;
