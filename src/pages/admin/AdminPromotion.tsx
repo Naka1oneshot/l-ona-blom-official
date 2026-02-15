@@ -6,6 +6,8 @@ import { Video, Eye, EyeOff, ExternalLink } from 'lucide-react';
 interface PromoConfig {
   video_url: string;
   video_type: 'youtube' | 'upload';
+  mobile_video_url: string;
+  mobile_video_type: 'youtube' | 'upload' | 'none';
   button_text: string;
   button_link: string;
   starts_at: string;
@@ -15,6 +17,8 @@ interface PromoConfig {
 const defaultConfig: PromoConfig = {
   video_url: '',
   video_type: 'youtube',
+  mobile_video_url: '',
+  mobile_video_type: 'none',
   button_text: 'Réserver Maintenant',
   button_link: '/boutique',
   starts_at: '',
@@ -165,6 +169,101 @@ const AdminPromotion = () => {
               {config.video_url && config.video_type === 'upload' && (
                 <div className="mt-3 border border-border aspect-video">
                   <video src={config.video_url} controls className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Mobile video source */}
+        <div>
+          <label className={labelClass}>Vidéo mobile (optionnel)</label>
+          <p className="text-xs text-muted-foreground font-body mb-3">
+            Laissez sur « Aucune » pour adapter automatiquement la vidéo principale au mobile (affichée en format portrait 9:16).
+          </p>
+          <div className="flex gap-2 mb-3">
+            <button
+              type="button"
+              onClick={() => set('mobile_video_type', 'none')}
+              className={`px-4 py-2 text-xs tracking-wider uppercase font-body border transition-colors ${
+                (!config.mobile_video_type || config.mobile_video_type === 'none')
+                  ? 'border-foreground bg-foreground text-background'
+                  : 'border-border hover:border-foreground'
+              }`}
+            >
+              Aucune
+            </button>
+            <button
+              type="button"
+              onClick={() => set('mobile_video_type', 'youtube')}
+              className={`px-4 py-2 text-xs tracking-wider uppercase font-body border transition-colors ${
+                config.mobile_video_type === 'youtube'
+                  ? 'border-foreground bg-foreground text-background'
+                  : 'border-border hover:border-foreground'
+              }`}
+            >
+              YouTube
+            </button>
+            <button
+              type="button"
+              onClick={() => set('mobile_video_type', 'upload')}
+              className={`px-4 py-2 text-xs tracking-wider uppercase font-body border transition-colors ${
+                config.mobile_video_type === 'upload'
+                  ? 'border-foreground bg-foreground text-background'
+                  : 'border-border hover:border-foreground'
+              }`}
+            >
+              Importer
+            </button>
+          </div>
+
+          {config.mobile_video_type === 'youtube' && (
+            <div>
+              <label className={labelClass}>URL YouTube (mobile)</label>
+              <input
+                value={config.mobile_video_url}
+                onChange={e => set('mobile_video_url', e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=... (format vertical recommandé)"
+                className={inputClass}
+              />
+              {extractYouTubeId(config.mobile_video_url) && (
+                <div className="mt-3 border border-border aspect-[9/16] max-w-[220px]">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${extractYouTubeId(config.mobile_video_url)}?autoplay=0`}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {config.mobile_video_type === 'upload' && (
+            <div>
+              <label className={labelClass}>Fichier vidéo (mobile)</label>
+              <input
+                type="file"
+                accept="video/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (!file.type.startsWith('video/')) { toast.error('Fichier vidéo requis'); return; }
+                  setUploading(true);
+                  const path = `promo/mobile_${Date.now()}_${file.name}`;
+                  const { error } = await supabase.storage.from('images').upload(path, file, { upsert: true });
+                  if (error) { toast.error(error.message); setUploading(false); return; }
+                  const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
+                  setConfig(prev => ({ ...prev, mobile_video_url: urlData.publicUrl, mobile_video_type: 'upload' }));
+                  setUploading(false);
+                  toast.success('Vidéo mobile importée');
+                }}
+                className={inputClass}
+                disabled={uploading}
+              />
+              {config.mobile_video_url && config.mobile_video_type === 'upload' && (
+                <div className="mt-3 border border-border aspect-[9/16] max-w-[220px]">
+                  <video src={config.mobile_video_url} controls className="w-full h-full object-cover" />
                 </div>
               )}
             </div>

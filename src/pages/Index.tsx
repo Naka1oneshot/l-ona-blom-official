@@ -11,6 +11,7 @@ import EditableText from '@/components/EditableText';
 import EditableImage from '@/components/EditableImage';
 import EventsSection from '@/components/home/EventsSection';
 import { useSiteFeature } from '@/hooks/useSiteFeature';
+import { useIsMobile } from '@/hooks/use-mobile';
 import heroImage from '@/assets/hero-home.jpg';
 import logoWhite from '@/assets/logo-white.png';
 import logoIcon from '@/assets/logo-icon.png';
@@ -24,6 +25,7 @@ const Index = () => {
   const { language, t } = useLanguage();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const { enabled: promoEnabled, config: promoConfig } = useSiteFeature('hero_promotion');
+  const isMobile = useIsMobile();
 
   const promoActive = useMemo(() => {
     if (!promoEnabled || !promoConfig?.video_url) return false;
@@ -33,8 +35,13 @@ const Index = () => {
     return true;
   }, [promoEnabled, promoConfig]);
 
-  const ytId = promoActive && promoConfig.video_type === 'youtube'
-    ? extractYouTubeId(promoConfig.video_url)
+  // Pick mobile-specific video if available, otherwise fall back to desktop
+  const hasMobileVideo = promoActive && promoConfig.mobile_video_url && promoConfig.mobile_video_type !== 'none';
+  const activeVideoUrl = isMobile && hasMobileVideo ? promoConfig.mobile_video_url : promoConfig?.video_url;
+  const activeVideoType = isMobile && hasMobileVideo ? promoConfig.mobile_video_type : promoConfig?.video_type;
+
+  const ytId = promoActive && activeVideoType === 'youtube'
+    ? extractYouTubeId(activeVideoUrl)
     : null;
 
   useEffect(() => {
@@ -49,7 +56,7 @@ const Index = () => {
         <>
           {/* Promo Video Hero */}
           <section className="relative w-full bg-foreground">
-            <div className="w-full aspect-video max-h-[80vh] relative overflow-hidden">
+            <div className={`w-full relative overflow-hidden ${isMobile && !hasMobileVideo ? 'aspect-[9/16] max-h-[90vh]' : 'aspect-video max-h-[80vh]'}`}>
               {ytId ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
@@ -60,7 +67,7 @@ const Index = () => {
                 />
               ) : (
                 <video
-                  src={promoConfig.video_url}
+                  src={activeVideoUrl}
                   autoPlay
                   muted
                   loop
