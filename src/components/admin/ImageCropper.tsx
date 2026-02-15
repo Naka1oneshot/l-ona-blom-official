@@ -33,27 +33,31 @@ const ImageCropper = ({
 
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
+      imgRef.current = e.currentTarget;
       const { width, height } = e.currentTarget;
       const cropHeight = width / aspectRatio;
 
+      let initial: PixelCrop;
       if (cropHeight <= height) {
-        setCrop({
+        initial = {
           unit: 'px',
           width,
           height: cropHeight,
           x: 0,
-          y: (height - cropHeight) / 2,
-        });
+          y: Math.round((height - cropHeight) / 2),
+        };
       } else {
         const newWidth = height * aspectRatio;
-        setCrop({
+        initial = {
           unit: 'px',
           width: newWidth,
           height,
-          x: (width - newWidth) / 2,
+          x: Math.round((width - newWidth) / 2),
           y: 0,
-        });
+        };
       }
+      setCrop(initial);
+      setCompletedCrop(initial);
     },
     [aspectRatio],
   );
