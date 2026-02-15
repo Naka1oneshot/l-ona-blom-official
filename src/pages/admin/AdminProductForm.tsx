@@ -713,12 +713,16 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
           />
         </div>
 
-        <div className="flex gap-3 pt-4">
-          <button type="submit" disabled={submitting} className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors disabled:opacity-50">
-            {submitting ? '...' : isNew ? 'Créer' : 'Enregistrer'}
-          </button>
+        {/* spacer so content isn't hidden behind sticky bar */}
+        <div className="h-20" />
+
+        {/* Sticky save / cancel bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border py-3 px-6 flex justify-end gap-3 shadow-[0_-2px_10px_hsl(var(--foreground)/0.05)]">
           <button type="button" onClick={onCancel} className="border border-foreground/20 px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:border-foreground transition-colors">
             Annuler
+          </button>
+          <button type="submit" disabled={submitting} className="bg-foreground text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary transition-colors disabled:opacity-50">
+            {submitting ? '...' : isNew ? 'Créer' : 'Enregistrer'}
           </button>
         </div>
       </form>
