@@ -298,6 +298,42 @@ export type Database = {
         }
         Relationships: []
       }
+      faq_items: {
+        Row: {
+          answer_en: string | null
+          answer_fr: string
+          created_at: string
+          id: string
+          is_active: boolean
+          question_en: string | null
+          question_fr: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer_en?: string | null
+          answer_fr: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question_en?: string | null
+          question_fr: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer_en?: string | null
+          answer_fr?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question_en?: string | null
+          question_fr?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       import_runs: {
         Row: {
           created_at: string
