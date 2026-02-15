@@ -50,6 +50,7 @@ const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
 const AdminTheme = lazy(() => import("./pages/admin/AdminTheme"));
 const AdminSeoCheck = lazy(() => import("./pages/admin/AdminSeoCheck"));
 const AdminFeatures = lazy(() => import("./pages/admin/AdminFeatures"));
+const AdminFAQ = lazy(() => import("./pages/admin/AdminFAQ"));
 const TryOnPage = lazy(() => import("./pages/TryOn"));
 
 const queryClient = new QueryClient({
@@ -102,6 +103,7 @@ const App = () => (
                       <Route path="coming-soon" element={<AdminComingSoon />} />
                       <Route path="theme" element={<AdminTheme />} />
                       <Route path="seo-check" element={<AdminSeoCheck />} />
+                      <Route path="faq" element={<AdminFAQ />} />
                       <Route path="fonctionnalites" element={<AdminFeatures />} />
                     </Route>
 

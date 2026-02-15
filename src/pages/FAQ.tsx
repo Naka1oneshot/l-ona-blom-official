@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 import { faqData } from '@/lib/mockData';
 import {
   Accordion,
@@ -10,9 +11,38 @@ import {
 } from '@/components/ui/accordion';
 import SEOHead from '@/components/SEOHead';
 
+interface FaqRow {
+  id: string;
+  question_fr: string;
+  question_en: string | null;
+  answer_fr: string;
+  answer_en: string | null;
+  sort_order: number;
+  is_active: boolean;
+}
+
 const FAQ = () => {
   const { language, t } = useLanguage();
-  const items = faqData[language];
+  const [items, setItems] = useState<{ q: string; a: string }[]>(faqData[language]);
+
+  useEffect(() => {
+    supabase
+      .from('faq_items')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order')
+      .then(({ data }) => {
+        if (data && (data as any[]).length > 0) {
+          const rows = data as unknown as FaqRow[];
+          setItems(
+            rows.map((r) => ({
+              q: (language === 'en' && r.question_en) ? r.question_en : r.question_fr,
+              a: (language === 'en' && r.answer_en) ? r.answer_en : r.answer_fr,
+            }))
+          );
+        }
+      });
+  }, [language]);
 
   return (
     <div className="pt-20 md:pt-24">
