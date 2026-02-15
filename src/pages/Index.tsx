@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,95 +10,235 @@ import { organizationJsonLd, websiteJsonLd } from '@/lib/jsonLd';
 import EditableText from '@/components/EditableText';
 import EditableImage from '@/components/EditableImage';
 import EventsSection from '@/components/home/EventsSection';
+import { useSiteFeature } from '@/hooks/useSiteFeature';
 import heroImage from '@/assets/hero-home.jpg';
 import logoWhite from '@/assets/logo-white.png';
 import logoIcon from '@/assets/logo-icon.png';
 
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return match?.[1] ?? null;
+}
+
 const Index = () => {
   const { language, t } = useLanguage();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const { enabled: promoEnabled, config: promoConfig } = useSiteFeature('hero_promotion');
+
+  const promoActive = promoEnabled && promoConfig?.video_url;
+  const ytId = promoActive && promoConfig.video_type === 'youtube'
+    ? extractYouTubeId(promoConfig.video_url)
+    : null;
 
   useEffect(() => {
     fetchFeaturedProducts(3).then(setFeaturedProducts);
   }, []);
+
   return (
     <div>
       <SEOHead path="/" jsonLd={[organizationJsonLd(), websiteJsonLd()]} />
-      {/* Hero */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <EditableImage
-          settingsKey="page_home_hero_image"
-          currentSrc={heroImage}
-          alt="LÉONA BLOM"
-          className="w-full h-full object-cover"
-          folder="hero"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
-        <div className="relative z-10 text-center text-background px-6">
-          <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 mb-4 sm:mb-6">
-            <motion.img
-              src={logoIcon}
-              alt=""
-              initial={{ opacity: 0, scale: 0.6, rotate: -15 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="h-16 sm:h-24 md:h-32 lg:h-40 w-auto drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]"
-            />
-            <motion.img
-              src={logoWhite}
-              alt="LÉONA BLOM"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 1, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="h-10 sm:h-14 md:h-20 lg:h-24 w-auto"
-            />
+
+      {promoActive ? (
+        <>
+          {/* Promo Video Hero */}
+          <section className="relative w-full bg-foreground">
+            <div className="w-full aspect-video max-h-[80vh] relative overflow-hidden">
+              {ytId ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  style={{ border: 0 }}
+                />
+              ) : (
+                <video
+                  src={promoConfig.video_url}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
+              {/* Central CTA overlay */}
+              <div className="absolute inset-0 flex items-end justify-center pb-12 z-10">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                >
+                  {promoConfig.button_link?.startsWith('http') ? (
+                    <a
+                      href={promoConfig.button_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-primary text-primary-foreground px-10 py-4 text-sm tracking-[0.2em] uppercase font-body hover:bg-primary/90 transition-all duration-500 shadow-lg"
+                    >
+                      {promoConfig.button_text || 'Réserver Maintenant'}
+                    </a>
+                  ) : (
+                    <Link
+                      to={promoConfig.button_link || '/boutique'}
+                      className="bg-primary text-primary-foreground px-10 py-4 text-sm tracking-[0.2em] uppercase font-body hover:bg-primary/90 transition-all duration-500 shadow-lg"
+                    >
+                      {promoConfig.button_text || 'Réserver Maintenant'}
+                    </Link>
+                  )}
+                </motion.div>
+              </div>
+            </div>
+          </section>
+
+          {/* Brand strip below video */}
+          <section className="bg-foreground text-background py-12 md:py-16">
+            <div className="max-w-4xl mx-auto px-6 text-center">
+              <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 mb-6">
+                <motion.img
+                  src={logoIcon}
+                  alt=""
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                  className="h-12 sm:h-16 md:h-20 w-auto drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]"
+                />
+                <motion.img
+                  src={logoWhite}
+                  alt="LÉONA BLOM"
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="h-8 sm:h-10 md:h-14 w-auto"
+                />
+              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <EditableText
+                  settingsKey="page_home_tagline"
+                  defaultText={t('hero.tagline')}
+                  as="p"
+                  className="text-display text-lg md:text-xl tracking-[0.08em] mb-2 italic"
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+              >
+                <EditableText
+                  settingsKey="page_home_subtitle"
+                  defaultText={t('hero.subtitle')}
+                  as="p"
+                  className="text-sm md:text-base font-body tracking-wider opacity-70 mb-8"
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center"
+              >
+                <Link
+                  to="/collections"
+                  className="border border-background/80 text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-background hover:text-foreground transition-all duration-500"
+                >
+                  {t('hero.cta')}
+                </Link>
+                <Link
+                  to="/boutique"
+                  className="bg-primary text-primary-foreground px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-all duration-500"
+                >
+                  {t('hero.shop')}
+                </Link>
+              </motion.div>
+            </div>
+          </section>
+        </>
+      ) : (
+        /* Original Hero */
+        <section className="relative h-screen flex items-center justify-center overflow-hidden">
+          <EditableImage
+            settingsKey="page_home_hero_image"
+            currentSrc={heroImage}
+            alt="LÉONA BLOM"
+            className="w-full h-full object-cover"
+            folder="hero"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-primary/30 to-foreground/60" />
+          <div className="relative z-10 text-center text-background px-6">
+            <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 mb-4 sm:mb-6">
+              <motion.img
+                src={logoIcon}
+                alt=""
+                initial={{ opacity: 0, scale: 0.6, rotate: -15 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="h-16 sm:h-24 md:h-32 lg:h-40 w-auto drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]"
+              />
+              <motion.img
+                src={logoWhite}
+                alt="LÉONA BLOM"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 1, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="h-10 sm:h-14 md:h-20 lg:h-24 w-auto"
+              />
+            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.6 }}
+            >
+              <EditableText
+                settingsKey="page_home_tagline"
+                defaultText={t('hero.tagline')}
+                as="p"
+                className="text-display text-lg md:text-xl tracking-[0.08em] mb-2 italic"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.9 }}
+            >
+              <EditableText
+                settingsKey="page_home_subtitle"
+                defaultText={t('hero.subtitle')}
+                as="p"
+                className="text-sm md:text-base font-body tracking-wider opacity-70 mb-10"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 1.2 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Link
+                to="/collections"
+                className="border border-background/80 text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-background hover:text-foreground transition-all duration-500"
+              >
+                {t('hero.cta')}
+              </Link>
+              <Link
+                to="/boutique"
+                className="bg-primary text-primary-foreground px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-all duration-500"
+              >
+                {t('hero.shop')}
+              </Link>
+            </motion.div>
           </div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.6 }}
-          >
-            <EditableText
-              settingsKey="page_home_tagline"
-              defaultText={t('hero.tagline')}
-              as="p"
-              className="text-display text-lg md:text-xl tracking-[0.08em] mb-2 italic"
-            />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.9 }}
-          >
-            <EditableText
-              settingsKey="page_home_subtitle"
-              defaultText={t('hero.subtitle')}
-              as="p"
-              className="text-sm md:text-base font-body tracking-wider opacity-70 mb-10"
-            />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1.2 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <Link
-              to="/collections"
-              className="border border-background/80 text-background px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-background hover:text-foreground transition-all duration-500"
-            >
-              {t('hero.cta')}
-            </Link>
-            <Link
-              to="/boutique"
-              className="bg-primary text-primary-foreground px-8 py-3 text-xs tracking-[0.2em] uppercase font-body hover:bg-luxury-magenta-light transition-all duration-500"
-            >
-              {t('hero.shop')}
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Philosophy */}
       <section className="luxury-section luxury-container text-center">
