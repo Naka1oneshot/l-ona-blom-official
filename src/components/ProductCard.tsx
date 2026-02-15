@@ -156,10 +156,10 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           <p className="text-xs sm:text-sm font-body text-muted-foreground">
             {(() => {
               const range = getPriceRange(product);
-              if (range.hasRange) {
-                return `${language === 'fr' ? 'À partir de ' : 'From '}${formatPrice(range.min, product.price_overrides)}`;
-              }
-              return formatPrice(range.min, product.price_overrides);
+              const prefix = (range.hasRange || product.made_to_measure)
+                ? `${language === 'fr' ? 'À partir de ' : 'From '}`
+                : '';
+              return `${prefix}${formatPrice(range.min, product.price_overrides)}`;
             })()}
           </p>
           {interleaved.length > 0 && (
