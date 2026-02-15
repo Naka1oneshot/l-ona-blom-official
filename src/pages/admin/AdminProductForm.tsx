@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
@@ -26,6 +26,7 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
 
   const [form, setForm] = useState({
     reference_code: product?.reference_code || '',
+    _refLoading: isNew,
     slug: product?.slug || '',
     status: product?.status || 'draft',
     category: product?.category || '',
@@ -93,6 +94,28 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     }
     return prices;
   });
+
+  // Auto-generate next reference_code for new products
+  useEffect(() => {
+    if (!isNew) return;
+    (async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('reference_code')
+        .not('reference_code', 'is', null)
+        .order('reference_code', { ascending: false });
+      let maxNum = 0;
+      for (const row of data || []) {
+        const match = row.reference_code?.match(/^PRO(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+      const nextCode = `PRO${String(maxNum + 1).padStart(3, '0')}`;
+      setForm(f => ({ ...f, reference_code: nextCode, _refLoading: false }));
+    })();
+  }, [isNew]);
 
   const [submitting, setSubmitting] = useState(false);
 
