@@ -177,7 +177,7 @@ const Collections = () => {
                         <img
                           src={coverImage(c.cover_image)}
                           alt={title}
-                          className={`w-full h-full ${isVariantUrl(c.cover_image) ? 'object-contain' : 'object-cover'} transition-transform duration-700 ease-out group-hover:scale-[1.03]`}
+                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                           style={{ objectPosition }}
                           loading={idx < 2 ? 'eager' : 'lazy'}
                           fetchPriority={idx === 0 ? 'high' : 'low'}
@@ -333,7 +333,7 @@ const Collections = () => {
                                   <img
                                     src={cardImage(img)}
                                     alt={`${title} – ${i + 1}`}
-                                    className={`w-full h-full ${isVariantUrl(img) ? 'object-contain' : 'object-cover'} transition-transform duration-500 ease-out group-hover/thumb:scale-[1.03]`}
+                                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover/thumb:scale-[1.03]"
                                     loading="lazy"
                                   />
                                 </div>
