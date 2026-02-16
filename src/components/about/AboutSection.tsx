@@ -14,16 +14,26 @@ interface AboutSectionProps {
 }
 
 const bgMap = {
-  light: 'bg-background text-foreground',
-  dark: 'bg-foreground text-background',
-  magenta: 'text-background',
+  light: '',
+  dark: '',
+  magenta: '',
 };
 
 const AboutSection = ({ eyebrow, title, children, variant = 'light', className = '', id, editKeyPrefix }: AboutSectionProps) => (
   <section
     id={id}
-    className={`${bgMap[variant]} ${className}`}
-    style={variant === 'magenta' ? { background: 'hsl(var(--primary))' } : undefined}
+    data-theme-zone={`about-${variant}`}
+    className={`${className}`}
+    style={{
+      background: variant === 'light'
+        ? 'hsl(var(--about-light-bg))'
+        : variant === 'dark'
+        ? 'hsl(var(--about-dark-bg))'
+        : 'hsl(var(--about-magenta-bg))',
+      color: variant === 'light'
+        ? 'hsl(var(--foreground))'
+        : 'hsl(var(--about-dark-text))',
+    }}
   >
     <div className="max-w-5xl mx-auto px-6 md:px-12 py-16 sm:py-20 md:py-28">
       <motion.div

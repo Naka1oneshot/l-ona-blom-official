@@ -82,7 +82,8 @@ const About = () => {
       {/* 4. MARQUE EN MOUVEMENT */}
       <section
         className="py-12 sm:py-16 md:py-20"
-        style={{ background: 'hsl(var(--primary))' }}
+        data-theme-zone="about-magenta"
+        style={{ background: 'hsl(var(--about-magenta-bg))' }}
       >
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <motion.div
@@ -129,7 +130,7 @@ const About = () => {
       </AboutSection>
 
       {/* 7. AUDIENCE */}
-      <section style={{ background: 'hsl(var(--primary))' }} className="py-12 sm:py-16 md:py-20">
+      <section data-theme-zone="about-magenta" style={{ background: 'hsl(var(--about-magenta-bg))' }} className="py-12 sm:py-16 md:py-20">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
