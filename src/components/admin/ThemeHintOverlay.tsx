@@ -13,6 +13,21 @@ interface HintZone {
 
 const hintZones: HintZone[] = [
   {
+    match: (el) => !!el.closest('[data-theme-zone="about-light"]'),
+    label: 'À propos – Fond blanc',
+    cssVar: 'about-light-bg',
+  },
+  {
+    match: (el) => !!el.closest('[data-theme-zone="about-dark"]'),
+    label: 'À propos – Fond noir',
+    cssVar: 'about-dark-bg',
+  },
+  {
+    match: (el) => !!el.closest('[data-theme-zone="about-magenta"]'),
+    label: 'À propos – Fond magenta',
+    cssVar: 'about-magenta-bg',
+  },
+  {
     match: (el) => !!el.closest('[data-theme-zone="collection-editorial"]'),
     label: 'Encart éditorial collection',
     cssVar: 'collection-editorial-bg',

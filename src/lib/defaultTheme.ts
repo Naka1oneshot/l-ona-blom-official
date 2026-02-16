@@ -67,6 +67,12 @@ export const themeTokens: ThemeToken[] = [
   { cssVar: 'destructive', label: 'Erreur / supprimer', group: 'status', defaultValue: '0 84% 60%', contrastPair: 'destructive-foreground' },
   { cssVar: 'destructive-foreground', label: 'Texte sur destructive', group: 'status', defaultValue: '0 0% 100%' },
 
+  // ── About page section backgrounds ──
+  { cssVar: 'about-light-bg', label: 'À propos – Fond blanc', group: 'backgrounds', defaultValue: '0 0% 100%' },
+  { cssVar: 'about-dark-bg', label: 'À propos – Fond noir', group: 'backgrounds', defaultValue: '0 0% 0%' },
+  { cssVar: 'about-dark-text', label: 'À propos – Texte sur noir', group: 'text', defaultValue: '0 0% 100%' },
+  { cssVar: 'about-magenta-bg', label: 'À propos – Fond magenta', group: 'backgrounds', defaultValue: '320 68% 35%' },
+
   // ── Footer ──
   { cssVar: 'footer-bg', label: 'Fond footer', group: 'footer', defaultValue: '320 68% 28%' },
 
