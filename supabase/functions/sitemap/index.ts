@@ -90,7 +90,8 @@ ${entries.join("\n")}
       },
     });
   } catch (error) {
-    return new Response(`Error generating sitemap: ${error.message}`, {
+    console.error("[sitemap] Error:", error);
+    return new Response("Error generating sitemap", {
       status: 500,
       headers: corsHeaders,
     });

@@ -188,9 +188,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    logStep("ERROR processing event", { message: msg });
-    return new Response(JSON.stringify({ error: msg }), {
+    const errorId = crypto.randomUUID().slice(0, 8);
+    logStep(`ERROR processing event ${errorId}`, { message: err instanceof Error ? err.message : String(err) });
+    return new Response(JSON.stringify({ error: "An error occurred processing your request", errorId }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

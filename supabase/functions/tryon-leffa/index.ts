@@ -8,6 +8,15 @@ const corsHeaders = {
 
 const FAL_BASE = "https://queue.fal.run/fal-ai/leffa/virtual-tryon";
 
+function safeErrorResponse(err: unknown, context: string): Response {
+  const errorId = crypto.randomUUID().slice(0, 8);
+  console.error(`[${context}] Error ${errorId}:`, err);
+  return new Response(
+    JSON.stringify({ error: "An error occurred processing your request", errorId }),
+    { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -15,11 +24,35 @@ Deno.serve(async (req) => {
 
   const FAL_KEY = Deno.env.get("FAL_KEY");
   if (!FAL_KEY) {
-    return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
+    console.error("[tryon-leffa] FAL_KEY not configured");
+    return new Response(JSON.stringify({ error: "Service not configured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  // Authenticate user
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Authentication required" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const token = authHeader.replace("Bearer ", "");
+  const supabaseAuth = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+  const { data: claims, error: claimsErr } = await supabaseAuth.auth.getClaims(token);
+  if (claimsErr || !claims?.claims?.sub) {
+    return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const userId = claims.claims.sub as string;
 
   const url = new URL(req.url);
   const path = url.pathname.split("/").pop(); // "create" or "status"
@@ -111,7 +144,7 @@ Deno.serve(async (req) => {
       }
 
       // Submit to fal queue
-      console.log("Submitting to fal.ai:", { humanImageUrl: humanImageUrl.substring(0, 80), garmentImageUrl: garmentImageUrl.substring(0, 80), garmentType });
+      console.log("Submitting to fal.ai:", { userId, humanImageUrl: humanImageUrl.substring(0, 80), garmentImageUrl: garmentImageUrl.substring(0, 80), garmentType });
       const startTime = Date.now();
       const falRes = await fetch(FAL_BASE, {
         method: "POST",
@@ -213,10 +246,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return safeErrorResponse(err, "tryon-leffa");
   }
 });
 

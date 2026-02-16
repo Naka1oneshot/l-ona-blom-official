@@ -104,9 +104,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[SYNC-STRIPE] ERROR:", msg);
-    return new Response(JSON.stringify({ error: msg }), {
+    const errorId = crypto.randomUUID().slice(0, 8);
+    console.error(`[SYNC-STRIPE] Error ${errorId}:`, err);
+    return new Response(JSON.stringify({ error: "An error occurred processing your request", errorId }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
