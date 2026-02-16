@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCategories, GroupWithCategories } from '@/hooks/useCategories';
-import logoIcon from '@/assets/logo-icon.png';
+
 
 interface Props {
   className?: string;
@@ -64,9 +64,6 @@ const ShopMegaMenu = ({ className, onNavigate }: Props) => {
                     </Link>
                   </div>
                 ))}
-              </div>
-              <div className="hidden lg:flex items-center self-center">
-                <img src={logoIcon} alt="" className="h-24 w-auto opacity-30" />
               </div>
             </div>
           </div>
