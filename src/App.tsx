@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { EditModeProvider } from "@/contexts/EditModeContext";
@@ -32,6 +33,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Account = lazy(() => import("./pages/Account"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Wishlist = lazy(() => import("./pages/Wishlist"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 
 // Admin pages — only loaded when admin navigates there
@@ -80,6 +82,7 @@ const App = () => (
       <LanguageProvider>
         <CurrencyProvider>
           <CartProvider>
+            <WishlistProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -126,6 +129,7 @@ const App = () => (
                     <Route path="/panier" element={<ComingSoonGate><Layout><Cart /></Layout></ComingSoonGate>} />
                     <Route path="/paiement-succes" element={<ComingSoonGate><Layout><PaymentSuccess /></Layout></ComingSoonGate>} />
                     <Route path="/try-on" element={<ComingSoonGate><Layout><TryOnPage /></Layout></ComingSoonGate>} />
+                    <Route path="/favoris" element={<ComingSoonGate><Layout><Wishlist /></Layout></ComingSoonGate>} />
                     <Route path="/cgv" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_cgv" titleKey="footer.cgv" path="/cgv" /></Layout></ComingSoonGate>} />
                     <Route path="/confidentialite" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_privacy" titleKey="footer.privacy" path="/confidentialite" /></Layout></ComingSoonGate>} />
                     <Route path="/cookies" element={<ComingSoonGate><Layout><LegalPage settingsKey="legal_cookies" titleKey="footer.cookies" path="/cookies" /></Layout></ComingSoonGate>} />
@@ -144,6 +148,7 @@ const App = () => (
                 </Suspense>
               </BrowserRouter>
             </TooltipProvider>
+            </WishlistProvider>
           </CartProvider>
         </CurrencyProvider>
       </LanguageProvider>

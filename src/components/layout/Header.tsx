@@ -7,7 +7,8 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Language, Currency } from '@/types';
-import { ShoppingBag, Menu, X, Globe, ChevronDown, User, MoreHorizontal, Pencil } from 'lucide-react';
+import { ShoppingBag, Menu, X, Globe, ChevronDown, User, MoreHorizontal, Pencil, Heart } from 'lucide-react';
+import { useWishlistContext } from '@/contexts/WishlistContext';
 import { useEditMode } from '@/contexts/EditModeContext';
 import CollectionsDropdown from './CollectionsDropdown';
 import ShopMegaMenu from '@/components/nav/ShopMegaMenu';
@@ -20,6 +21,7 @@ const Header = () => {
   const { totalItems } = useCart();
   const { user, isAdmin } = useAuth();
   const { editMode, toggleEditMode } = useEditMode();
+  const { count: wishCount } = useWishlistContext();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -216,6 +218,25 @@ const Header = () => {
             {/* Account */}
             <Link to={user ? '/compte' : '/connexion'} className="p-2">
               <User size={18} />
+            </Link>
+
+            {/* Wishlist */}
+            <Link to="/favoris" className="relative p-2">
+              <Heart size={18} className={wishCount > 0 ? 'fill-current' : ''} />
+              <AnimatePresence mode="popLayout">
+                {wishCount > 0 && (
+                  <motion.span
+                    key={wishCount}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-background text-foreground text-[9px] flex items-center justify-center rounded-full"
+                  >
+                    {wishCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </Link>
 
             {/* Cart */}
