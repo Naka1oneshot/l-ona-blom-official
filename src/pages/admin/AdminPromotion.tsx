@@ -71,7 +71,8 @@ const AdminPromotion = () => {
       return;
     }
     setUploading(true);
-    const path = `promo/${Date.now()}_${file.name}`;
+    const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `promo/${Date.now()}_${safeName}`;
     const { error } = await supabase.storage.from('images').upload(path, file, { upsert: true });
     if (error) {
       toast.error(error.message);
@@ -250,7 +251,8 @@ const AdminPromotion = () => {
                   if (!file) return;
                   if (!file.type.startsWith('video/')) { toast.error('Fichier vidéo requis'); return; }
                   setUploading(true);
-                  const path = `promo/mobile_${Date.now()}_${file.name}`;
+                  const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+                  const path = `promo/mobile_${Date.now()}_${safeName}`;
                   const { error } = await supabase.storage.from('images').upload(path, file, { upsert: true });
                   if (error) { toast.error(error.message); setUploading(false); return; }
                   const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
