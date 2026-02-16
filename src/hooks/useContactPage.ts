@@ -13,6 +13,7 @@ export interface ContactSocial {
 export interface ContactPageData {
   hero: {
     image_url: string;
+    focal_point?: string;
     title_fr: string;
     title_en: string;
     subtitle_fr: string;
@@ -45,6 +46,7 @@ export interface ContactPageData {
     text_fr: string;
     text_en: string;
     image_url: string;
+    focal_point?: string;
   };
 }
 
