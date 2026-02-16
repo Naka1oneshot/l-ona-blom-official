@@ -10,7 +10,7 @@ const ContactHero = ({ imageUrl, title, subtitle }: Props) => {
   const hasImage = imageUrl && imageUrl.length > 5;
 
   return (
-    <section className="relative w-full" style={{ height: hasImage ? '60vh' : '35vh', minHeight: hasImage ? 400 : 220 }}>
+    <section className="relative w-full -mt-16 md:-mt-20" style={{ height: hasImage ? '60vh' : '35vh', minHeight: hasImage ? 400 : 220 }}>
       {hasImage && (
         <img
           src={imageUrl}
@@ -19,7 +19,7 @@ const ContactHero = ({ imageUrl, title, subtitle }: Props) => {
         />
       )}
       <div className={`absolute inset-0 ${hasImage ? 'bg-foreground/40' : 'bg-foreground'}`} />
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
+      <div className="relative z-10 flex flex-col items-center justify-center h-full pt-16 md:pt-20 text-center px-6">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
