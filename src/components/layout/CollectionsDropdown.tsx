@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import logoIcon from '@/assets/logo-icon.png';
+
 
 interface CollectionItem {
   id: string;
@@ -99,9 +99,6 @@ const CollectionsDropdown = ({ className, onNavigate }: CollectionsDropdownProps
                     </Link>
                   );
                 })}
-              </div>
-              <div className="hidden lg:flex items-center pl-4 flex-shrink-0">
-                <img src={logoIcon} alt="" className="h-24 w-auto opacity-30" />
               </div>
             </div>
           </div>
