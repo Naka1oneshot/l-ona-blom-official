@@ -51,7 +51,7 @@ const Contact = () => {
       )}
 
       {/* HERO */}
-      <ContactHero imageUrl={data.hero.image_url} title={title} subtitle={subtitle} />
+      <ContactHero imageUrl={data.hero.image_url} title={title} subtitle={subtitle} focalPoint={data.hero.focal_point} />
 
       {/* MAIN CONTENT */}
       <section className="luxury-container py-16 md:py-24">

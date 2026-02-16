@@ -27,7 +27,7 @@ const ContactAtelier = ({ data, language }: Props) => {
         className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center max-w-5xl mx-auto"
       >
         {atelier.image_url && (
-          <img src={atelier.image_url} alt={title || 'Atelier'} className="w-full aspect-[4/5] object-cover" />
+          <img src={atelier.image_url} alt={title || 'Atelier'} className="w-full aspect-[4/5] object-cover" style={{ objectPosition: atelier.focal_point || '50% 50%' }} />
         )}
         <div className="space-y-4">
           {title && <h2 className="text-display text-2xl md:text-3xl tracking-wider">{title}</h2>}

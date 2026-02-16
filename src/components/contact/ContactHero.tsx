@@ -4,9 +4,10 @@ interface Props {
   imageUrl: string;
   title: string;
   subtitle: string;
+  focalPoint?: string;
 }
 
-const ContactHero = ({ imageUrl, title, subtitle }: Props) => {
+const ContactHero = ({ imageUrl, title, subtitle, focalPoint }: Props) => {
   const hasImage = imageUrl && imageUrl.length > 5;
 
   return (
@@ -16,6 +17,7 @@ const ContactHero = ({ imageUrl, title, subtitle }: Props) => {
           src={imageUrl}
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: focalPoint || '50% 50%' }}
         />
       )}
       <div className={`absolute inset-0 ${hasImage ? 'bg-foreground/40' : 'bg-foreground'}`} />
