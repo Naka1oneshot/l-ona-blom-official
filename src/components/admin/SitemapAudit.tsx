@@ -24,7 +24,7 @@ interface UrlCheckResult {
   status: UrlStatus;
 }
 
-const SITEMAP_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap`;
+const SITEMAP_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap`;
 
 const KNOWN_STATIC_PATHS = new Set([
   '/', '/boutique', '/collections', '/actualites', '/a-propos',
@@ -74,7 +74,7 @@ const SitemapAudit: React.FC<SitemapAuditProps> = ({ onIssueCount }) => {
     try {
       // Fetch sitemap + DB data in parallel
       const [sitemapRes, productsRes, collectionsRes, postsRes] = await Promise.all([
-        fetch(SITEMAP_ENDPOINT),
+        fetch(`${SITEMAP_BASE}?_t=${Date.now()}`),
         supabase.from('products').select('slug, status'),
         supabase.from('collections').select('slug, published_at'),
         supabase.from('posts').select('slug, published_at'),
@@ -150,7 +150,7 @@ const SitemapAudit: React.FC<SitemapAuditProps> = ({ onIssueCount }) => {
           </CardTitle>
           <div className="flex items-center gap-2">
             <a
-              href={SITEMAP_ENDPOINT}
+              href={SITEMAP_BASE}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
