@@ -759,6 +759,54 @@ export type Database = {
         }
         Relationships: []
       }
+      site_emails_templates: {
+        Row: {
+          body_en: string
+          body_fr: string
+          cta_label_en: string
+          cta_label_fr: string
+          cta_url: string
+          enabled: boolean
+          header_image_url: string
+          key: string
+          preheader_en: string
+          preheader_fr: string
+          subject_en: string
+          subject_fr: string
+          updated_at: string
+        }
+        Insert: {
+          body_en?: string
+          body_fr?: string
+          cta_label_en?: string
+          cta_label_fr?: string
+          cta_url?: string
+          enabled?: boolean
+          header_image_url?: string
+          key: string
+          preheader_en?: string
+          preheader_fr?: string
+          subject_en?: string
+          subject_fr?: string
+          updated_at?: string
+        }
+        Update: {
+          body_en?: string
+          body_fr?: string
+          cta_label_en?: string
+          cta_label_fr?: string
+          cta_url?: string
+          enabled?: boolean
+          header_image_url?: string
+          key?: string
+          preheader_en?: string
+          preheader_fr?: string
+          subject_en?: string
+          subject_fr?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_features: {
         Row: {
           config: Json
@@ -798,6 +846,27 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      user_emails_log: {
+        Row: {
+          id: string
+          locale: string | null
+          user_id: string
+          welcome_sent_at: string | null
+        }
+        Insert: {
+          id?: string
+          locale?: string | null
+          user_id: string
+          welcome_sent_at?: string | null
+        }
+        Update: {
+          id?: string
+          locale?: string | null
+          user_id?: string
+          welcome_sent_at?: string | null
         }
         Relationships: []
       }
