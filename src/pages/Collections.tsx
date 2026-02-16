@@ -177,7 +177,7 @@ const Collections = () => {
                         <img
                           src={coverImage(c.cover_image)}
                           alt={title}
-                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                          className="absolute inset-[-3%] w-[106%] h-[106%] object-cover transition-transform duration-700 ease-out"
                           style={{ objectPosition }}
                           loading={idx < 2 ? 'eager' : 'lazy'}
                           fetchPriority={idx === 0 ? 'high' : 'low'}
@@ -333,7 +333,7 @@ const Collections = () => {
                                   <img
                                     src={detailImage(img)}
                                     alt={`${title} – ${i + 1}`}
-                                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover/thumb:scale-[1.03]"
+                                    className="absolute inset-[-3%] w-[106%] h-[106%] object-cover"
                                     loading="lazy"
                                   />
                                 </div>
