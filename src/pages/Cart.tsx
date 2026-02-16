@@ -9,6 +9,8 @@ import { Minus, Plus, X, Package, Clock, Sparkles, Loader2 } from 'lucide-react'
 import { useSiteFeature } from '@/hooks/useSiteFeature';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import CheckoutGateDialog from '@/components/cart/CheckoutGateDialog';
 
 const Cart = () => {
   const { language, t } = useLanguage();
@@ -22,8 +24,19 @@ const Cart = () => {
   });
   const showTryonButton = tryonEnabled && items.length > 0 && hasTryonItems;
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [showGateDialog, setShowGateDialog] = useState(false);
+  const { user } = useAuth();
+
+  const initiateCheckout = () => {
+    if (!user) {
+      setShowGateDialog(true);
+      return;
+    }
+    handleCheckout();
+  };
 
   const handleCheckout = async () => {
+    setShowGateDialog(false);
     setCheckoutLoading(true);
     try {
       const cartItems = items.map(item => {
@@ -158,7 +171,7 @@ const Cart = () => {
                   <span className="text-xl font-body">{formatPrice(totalCentsEur)}</span>
                 </div>
                 <button
-                  onClick={handleCheckout}
+                  onClick={initiateCheckout}
                   disabled={checkoutLoading}
                   className="w-full bg-primary text-primary-foreground py-4 text-xs tracking-[0.2em] uppercase font-body hover:bg-primary/90 transition-colors duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
@@ -187,6 +200,11 @@ const Cart = () => {
           )}
         </motion.div>
       </section>
+      <CheckoutGateDialog
+        open={showGateDialog}
+        onClose={() => setShowGateDialog(false)}
+        onContinueAsGuest={handleCheckout}
+      />
     </div>
   );
 };
