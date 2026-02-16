@@ -98,9 +98,9 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("[create-checkout] ERROR:", msg);
-    return new Response(JSON.stringify({ error: msg }), {
+    const errorId = crypto.randomUUID().slice(0, 8);
+    console.error(`[create-checkout] Error ${errorId}:`, error);
+    return new Response(JSON.stringify({ error: "An error occurred processing your request", errorId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
