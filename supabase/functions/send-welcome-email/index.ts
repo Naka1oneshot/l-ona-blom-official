@@ -198,8 +198,21 @@ serve(async (req) => {
     const resendResult = await resendRes.json();
     if (!resendRes.ok) {
       console.error("[WELCOME-EMAIL] Resend error:", JSON.stringify(resendResult));
+
+      // If sandbox/domain validation error, mark as attempted to prevent infinite retries
+      const isSandboxError = resendResult?.name === "validation_error" || resendResult?.statusCode === 403;
+      if (isSandboxError && !test_mode) {
+        console.log("[WELCOME-EMAIL] Sandbox limitation — marking as attempted to stop retries");
+        await supabase
+          .from("user_emails_log")
+          .upsert(
+            { user_id, welcome_sent_at: new Date().toISOString(), locale },
+            { onConflict: "user_id" }
+          );
+      }
+
       return new Response(JSON.stringify({ error: "Failed to send email", details: resendResult }), {
-        status: 500,
+        status: isSandboxError ? 200 : 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
