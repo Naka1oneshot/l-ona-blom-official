@@ -1,7 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useWishlistContext } from '@/contexts/WishlistContext';
 import { Product } from '@/types';
 import { getPriceRange } from '@/lib/pricing';
 import { cardImage } from '@/lib/imageOptim';
@@ -10,6 +13,7 @@ import AdminEditButton from '@/components/AdminEditButton';
 import ColorSwatch from '@/components/product/ColorSwatch';
 import BraidingSwatch from '@/components/product/BraidingSwatch';
 import SmartImage from '@/components/SmartImage';
+import { cn } from '@/lib/utils';
 
 const COLOR_NAME_FALLBACKS: Record<string, string> = {
   noir: '#000000', noire: '#000000', black: '#000000',
@@ -47,6 +51,9 @@ const GRID_SIZES = "(min-width: 1024px) 33vw, 50vw";
 const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   const { language, t } = useLanguage();
   const { formatPrice } = useCurrency();
+  const { user } = useAuth();
+  const { has: isWished, toggle: toggleWish } = useWishlistContext();
+  const navigate = useNavigate();
   const [hoverReady, setHoverReady] = useState(false);
 
   const name = language === 'fr' ? product.name_fr : product.name_en;
@@ -81,11 +88,40 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
     setHoverReady(true);
   }, [hoverReady, hoverSrc]);
 
+  const handleWishlistClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { navigate('/connexion'); return; }
+    toggleWish(product.id);
+  }, [user, product.id, toggleWish, navigate]);
+
+  const wished = isWished(product.id);
+
   return (
     <div className="relative group" onMouseEnter={handleMouseEnter}>
+      {/* Wishlist heart */}
+      <button
+        onClick={handleWishlistClick}
+        className={cn(
+          "absolute top-3 right-3 z-10 p-1.5 rounded-full transition-all duration-300",
+          "opacity-0 group-hover:opacity-100 focus:opacity-100",
+          wished && "!opacity-100"
+        )}
+        aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
+      >
+        <Heart
+          size={18}
+          className={cn(
+            "transition-all duration-300",
+            wished
+              ? "fill-primary text-primary scale-110"
+              : "text-foreground/60 hover:text-foreground"
+          )}
+        />
+      </button>
       <AdminEditButton
         to={`/admin/produits?edit=${product.id}`}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
       />
       <Link to={`/boutique/${product.slug}`} className="block">
         <div className="relative aspect-[3/4] overflow-hidden bg-[#FDFDFD] mb-4">
