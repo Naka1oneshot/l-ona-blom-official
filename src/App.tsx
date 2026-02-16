@@ -53,6 +53,7 @@ const AdminSeoCheck = lazy(() => import("./pages/admin/AdminSeoCheck"));
 const AdminFeatures = lazy(() => import("./pages/admin/AdminFeatures"));
 const AdminFAQ = lazy(() => import("./pages/admin/AdminFAQ"));
 const AdminPromotion = lazy(() => import("./pages/admin/AdminPromotion"));
+const AdminEmails = lazy(() => import("./pages/admin/AdminEmails"));
 const TryOnPage = lazy(() => import("./pages/TryOn"));
 
 const queryClient = new QueryClient({
@@ -108,6 +109,7 @@ const App = () => (
                       <Route path="faq" element={<AdminFAQ />} />
                       <Route path="fonctionnalites" element={<AdminFeatures />} />
                       <Route path="promotion" element={<AdminPromotion />} />
+                      <Route path="emails" element={<AdminEmails />} />
                     </Route>
 
                     {/* Public & customer routes — wrapped in ComingSoonGate */}
