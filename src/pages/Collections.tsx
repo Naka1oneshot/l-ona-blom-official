@@ -10,8 +10,8 @@ import EditableDBField from '@/components/EditableDBField';
 import EditableDBImage from '@/components/EditableDBImage';
 import CoverFocalPicker from '@/components/collections/CoverFocalPicker';
 import LogoSpinner from '@/components/LogoSpinner';
-import { coverImage, originalImage } from '@/lib/imageOptim';
-import { isVariantUrl } from '@/lib/imageVariants';
+import { coverImage, detailImage } from '@/lib/imageOptim';
+import { isVariantUrl, toVariant } from '@/lib/imageVariants';
 import SEOHead from '@/components/SEOHead';
 
 interface CollectionRow {
@@ -175,7 +175,7 @@ const Collections = () => {
                       {/* Cover image */}
                       {c.cover_image ? (
                         <img
-                          src={originalImage(c.cover_image, 1920)}
+                          src={coverImage(c.cover_image)}
                           alt={title}
                           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                           style={{ objectPosition }}
@@ -331,7 +331,7 @@ const Collections = () => {
                               <Link key={i} to={`/collections/${c.slug}`} className="group/thumb block">
                                 <div className="relative aspect-[3/4] overflow-hidden rounded-sm">
                                   <img
-                                    src={originalImage(img)}
+                                    src={detailImage(img)}
                                     alt={`${title} – ${i + 1}`}
                                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover/thumb:scale-[1.03]"
                                     loading="lazy"
