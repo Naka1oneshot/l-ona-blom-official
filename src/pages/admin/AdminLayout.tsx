@@ -30,7 +30,7 @@ function useSeoIssueCount() {
 
   useEffect(() => {
     (async () => {
-      const SITEMAP_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap`;
+      const SITEMAP_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap?_t=${Date.now()}`;
 
       const [prodRes, colRes, postRes, sitemapRes] = await Promise.all([
         supabase.from('products').select('id, name_en, description_fr, description_en, images, reference_code, base_price_eur, status, slug'),
