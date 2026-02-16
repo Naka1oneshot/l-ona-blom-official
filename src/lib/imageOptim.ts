@@ -55,6 +55,24 @@ export const coverImage = (url: string) => {
   return optimizeImage(url, { width: 1920, quality: 80 });
 };
 
+/**
+ * Return the original (non-variant) URL for use with object-cover containers.
+ * Variant images have contain-fit white padding baked in, which causes visible
+ * white borders when displayed with object-cover. This helper strips the variant
+ * suffix to get back to the original uploaded file, then applies server-side resize.
+ */
+export const originalImage = (url: string, width = 900) => {
+  if (isVariantUrl(url)) {
+    // Strip variant suffix to get the original file path
+    const original = url
+      .replace(/__grid\.webp/, '.webp')
+      .replace(/__detail\.webp/, '.webp')
+      .replace(/__cover\.webp/, '.webp');
+    return optimizeImage(original, { width, quality: 80 });
+  }
+  return optimizeImage(url, { width, quality: 80 });
+};
+
 /** Ultra-small blurred placeholder (20px wide) */
 export const blurImage = (url: string) => optimizeImage(url, { width: 20, quality: 20 });
 
