@@ -70,6 +70,10 @@ const AdminPromotion = () => {
       toast.error('Fichier vidéo requis');
       return;
     }
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('La vidéo ne doit pas dépasser 100 Mo');
+      return;
+    }
     setUploading(true);
     const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `promo/${Date.now()}_${safeName}`;
