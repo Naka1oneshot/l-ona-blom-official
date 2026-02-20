@@ -5,6 +5,7 @@ import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { MultiImageUpload } from '@/components/admin/ImageUpload';
 import TranslateButton from '@/components/admin/TranslateButton';
 import { useCategories } from '@/hooks/useCategories';
+import { useShippingSizeClasses } from '@/hooks/useShippingData';
 import EditorialBlocksBuilder from '@/components/product/EditorialBlocksBuilder';
 import type { EditorialBlock } from '@/types/editorial';
 import { STANDARD_SIZES, detectSizeSet, buildPriceBySizePayload } from '@/lib/pricing';
@@ -45,6 +46,7 @@ interface Props {
 const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
   const isNew = !product;
   const { groups } = useCategories();
+  const { data: sizeClasses } = useShippingSizeClasses();
 
   // Detect size set from existing product
   const existingSizeSet = product ? detectSizeSet(product.sizes || []) : 'standard';
@@ -94,6 +96,8 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
     tryon_offset_x: product?.tryon_offset_x ?? '',
     tryon_offset_y: product?.tryon_offset_y ?? '',
     tryon_default_scale: product?.tryon_default_scale ?? '',
+    shipping_size_class_code: product?.shipping_size_class_code || '',
+    lead_time_days: product?.lead_time_days ?? '',
   });
 
   const [customStyles, setCustomStyles] = useState<{ value: string; label: string }[]>(
@@ -234,6 +238,8 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
       tryon_offset_x: form.tryon_offset_x !== '' ? Number(form.tryon_offset_x) : null,
       tryon_offset_y: form.tryon_offset_y !== '' ? Number(form.tryon_offset_y) : null,
       tryon_default_scale: form.tryon_default_scale !== '' ? Number(form.tryon_default_scale) : null,
+      shipping_size_class_code: form.shipping_size_class_code || null,
+      lead_time_days: form.lead_time_days !== '' ? Number(form.lead_time_days) : null,
     };
 
     let error;
@@ -489,6 +495,32 @@ const AdminProductForm = ({ product, onSave, onCancel }: Props) => {
             <div><label className={labelClass}>Délai max (jours)</label><input type="number" value={form.made_to_order_max_days || ''} onChange={e => set('made_to_order_max_days', e.target.value)} className={inputClass} /></div>
           </div>
         )}
+
+        {/* Shipping size class + lead time */}
+        <div className="border border-border rounded-lg p-5 space-y-4">
+          <label className={labelClass}>Livraison</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Classe de taille (poids)</label>
+              <select value={form.shipping_size_class_code} onChange={e => set('shipping_size_class_code', e.target.value)} className={inputClass}>
+                <option value="">— Non définie (fallback Moyen) —</option>
+                {(sizeClasses || []).map(sc => (
+                  <option key={sc.code} value={sc.code}>{sc.label_fr} ({sc.weight_points} pts)</option>
+                ))}
+              </select>
+              {!form.shipping_size_class_code && (
+                <p className="flex items-center gap-1 mt-1 text-[10px] text-amber-500 font-body">
+                  <AlertTriangle size={10} /> Classe manquante — fallback sur "Moyen"
+                </p>
+              )}
+            </div>
+            <div>
+              <label className={labelClass}>Délai de confection (jours)</label>
+              <input type="number" min="0" value={form.lead_time_days} onChange={e => set('lead_time_days', e.target.value)} className={inputClass} placeholder="0" />
+              <p className="text-[10px] text-muted-foreground font-body mt-1">Durée de fabrication avant expédition (0 = prêt à expédier)</p>
+            </div>
+          </div>
+        </div>
 
         {form.preorder && (
           <div><label className={labelClass}>Date estimée d'envoi</label><input type="date" value={form.preorder_ship_date_estimate} onChange={e => set('preorder_ship_date_estimate', e.target.value)} className={inputClass} /></div>
