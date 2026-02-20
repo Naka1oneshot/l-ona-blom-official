@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/integrations/supabase/client';
-import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard, FolderTree, FileUp, Clock, Mail, Palette, Search, Sparkles, HelpCircle, Video, MailOpen, Heart } from 'lucide-react';
+import { Package, Layers, FileText, ShoppingCart, Users, Tag, Settings, LayoutDashboard, FolderTree, FileUp, Clock, Mail, Palette, Search, Sparkles, HelpCircle, Video, MailOpen, Heart, Truck } from 'lucide-react';
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
@@ -15,6 +15,7 @@ const navItems = [
   { to: '/admin/clients', icon: Users, label: 'Clients' },
   { to: '/admin/wishlists', icon: Heart, label: 'Wishlists' },
   { to: '/admin/promos', icon: Tag, label: 'Promos' },
+  { to: '/admin/livraisons', icon: Truck, label: 'Livraisons' },
   { to: '/admin/promotion', icon: Video, label: 'Promotion' },
   { to: '/admin/import', icon: FileUp, label: 'Import' },
   { to: '/admin/coming-soon', icon: Clock, label: 'Coming Soon' },

@@ -73,6 +73,7 @@ const AdminFAQ = lazy(() => import("./pages/admin/AdminFAQ"));
 const AdminPromotion = lazy(() => import("./pages/admin/AdminPromotion"));
 const AdminEmails = lazy(() => import("./pages/admin/AdminEmails"));
 const AdminWishlists = lazy(() => import("./pages/admin/AdminWishlists"));
+const AdminShipping = lazy(() => import("./pages/admin/AdminShipping"));
 const TryOnPage = lazy(() => import("./pages/TryOn"));
 
 const queryClient = new QueryClient({
@@ -131,6 +132,7 @@ const App = () => (
                       <Route path="promotion" element={<AdminPromotion />} />
                       <Route path="emails" element={<AdminEmails />} />
                       <Route path="wishlists" element={<AdminWishlists />} />
+                      <Route path="livraisons" element={<AdminShipping />} />
                     </Route>
 
                     {/* Public & customer routes — wrapped in ComingSoonGate */}
