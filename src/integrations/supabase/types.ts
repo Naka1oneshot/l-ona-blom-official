@@ -387,56 +387,98 @@ export type Database = {
       }
       orders: {
         Row: {
+          billing_address_json: Json | null
           created_at: string
           currency: string
+          customs_notice_shown: boolean | null
           discount_total: number
+          estimated_delivery_date: string | null
+          estimated_ship_start_date: string | null
           id: string
           items_json: Json
           made_to_measure_data_json: Json | null
           notes: string | null
           promo_code_id: string | null
+          shipment_preference: string
+          shipped_at: string | null
           shipping_address_json: Json | null
+          shipping_currency: string
           shipping_fee: number
+          shipping_method_id: string | null
+          shipping_options_json: Json | null
+          shipping_price: number
+          shipping_zone_id: string | null
           status: string
           stripe_session_id: string | null
           subtotal: number
           total: number
+          tracking_carrier: string | null
+          tracking_number: string | null
+          tracking_url: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          billing_address_json?: Json | null
           created_at?: string
           currency?: string
+          customs_notice_shown?: boolean | null
           discount_total?: number
+          estimated_delivery_date?: string | null
+          estimated_ship_start_date?: string | null
           id?: string
           items_json?: Json
           made_to_measure_data_json?: Json | null
           notes?: string | null
           promo_code_id?: string | null
+          shipment_preference?: string
+          shipped_at?: string | null
           shipping_address_json?: Json | null
+          shipping_currency?: string
           shipping_fee?: number
+          shipping_method_id?: string | null
+          shipping_options_json?: Json | null
+          shipping_price?: number
+          shipping_zone_id?: string | null
           status?: string
           stripe_session_id?: string | null
           subtotal?: number
           total?: number
+          tracking_carrier?: string | null
+          tracking_number?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          billing_address_json?: Json | null
           created_at?: string
           currency?: string
+          customs_notice_shown?: boolean | null
           discount_total?: number
+          estimated_delivery_date?: string | null
+          estimated_ship_start_date?: string | null
           id?: string
           items_json?: Json
           made_to_measure_data_json?: Json | null
           notes?: string | null
           promo_code_id?: string | null
+          shipment_preference?: string
+          shipped_at?: string | null
           shipping_address_json?: Json | null
+          shipping_currency?: string
           shipping_fee?: number
+          shipping_method_id?: string | null
+          shipping_options_json?: Json | null
+          shipping_price?: number
+          shipping_zone_id?: string | null
           status?: string
           stripe_session_id?: string | null
           subtotal?: number
           total?: number
+          tracking_carrier?: string | null
+          tracking_number?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -526,6 +568,7 @@ export type Database = {
           hover_image_index: number | null
           id: string
           images: string[] | null
+          lead_time_days: number | null
           made_to_measure: boolean | null
           made_to_order: boolean | null
           made_to_order_max_days: number | null
@@ -540,6 +583,7 @@ export type Database = {
           price_by_size_eur: Json
           price_overrides: Json | null
           reference_code: string | null
+          shipping_size_class_code: string | null
           sizes: string[] | null
           slug: string
           sort_order: number
@@ -579,6 +623,7 @@ export type Database = {
           hover_image_index?: number | null
           id?: string
           images?: string[] | null
+          lead_time_days?: number | null
           made_to_measure?: boolean | null
           made_to_order?: boolean | null
           made_to_order_max_days?: number | null
@@ -593,6 +638,7 @@ export type Database = {
           price_by_size_eur?: Json
           price_overrides?: Json | null
           reference_code?: string | null
+          shipping_size_class_code?: string | null
           sizes?: string[] | null
           slug: string
           sort_order?: number
@@ -632,6 +678,7 @@ export type Database = {
           hover_image_index?: number | null
           id?: string
           images?: string[] | null
+          lead_time_days?: number | null
           made_to_measure?: boolean | null
           made_to_order?: boolean | null
           made_to_order_max_days?: number | null
@@ -646,6 +693,7 @@ export type Database = {
           price_by_size_eur?: Json
           price_overrides?: Json | null
           reference_code?: string | null
+          shipping_size_class_code?: string | null
           sizes?: string[] | null
           slug?: string
           sort_order?: number
@@ -675,6 +723,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_shipping_size_class_code_fkey"
+            columns: ["shipping_size_class_code"]
+            isOneToOne: false
+            referencedRelation: "shipping_size_classes"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -756,6 +811,312 @@ export type Database = {
           times_redeemed?: number | null
           type?: string
           value?: number
+        }
+        Relationships: []
+      }
+      shipping_free_thresholds: {
+        Row: {
+          id: string
+          is_active: boolean
+          method_id: string | null
+          threshold_eur: number
+          zone_id: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean
+          method_id?: string | null
+          threshold_eur: number
+          zone_id: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          method_id?: string | null
+          threshold_eur?: number
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_free_thresholds_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_free_thresholds_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipping_methods: {
+        Row: {
+          code: string
+          description_en: string | null
+          description_fr: string | null
+          eta_max_days: number | null
+          eta_min_days: number | null
+          id: string
+          is_active: boolean
+          name_en: string | null
+          name_fr: string
+          sort_order: number
+          supports_gift_wrap: boolean
+          supports_insurance: boolean
+          supports_signature: boolean
+        }
+        Insert: {
+          code: string
+          description_en?: string | null
+          description_fr?: string | null
+          eta_max_days?: number | null
+          eta_min_days?: number | null
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr: string
+          sort_order?: number
+          supports_gift_wrap?: boolean
+          supports_insurance?: boolean
+          supports_signature?: boolean
+        }
+        Update: {
+          code?: string
+          description_en?: string | null
+          description_fr?: string | null
+          eta_max_days?: number | null
+          eta_min_days?: number | null
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr?: string
+          sort_order?: number
+          supports_gift_wrap?: boolean
+          supports_insurance?: boolean
+          supports_signature?: boolean
+        }
+        Relationships: []
+      }
+      shipping_option_prices: {
+        Row: {
+          id: string
+          is_active: boolean
+          method_id: string | null
+          option_id: string
+          price_eur: number
+          zone_id: string | null
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean
+          method_id?: string | null
+          option_id: string
+          price_eur?: number
+          zone_id?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          method_id?: string | null
+          option_id?: string
+          price_eur?: number
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_option_prices_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_option_prices_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_option_prices_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipping_options: {
+        Row: {
+          code: string
+          description_en: string | null
+          description_fr: string | null
+          id: string
+          is_active: boolean
+          name_en: string | null
+          name_fr: string
+        }
+        Insert: {
+          code: string
+          description_en?: string | null
+          description_fr?: string | null
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr: string
+        }
+        Update: {
+          code?: string
+          description_en?: string | null
+          description_fr?: string | null
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr?: string
+        }
+        Relationships: []
+      }
+      shipping_rate_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          max_subtotal_eur: number | null
+          max_weight_points: number | null
+          method_id: string
+          min_subtotal_eur: number
+          min_weight_points: number
+          price_eur: number
+          priority: number
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_subtotal_eur?: number | null
+          max_weight_points?: number | null
+          method_id: string
+          min_subtotal_eur?: number
+          min_weight_points?: number
+          price_eur: number
+          priority?: number
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_subtotal_eur?: number | null
+          max_weight_points?: number | null
+          method_id?: string
+          min_subtotal_eur?: number
+          min_weight_points?: number
+          price_eur?: number
+          priority?: number
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_rate_rules_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_rate_rules_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipping_size_classes: {
+        Row: {
+          code: string
+          is_active: boolean
+          label_en: string | null
+          label_fr: string
+          sort_order: number
+          weight_points: number
+        }
+        Insert: {
+          code: string
+          is_active?: boolean
+          label_en?: string | null
+          label_fr: string
+          sort_order?: number
+          weight_points?: number
+        }
+        Update: {
+          code?: string
+          is_active?: boolean
+          label_en?: string | null
+          label_fr?: string
+          sort_order?: number
+          weight_points?: number
+        }
+        Relationships: []
+      }
+      shipping_zone_countries: {
+        Row: {
+          country_code: string
+          zone_id: string
+        }
+        Insert: {
+          country_code: string
+          zone_id: string
+        }
+        Update: {
+          country_code?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_zone_countries_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipping_zones: {
+        Row: {
+          customs_notice: boolean
+          description_en: string | null
+          description_fr: string | null
+          id: string
+          is_active: boolean
+          name_en: string | null
+          name_fr: string
+          sort_order: number
+        }
+        Insert: {
+          customs_notice?: boolean
+          description_en?: string | null
+          description_fr?: string | null
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr: string
+          sort_order?: number
+        }
+        Update: {
+          customs_notice?: boolean
+          description_en?: string | null
+          description_fr?: string | null
+          id?: string
+          is_active?: boolean
+          name_en?: string | null
+          name_fr?: string
+          sort_order?: number
         }
         Relationships: []
       }
@@ -846,6 +1207,87 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      tax_settings: {
+        Row: {
+          id: number
+          updated_at: string
+          vat_enabled: boolean
+          vat_rate: number
+        }
+        Insert: {
+          id?: number
+          updated_at?: string
+          vat_enabled?: boolean
+          vat_rate?: number
+        }
+        Update: {
+          id?: number
+          updated_at?: string
+          vat_enabled?: boolean
+          vat_rate?: number
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          address1: string
+          address2: string | null
+          city: string
+          company: string | null
+          country_code: string
+          created_at: string
+          first_name: string
+          id: string
+          is_default: boolean
+          label: string | null
+          last_name: string
+          phone: string | null
+          postal_code: string
+          region: string | null
+          type: string
+          user_id: string
+          vat_number: string | null
+        }
+        Insert: {
+          address1: string
+          address2?: string | null
+          city: string
+          company?: string | null
+          country_code: string
+          created_at?: string
+          first_name: string
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          last_name: string
+          phone?: string | null
+          postal_code: string
+          region?: string | null
+          type: string
+          user_id: string
+          vat_number?: string | null
+        }
+        Update: {
+          address1?: string
+          address2?: string | null
+          city?: string
+          company?: string | null
+          country_code?: string
+          created_at?: string
+          first_name?: string
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          last_name?: string
+          phone?: string | null
+          postal_code?: string
+          region?: string | null
+          type?: string
+          user_id?: string
+          vat_number?: string | null
         }
         Relationships: []
       }

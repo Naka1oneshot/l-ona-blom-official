@@ -25,7 +25,23 @@ const CollectionDetail = lazy(() => import("./pages/CollectionDetail"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
-const Cart = lazy(() => import("./pages/Cart"));
+const CartPage = lazy(() => import("./pages/Cart"));
+
+// Wrapper that provides CheckoutContext to Cart
+const CartWithCheckout = lazy(() =>
+  import("./contexts/CheckoutContext").then(mod => ({
+    default: (props: any) => {
+      const InnerCart = React.lazy(() => import("./pages/Cart"));
+      return (
+        <mod.CheckoutProvider>
+          <React.Suspense fallback={null}>
+            <InnerCart />
+          </React.Suspense>
+        </mod.CheckoutProvider>
+      );
+    }
+  }))
+);
 const News = lazy(() => import("./pages/News"));
 const NewsArticle = lazy(() => import("./pages/NewsArticle"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
@@ -128,7 +144,7 @@ const App = () => (
                     <Route path="/actualites/:slug" element={<ComingSoonGate><Layout><NewsArticle /></Layout></ComingSoonGate>} />
                     <Route path="/contact" element={<ComingSoonGate><Layout><Contact /></Layout></ComingSoonGate>} />
                     <Route path="/faq" element={<ComingSoonGate><Layout><FAQ /></Layout></ComingSoonGate>} />
-                    <Route path="/panier" element={<ComingSoonGate><Layout><Cart /></Layout></ComingSoonGate>} />
+                    <Route path="/panier" element={<ComingSoonGate><Layout><CartWithCheckout /></Layout></ComingSoonGate>} />
                     <Route path="/paiement-succes" element={<ComingSoonGate><Layout><PaymentSuccess /></Layout></ComingSoonGate>} />
                     <Route path="/try-on" element={<ComingSoonGate><Layout><TryOnPage /></Layout></ComingSoonGate>} />
                     <Route path="/favoris" element={<ComingSoonGate><Layout><Wishlist /></Layout></ComingSoonGate>} />
