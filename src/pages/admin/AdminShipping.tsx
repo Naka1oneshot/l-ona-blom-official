@@ -8,8 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Save, MapPin, Truck, Package, DollarSign, Gift, Calculator, Globe, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Save, MapPin, Truck, Package, DollarSign, Gift, Calculator, Globe, AlertTriangle, FlaskConical } from 'lucide-react';
 import { COUNTRY_OPTIONS } from '@/types/shipping';
+import { calculateShipping } from '@/lib/shipping/calcShipping';
 
 // ─── Types for local state ───
 type Zone = { id: string; name_fr: string; name_en: string | null; description_fr: string | null; description_en: string | null; customs_notice: boolean; is_active: boolean; sort_order: number };
@@ -79,6 +80,7 @@ const AdminShipping = () => {
           <TabsTrigger value="free" className="gap-1 text-xs"><Gift size={13} /> Offerte</TabsTrigger>
           <TabsTrigger value="options" className="gap-1 text-xs"><MapPin size={13} /> Options</TabsTrigger>
           <TabsTrigger value="tax" className="gap-1 text-xs"><Calculator size={13} /> TVA</TabsTrigger>
+          <TabsTrigger value="simulator" className="gap-1 text-xs"><FlaskConical size={13} /> Simulateur</TabsTrigger>
         </TabsList>
 
         {/* ─── ZONES ─── */}
@@ -101,6 +103,11 @@ const AdminShipping = () => {
 
         {/* ─── TAX ─── */}
         <TabsContent value="tax"><TaxPanel taxSettings={taxSettings} onReload={loadAll} /></TabsContent>
+
+        {/* ─── SIMULATOR ─── */}
+        <TabsContent value="simulator">
+          <SimulatorPanel zones={zones} zoneCountries={zoneCountries} sizeClasses={sizeClasses} methods={methods} rateRules={rateRules} freeThresholds={freeThresholds} options={options} optionPrices={optionPrices} />
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -634,6 +641,149 @@ function TaxPanel({ taxSettings, onReload }: { taxSettings: TaxSettings; onReloa
         </div>
       )}
       <Button size="sm" onClick={save}><Save size={13} className="mr-1" /> Enregistrer</Button>
+    </div>
+  );
+}
+
+// ═══════════════════════ SIMULATOR ═══════════════════════
+function SimulatorPanel({ zones, zoneCountries, sizeClasses, methods, rateRules, freeThresholds, options, optionPrices }: {
+  zones: Zone[]; zoneCountries: ZoneCountry[]; sizeClasses: SizeClass[]; methods: Method[];
+  rateRules: RateRule[]; freeThresholds: FreeThreshold[]; options: ShipOption[]; optionPrices: OptionPrice[];
+}) {
+  const [countryCode, setCountryCode] = useState('FR');
+  const [subtotalEur, setSubtotalEur] = useState('50');
+  const [weightPoints, setWeightPoints] = useState('2');
+  const [methodId, setMethodId] = useState(methods.find(m => m.is_active)?.id || '');
+  const [optInsurance, setOptInsurance] = useState(false);
+  const [optSignature, setOptSignature] = useState(false);
+  const [optGiftWrap, setOptGiftWrap] = useState(false);
+
+  const activeMethods = methods.filter(m => m.is_active);
+
+  // Build a fake cart item from subtotal + weight
+  const subtotalCents = Math.round((parseFloat(subtotalEur) || 0) * 100);
+  const wp = parseFloat(weightPoints) || 0;
+
+  // We create a synthetic size class to match the entered weight points
+  const syntheticSizeCode = '__SIM__';
+  const augmentedSizeClasses = [...sizeClasses, { code: syntheticSizeCode, label_fr: 'Sim', label_en: null, weight_points: wp, is_active: true, sort_order: 999 }];
+
+  const result = calculateShipping(
+    {
+      cartItems: [{ productId: 'sim', quantity: 1, priceEurCents: subtotalCents, madeToOrder: false, leadTimeDays: null, sizeClassCode: syntheticSizeCode }],
+      countryCode,
+      methodId,
+      selectedOptions: { insurance: optInsurance, signature: optSignature, gift_wrap: optGiftWrap },
+      shipmentPreference: 'single',
+    },
+    { zones, zoneCountries, sizeClasses: augmentedSizeClasses, methods, rateRules, freeThresholds, optionPrices, options: options as any }
+  );
+
+  const errorLabels: Record<string, string> = {
+    NO_ZONE: 'Aucune zone configurée pour ce pays',
+    NO_METHOD: 'Méthode non trouvée ou inactive',
+    NO_RATE_RULE: 'Aucune règle de tarif ne correspond à ces paramètres',
+  };
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">Simulez un calcul de livraison en saisissant un pays, un montant panier et un poids (points).</p>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <Label className="text-xs">Pays</Label>
+          <Select value={countryCode} onValueChange={setCountryCode}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {COUNTRY_OPTIONS.map(c => <SelectItem key={c.code} value={c.code}>{c.label_fr} ({c.code})</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs">Montant panier (€)</Label>
+          <Input type="number" min="0" step="0.01" value={subtotalEur} onChange={e => setSubtotalEur(e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Points poids</Label>
+          <Input type="number" min="0" step="0.1" value={weightPoints} onChange={e => setWeightPoints(e.target.value)} />
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Réf : {sizeClasses.map(sc => `${sc.label_fr}=${sc.weight_points}`).join(', ')}
+          </p>
+        </div>
+        <div>
+          <Label className="text-xs">Méthode</Label>
+          <Select value={methodId} onValueChange={setMethodId}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {activeMethods.map(m => <SelectItem key={m.id} value={m.id}>{m.name_fr}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={optInsurance} onChange={e => setOptInsurance(e.target.checked)} className="accent-primary" /> Assurance
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={optSignature} onChange={e => setOptSignature(e.target.checked)} className="accent-primary" /> Signature
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={optGiftWrap} onChange={e => setOptGiftWrap(e.target.checked)} className="accent-primary" /> Colis cadeau
+        </label>
+      </div>
+
+      {/* ─── Result ─── */}
+      <div className="border border-border rounded-lg p-5 space-y-3 bg-muted/30">
+        <h3 className="text-sm font-medium tracking-wide uppercase flex items-center gap-2">
+          <FlaskConical size={14} /> Résultat
+        </h3>
+
+        {result.error ? (
+          <div className="flex items-start gap-2 text-destructive text-sm">
+            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+            <span>{errorLabels[result.error] || result.error}</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground text-xs block">Zone</span>
+              <span className="font-medium">{result.zone?.name_fr ?? '—'}</span>
+              {result.customsNotice && <span className="block text-xs text-destructive mt-0.5">🛃 Douanes à charge client</span>}
+            </div>
+            <div>
+              <span className="text-muted-foreground text-xs block">Méthode</span>
+              <span className="font-medium">{result.method?.name_fr ?? '—'}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground text-xs block">Délai transport</span>
+              <span className="font-medium">{result.etaMinDays}–{result.etaMaxDays} jours</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground text-xs block">Frais livraison</span>
+              <span className="font-medium text-lg">
+                {result.isFreeShipping ? (
+                  <span className="text-green-600">Gratuit</span>
+                ) : (
+                  `${(result.shippingPriceEur / 100).toFixed(2)} €`
+                )}
+              </span>
+            </div>
+            {result.optionsPriceEur > 0 && (
+              <div>
+                <span className="text-muted-foreground text-xs block">Dont options</span>
+                <span className="font-medium">{(result.optionsPriceEur / 100).toFixed(2)} €</span>
+              </div>
+            )}
+            {result.isFreeShipping && (
+              <div>
+                <span className="text-muted-foreground text-xs block">Seuil offert</span>
+                <span className="font-medium text-green-600">✓ Atteint</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
